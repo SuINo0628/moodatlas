@@ -1684,48 +1684,74 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     const body = { message: 'mood sync ' + new Date().toISOString().slice(0, 19).replace('T', ' '), content: b64enc(JSON.stringify(payload)) };
     if (sha) body.sha = sha;
     const res = await fetch(ghApiUrl(c), { method: 'PUT', headers: Object.assign(ghHeaders(), { 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
-    if (!res.ok) { const e = new Error('推送失败 HTTP ' + res.status); e.status = res.status; throw e; }
+    if (!res.ok) {
+      let detail = '';
+      try { const b = await res.json(); if (b && b.message) detail = ' — ' + b.message; } catch (_) {}
+      const e = new Error('推送失败 HTTP ' + res.status + detail);
+      e.status = res.status;
+      throw e;
+    }
     const j = await res.json();
     return j.content.sha;
   }
+  let _ghBusy = false;
+  let _ghPending = false;
   async function ghSync(msgEl, doReload, _retried) {
-    const c = ghConf();
-    if (!c.enabled) { if (msgEl) msgEl.textContent = '请先在上方勾选「启用同步」'; updateConn(); return; }
-    if (!c.user) { if (msgEl) msgEl.textContent = '请填写 GitHub 用户名'; updateConn(); return; }
-    if (!c.token) { if (msgEl) msgEl.textContent = '请填写 GitHub 访问令牌 PAT'; updateConn(); return; }
-    if (!c.repo) { if (msgEl) msgEl.textContent = '请填写仓库名'; updateConn(); return; }
+    // 同会话内多次触发同步（如"加一条、立刻删一条"）会让两个 ghSync 同时 fetch，
+    // 第二个的 sha 在第一个 PUT 完成前就已过期，PUT 被拒为 409。
+    // 加互斥锁：进入前若已在飞则只标记一次"待办"，等当前那次跑完再补跑一次。
+    if (_ghBusy) { _ghPending = true; return; }
+    _ghBusy = true;
     try {
-      if (msgEl) msgEl.textContent = '同步中…';
-      setSyncState('syncing');
-      let remote = null;
-      try { remote = await ghPull(); }
-      catch (e) {
-        if (e.status === 401 || e.status === 403) {
-          const m = '令牌无效或没权限（检查 PAT 是否勾了 Contents 读写、是否过期、是否选中了这个仓库）';
-          if (msgEl) msgEl.textContent = '✗ ' + m; setSyncState('error', m); return;
+      const c = ghConf();
+      if (!c.enabled) { if (msgEl) msgEl.textContent = '请先在上方勾选「启用同步」'; updateConn(); return; }
+      if (!c.user) { if (msgEl) msgEl.textContent = '请填写 GitHub 用户名'; updateConn(); return; }
+      if (!c.token) { if (msgEl) msgEl.textContent = '请填写 GitHub 访问令牌 PAT'; updateConn(); return; }
+      if (!c.repo) { if (msgEl) msgEl.textContent = '请填写仓库名'; updateConn(); return; }
+      try {
+        if (msgEl) msgEl.textContent = '同步中…';
+        setSyncState('syncing');
+        let remote = null;
+        try { remote = await ghPull(); }
+        catch (e) {
+          if (e.status === 401 || e.status === 403) {
+            const m = '令牌无效或没权限（检查 PAT 是否勾了 Contents 读写、是否过期、是否选中了这个仓库）';
+            if (msgEl) msgEl.textContent = '✗ ' + m; setSyncState('error', m); return;
+          }
+          if (e.status !== 404) {
+            // 非致命的拉取失败（GitHub 临时 5xx / 网络抖动）：不中断整次同步，
+            // 继续用本地数据推送（按首次创建处理），避免「GitHub 上已有数据却显示同步失败」的误导
+            remote = null;
+          }
         }
-        if (e.status !== 404) {
-          // 非致命的拉取失败（GitHub 临时 5xx / 网络抖动）：不中断整次同步，
-          // 继续用本地数据推送（按首次创建处理），避免「GitHub 上已有数据却显示同步失败」的误导
-          remote = null;
+        const merged = remote
+          ? { records: mergeRecords(DATA.records, remote.data.records), nextQuestions: mergeNext(DATA.nextQuestions, remote.data.nextQuestions) }
+          : { records: DATA.records, nextQuestions: DATA.nextQuestions };
+        DATA.records = merged.records; DATA.nextQuestions = merged.nextQuestions;
+        saveData();
+        await ghPush({ records: DATA.records, nextQuestions: DATA.nextQuestions }, remote ? remote.sha : null);
+        setSyncState('ok');
+        const others = countOtherAuthors();
+        if (msgEl) msgEl.textContent = '✓ 已同步到 ' + c.user + '/' + c.repo + '，共 ' + DATA.records.length + ' 条'
+          + (others ? '（其中 ' + others + '条来自一起用的人，可在「历史」里按记录人筛选查看）' : '');
+        if (doReload) setTimeout(function () { location.reload(); }, 700);
+      } catch (e) {
+        if (e && e.status === 409 && !_retried) {
+          // 释放锁，让递归 retry 真的能进（避免它被自身的互斥挡掉）
+          _ghBusy = false;
+          return ghSync(msgEl, doReload, true);
         }
+        const m = (e && e.message ? e.message : String(e));
+        if (msgEl) msgEl.textContent = '✗ 同步失败：' + m;
+        setSyncState('error', m);
       }
-      const merged = remote
-        ? { records: mergeRecords(DATA.records, remote.data.records), nextQuestions: mergeNext(DATA.nextQuestions, remote.data.nextQuestions) }
-        : { records: DATA.records, nextQuestions: DATA.nextQuestions };
-      DATA.records = merged.records; DATA.nextQuestions = merged.nextQuestions;
-      saveData();
-      await ghPush({ records: DATA.records, nextQuestions: DATA.nextQuestions }, remote ? remote.sha : null);
-      setSyncState('ok');
-      const others = countOtherAuthors();
-      if (msgEl) msgEl.textContent = '✓ 已同步到 ' + c.user + '/' + c.repo + '，共 ' + DATA.records.length + ' 条'
-        + (others ? '（其中 ' + others + ' 条来自一起用的人，可在「历史」里按记录人筛选查看）' : '');
-      if (doReload) setTimeout(function () { location.reload(); }, 700);
-    } catch (e) {
-      if (e && e.status === 409 && !_retried) { return ghSync(msgEl, doReload, true); }
-      const m = (e && e.message ? e.message : String(e));
-      if (msgEl) msgEl.textContent = '✗ 同步失败：' + m;
-      setSyncState('error', m);
+    } finally {
+      // 释放锁；如果在飞的 ghSync 期间有别的同步被"记了一笔待办"，解锁后立刻补跑一次，确保所有变更都被推送
+      if (_ghBusy) _ghBusy = false;
+      if (_ghPending) {
+        _ghPending = false;
+        Promise.resolve().then(function () { ghSync(msgEl, doReload); });
+      }
     }
   }
   // 共享空间里有多少条是别人写的（用于状态提示和图例）
