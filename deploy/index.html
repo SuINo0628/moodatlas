@@ -1704,7 +1704,11 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
           const m = '令牌无效或没权限（检查 PAT 是否勾了 Contents 读写、是否过期、是否选中了这个仓库）';
           if (msgEl) msgEl.textContent = '✗ ' + m; setSyncState('error', m); return;
         }
-        if (e.status !== 404) throw e;
+        if (e.status !== 404) {
+          // 非致命的拉取失败（GitHub 临时 5xx / 网络抖动）：不中断整次同步，
+          // 继续用本地数据推送（按首次创建处理），避免「GitHub 上已有数据却显示同步失败」的误导
+          remote = null;
+        }
       }
       const merged = remote
         ? { records: mergeRecords(DATA.records, remote.data.records), nextQuestions: mergeNext(DATA.nextQuestions, remote.data.nextQuestions) }
@@ -1912,7 +1916,9 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
       return;
     }
     if (syncState.status === 'error') {
-      dot.classList.add('warn'); txt.textContent = '同步失败 · 点击重试';
+      dot.classList.add('warn');
+      const errShort = syncState.err ? (syncState.err.length > 18 ? syncState.err.slice(0, 18) + '…' : syncState.err) : '未知错误';
+      txt.textContent = '同步失败：' + errShort + ' · 点击重试';
       dot.title = '上次同步失败：' + (syncState.err || '未知错误') + '\n点这里立即重试。';
       return;
     }
