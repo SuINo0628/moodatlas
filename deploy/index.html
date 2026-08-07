@@ -676,6 +676,60 @@ body {
   .wrap { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
 }
 
+/* ---------- 独立页面视图（整屏切换，不是弹窗） ---------- */
+.page {
+  position: fixed; inset: 0; z-index: 70;
+  background: var(--bg-0);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  opacity: 0; pointer-events: none; transform: translateY(16px);
+  transition: opacity .26s ease, transform .32s cubic-bezier(.2,.8,.2,1);
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
+}
+.page.show { opacity: 1; pointer-events: auto; transform: none; }
+.page-top {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(14px + env(safe-area-inset-top)) 18px 13px;
+  background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-brd);
+}
+.page-back {
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; border: 1px solid var(--glass-brd); color: var(--ink-soft);
+  font-family: var(--font-display); font-size: 13.5px; font-weight: 600;
+  padding: 8px 14px; border-radius: 12px; cursor: pointer; line-height: 1;
+  transition: color .2s, border-color .2s, background .2s, transform .15s;
+}
+.page-back:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.page-back:active { transform: scale(.94); }
+.page-title { font-family: var(--font-display); font-size: 16.5px; font-weight: 700; color: var(--ink); line-height: 1.25; }
+.page-title small { display: block; font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--ink-dim); margin-top: 3px; }
+.page-body { max-width: 760px; margin: 0 auto; padding: 20px 18px 0; }
+.page-lead { font-size: 13.5px; color: var(--ink-soft); line-height: 1.75; margin: 0 0 16px; }
+.page-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.page-msg { font-size: 12.5px; color: var(--accent); min-height: 18px; margin-bottom: 10px; line-height: 1.6; }
+
+/* 回收站条目 */
+.trash-list { display: flex; flex-direction: column; gap: 12px; }
+.trash-item {
+  display: grid; grid-template-columns: 48px 1fr; gap: 13px; align-items: start;
+  padding: 14px 15px; border-radius: var(--r-md);
+  background: var(--glass); border: 1px solid var(--glass-brd);
+  animation: fadeInUp .4s ease both;
+}
+.trash-item .tmood {
+  width: 48px; height: 48px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 14.5px;
+  background: var(--bg-1); border: 1px solid var(--glass-brd);
+}
+.trash-item .tbody { min-width: 0; }
+.trash-item .tdate { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-dim); }
+.trash-item .tscene { font-size: 13.5px; color: var(--ink); margin-top: 4px; }
+.trash-item .tnote { font-size: 13px; color: var(--ink-soft); line-height: 1.65; margin-top: 5px; word-break: break-word; }
+.trash-item .ttags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.trash-item .ttag { font-size: 11.5px; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-glow); padding: 2px 9px; border-radius: 999px; }
+.trash-item .tacts { display: flex; gap: 8px; margin-top: 11px; flex-wrap: wrap; }
+
 /* ---------- 历史记录列表 ---------- */
 .hist-list {
   display: flex; flex-direction: column; gap: 12px;
@@ -1323,12 +1377,6 @@ body {
   </div>
 </div>
 <div class="scrim" id="scrim"></div>
-<div class="modal" id="dayPickModal">
-  <span class="mclose" id="dayPickClose">×</span>
-  <div class="mtag">同一天有多条</div>
-  <h3 id="dayPickTitle">这一天有 N 条记录</h3>
-  <div id="dayPickList"></div>
-</div>
 
 <!-- 作答模态框 -->
 <div class="modal" id="qModal">
@@ -1508,15 +1556,6 @@ body {
   <div class="hist-list" id="histList"></div>
 </div>
 
-<!-- 回收站（被软删除的记录，可恢复或彻底删除） -->
-<div class="modal" id="trashModal">
-  <span class="mclose" id="trashClose">×</span>
-  <div class="mtag">回收站</div>
-  <h3>不愿面对的 · 共 <span id="trashCount">0</span> 条</h3>
-  <p class="rec-tip" style="font-weight:400;color:var(--ink-soft);margin:-4px 0 14px">这里收着被你删掉的情绪记录。可以「恢复」回到主列表，或「彻底删除」让它永远消失。</p>
-  <div class="hist-list" id="trashList"></div>
-</div>
-
 <!-- AI 总结报告 -->
 <div class="modal" id="reportModal">
   <span class="mclose" id="reportClose">×</span>
@@ -1543,7 +1582,7 @@ body {
   <div class="tl-list" id="tlList"></div>
 </div>
 
-<!-- 手机端底部导航：三个视图切换（看板 / 时间轴 / 历史） -->
+<!-- 手机端底部导航：四个视图切换（看板 / 时间轴 / 历史 / 回收站） -->
 <div class="botnav" id="botnav">
   <button class="bnav-btn active" id="navDash"><span>看板</span></button>
   <button class="bnav-btn" id="navTl"><span>时间轴</span></button>
@@ -1555,8 +1594,8 @@ body {
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
-window.__GEN_DATE__ = "2026-08-07 16:48";
-window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
+window.__GEN_DATE__ = "2026-08-08 02:43";
+window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -1578,7 +1617,9 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   (DATA.records || []).forEach(r => { if (!r.id) r.id = genId(); });
   if (!DATA.nextQuestions) DATA.nextQuestions = [];
   if (!Array.isArray(DATA.deleted)) DATA.deleted = []; // 墓碑：记录被删的 id/指纹，用于跨设备传播删除
+  if (!Array.isArray(DATA.revived)) DATA.revived = []; // 复活标记：从回收站恢复过的 id，压过更早的墓碑
   if (!Array.isArray(DATA.trash)) DATA.trash = []; // 回收站：被软删除的记录，可恢复或彻底删除
+  if (!Array.isArray(DATA.trashPurged)) DATA.trashPurged = []; // 已离开回收站的 id（彻底删除 / 已恢复）
   const TODAY_Q = DATA.todayQuestion || window.__TODAY_Q__ || '今天过得怎么样？挑感受最明显的一件事，写两句。';
   const Q_PROMPTS = window.__Q_PROMPTS__ || [];
   const NEXT_Q = DATA.nextQuestions;
@@ -1645,10 +1686,17 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     if (res.status === 404) return null;
     if (!res.ok) { const e = new Error('拉取失败 HTTP ' + res.status); e.status = res.status; throw e; }
     const j = await res.json();
-    let data; try { data = JSON.parse(b64dec(j.content)); } catch (e) { data = { records: [], nextQuestions: [] }; }
+    let bad = false;
+    let data; try { data = JSON.parse(b64dec(j.content)); } catch (e) { bad = true; data = { records: [], nextQuestions: [] }; }
+    if (!data || typeof data !== 'object') { bad = true; data = { records: [] }; }
+    // 云端文件损坏时，不能当成「云端是空的」继续往下走：那会把本地数据当成全量覆盖上去，
+    // 反过来也可能把本地清空。直接报错，让用户看到，数据原样留在两边。
+    if (bad) { const e = new Error('云端文件内容坏了，解析不出来，已停下不动它'); e.status = 599; throw e; }
     if (!Array.isArray(data.records)) data.records = [];
     if (!Array.isArray(data.nextQuestions)) data.nextQuestions = [];
     if (!Array.isArray(data.deleted)) data.deleted = [];
+    if (!Array.isArray(data.revived)) data.revived = [];
+    if (!Array.isArray(data.purged)) data.purged = [];
     return { data: data, sha: j.sha };
   }
   /* 合并策略修复：原来以 date 作唯一键，两个人在同一天各记一条时会互相覆盖（真实丢数据）。
@@ -1708,25 +1756,81 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     const j = await res.json();
     return j.content.sha;
   }
-  // 回收站：独立文件 情绪记录_回收站.json，与主文件互不干扰（不同 sha，不会互相 409 冲突）
-  async function syncTrash() {
+  /* ---------- 回收站云同步：独立文件 情绪记录_回收站.json ----------
+     与主文件互不干扰（各自的 sha，不会互相 409）。
+     结构：{ records: [...], purged: [{id, at}] }
+     purged 是「已离开回收站」的标记（彻底删除或恢复），用来让这个动作跨设备生效，
+     否则本机删掉一条、云端还有，下次一合并又被拉回来，看起来像「删不掉」。 */
+  function mergeTrashList(a, b) {
+    const seen = {}, out = [];
+    (a || []).concat(b || []).forEach(function (x) {
+      if (!x) return;
+      const k = x.id ? 'id:' + x.id : 'fp:' + recFingerprint(x);
+      if (seen[k]) return;
+      seen[k] = 1; out.push(x);
+    });
+    return out;
+  }
+  function mergeMarks(a, b) {
+    const m = {}, out = [];
+    (a || []).concat(b || []).forEach(function (t) {
+      if (!t || !t.id) return;
+      if (t.at && Date.now() - t.at > 180 * 86400000) return; // 半年前的标记不再保留
+      if (!m[t.id] || (t.at || 0) > m[t.id].at) m[t.id] = { id: t.id, at: t.at || 0 };
+    });
+    Object.keys(m).forEach(function (k) { out.push(m[k]); });
+    return out;
+  }
+  function applyPurged(list, purged) {
+    const gone = {};
+    (purged || []).forEach(function (t) { if (t && t.id) gone[t.id] = 1; });
+    return (list || []).filter(function (r) { return !(r && r.id && gone[r.id]); });
+  }
+  // 只读云端回收站并与本地合并（不写回），进回收站页面时对齐用
+  async function pullTrash() {
+    const c = ghConf();
+    if (!c.enabled || !c.token || !c.user || !c.repo) return null;
+    const r = await ghPull(GH_TRASH);
+    if (r && r.data) {
+      DATA.trashPurged = mergeMarks(DATA.trashPurged, r.data.purged);
+      DATA.trash = applyPurged(mergeTrashList(r.data.records, DATA.trash), DATA.trashPurged);
+      saveData();
+      return r.sha;
+    }
+    return null;
+  }
+  let _trashBusy = false, _trashPending = false;
+  async function syncTrash(_retried) {
     const c = ghConf();
     if (!c.enabled || !c.token || !c.user || !c.repo) return;
-    let sha = null;
+    if (_trashBusy) { _trashPending = true; return; }
+    _trashBusy = true;
+    let handoff = false;
     try {
+      // 拉取必须成功（或确认文件确实不存在 → 404 → null）才能推。
+      // 拉取出错就中断，绝不拿本地数据去盲推，否则会把别的设备的回收站整个覆盖掉。
       const r = await ghPull(GH_TRASH);
-      if (r && r.data && Array.isArray(r.data.records)) {
-        const seen = {}, out = [];
-        r.data.records.concat(DATA.trash || []).forEach(function (x) {
-          if (!x) return;
-          const k = x.id ? 'id:' + x.id : 'fp:' + recFingerprint(x);
-          if (!seen[k]) { seen[k] = 1; out.push(x); }
-        });
-        DATA.trash = out; saveData();
+      let sha = null;
+      if (r && r.data) {
+        DATA.trashPurged = mergeMarks(DATA.trashPurged, r.data.purged);
+        DATA.trash = applyPurged(mergeTrashList(r.data.records, DATA.trash), DATA.trashPurged);
+        saveData();
         sha = r.sha;
       }
-    } catch (e) { if (e && (e.status === 401 || e.status === 403)) throw e; }
-    await ghPush({ records: DATA.trash || [] }, sha, GH_TRASH);
+      await ghPush({ records: DATA.trash || [], purged: DATA.trashPurged || [], updatedAt: new Date().toISOString() }, sha, GH_TRASH);
+    } catch (e) {
+      // 409/422 都是「sha 和云端对不上」：重新拉一次拿到新 sha 再推
+      if (e && (e.status === 409 || e.status === 422) && !_retried) {
+        _trashBusy = false; handoff = true;
+        return syncTrash(true);
+      }
+      throw e;
+    } finally {
+      if (!handoff) {
+        _trashBusy = false;
+        if (_trashPending) { _trashPending = false; Promise.resolve().then(function () { syncTrash().catch(function () {}); }); }
+      }
+    }
   }
   let _ghBusy = false;
   let _ghPending = false;
@@ -1736,6 +1840,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     // 加互斥锁：进入前若已在飞则只标记一次"待办"，等当前那次跑完再补跑一次。
     if (_ghBusy) { _ghPending = true; return; }
     _ghBusy = true;
+    let handoff = false; // 已把锁交给 409 重试的那次调用，finally 里就别再动锁
     try {
       const c = ghConf();
       if (!c.enabled) { if (msgEl) msgEl.textContent = '请先在上方勾选「启用同步」'; updateConn(); return; }
@@ -1753,34 +1858,42 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
             if (msgEl) msgEl.textContent = '✗ ' + m; setSyncState('error', m); return;
           }
           if (e.status !== 404) {
-            // 非致命的拉取失败（GitHub 临时 5xx / 网络抖动）：不中断整次同步，
-            // 继续用本地数据推送（按首次创建处理），避免「GitHub 上已有数据却显示同步失败」的误导
-            remote = null;
+            // 拉取失败又说不清云端现在是什么样（网络抖动 / GitHub 5xx）：
+            // 这时候绝不能拿本地数据不带 sha 去覆盖，那会把云端别的设备写的记录整个抹掉。
+            // 直接中止本次同步，本地数据已存在 localStorage，联网后会自动补推。
+            const m = '暂时连不上 GitHub（' + (e.message || ('HTTP ' + e.status)) + '），这次没动云端数据，稍后会自动重试';
+            if (msgEl) msgEl.textContent = '✗ ' + m;
+            setSyncState('error', m); scheduleRetry(); return;
           }
         }
         const merged = remote
           ? { records: mergeRecords(DATA.records, remote.data.records), nextQuestions: mergeNext(DATA.nextQuestions, remote.data.nextQuestions) }
           : { records: DATA.records, nextQuestions: DATA.nextQuestions };
         // 墓碑合并：把本地 + 云端删除标记合并，过滤掉已被删的记录，使删除跨设备 / 跨次同步生效
-        const localDel = DATA.deleted || [], remoteDel = (remote && remote.data.deleted) || [];
-        const delSet = new Set();
-        localDel.concat(remoteDel).forEach(function (t) { if (!t) return; if (t.id) delSet.add('id:' + t.id); if (t.fp) delSet.add('fp:' + t.fp); });
+        const allDel = mergeMarksKeepFp(DATA.deleted, (remote && remote.data.deleted) || []);
+        // 复活标记：从回收站恢复过的记录，要能压过更早的墓碑，否则一同步又被删掉
+        const allRev = mergeMarks(DATA.revived, (remote && remote.data.revived) || []);
+        const revAt = {};
+        allRev.forEach(function (t) { revAt[t.id] = t.at || 0; });
+        const liveDel = allDel.filter(function (t) { return !(revAt[t.id] != null && revAt[t.id] >= (t.at || 0)); });
+        const delId = {}, delFp = {};
+        liveDel.forEach(function (t) { if (t.id) delId[t.id] = 1; if (t.fp) delFp[t.fp] = 1; });
         const recs2 = merged.records.filter(function (r) {
           if (!r) return false;
-          if (r.id && delSet.has('id:' + r.id)) return false;
-          if (delSet.has('fp:' + recFingerprint(r))) return false;
-          return true;
+          if (r.id) return !delId[r.id];           // 有 id 就只认 id，避免内容雷同的新记录被老墓碑误杀
+          return !delFp[recFingerprint(r)];         // 没 id 的老数据才退回按内容指纹判断
         });
-        // 合并墓碑去重，丢弃 90 天前的老墓碑（防无限增长；90 天内任何设备都能拿到删除标记）
-        const mergedDel = [], seenT = new Set();
-        localDel.concat(remoteDel).forEach(function (t) {
-          if (!t || !t.id || seenT.has(t.id)) return;
-          if (t.at && Date.now() - t.at > 90 * 86400000) return;
-          seenT.add(t.id); mergedDel.push(t);
-        });
-        DATA.records = recs2; DATA.nextQuestions = merged.nextQuestions; DATA.deleted = mergedDel;
+        DATA.records = recs2;
+        DATA.nextQuestions = merged.nextQuestions;
+        DATA.deleted = allDel;
+        DATA.revived = allRev;
         saveData();
-        await ghPush({ records: DATA.records, nextQuestions: DATA.nextQuestions, deleted: DATA.deleted }, remote ? remote.sha : null);
+        await ghPush({
+          records: DATA.records, nextQuestions: DATA.nextQuestions,
+          deleted: DATA.deleted, revived: DATA.revived,
+          updatedAt: new Date().toISOString()
+        }, remote ? remote.sha : null);
+        refreshRecs(); // 云端拉回来的记录要立刻进 UI 用的数组，否则要刷新页面才看得见
         setSyncState('ok');
         bumpSyncCount();
         const others = countOtherAuthors();
@@ -1788,23 +1901,52 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
           + (others ? '（其中 ' + others + '条来自一起用的人，可在「历史」里按记录人筛选查看）' : '');
         if (doReload) setTimeout(function () { location.reload(); }, 700);
       } catch (e) {
-        if (e && e.status === 409 && !_retried) {
-          // 释放锁，让递归 retry 真的能进（避免它被自身的互斥挡掉）
-          _ghBusy = false;
+        if (e && (e.status === 409 || e.status === 422) && !_retried) {
+          // sha 过期（有别的写入抢先了）：释放锁，让递归重试真的能进去，重新拉一次再推
+          _ghBusy = false; handoff = true;
           return ghSync(msgEl, doReload, true);
         }
         const m = (e && e.message ? e.message : String(e));
         if (msgEl) msgEl.textContent = '✗ 同步失败：' + m;
         setSyncState('error', m);
+        scheduleRetry();
       }
     } finally {
       // 释放锁；如果在飞的 ghSync 期间有别的同步被"记了一笔待办"，解锁后立刻补跑一次，确保所有变更都被推送
-      if (_ghBusy) _ghBusy = false;
-      if (_ghPending) {
-        _ghPending = false;
-        Promise.resolve().then(function () { ghSync(msgEl, doReload); });
+      if (!handoff) {
+        _ghBusy = false;
+        if (_ghPending) {
+          _ghPending = false;
+          Promise.resolve().then(function () { ghSync(msgEl, doReload); });
+        }
       }
     }
+  }
+  // 墓碑合并：和 mergeMarks 一样，但保留 fp 字段（老数据没有 id，只能靠内容指纹认）
+  function mergeMarksKeepFp(a, b) {
+    const m = {}, out = [];
+    (a || []).concat(b || []).forEach(function (t) {
+      if (!t || !t.id) return;
+      if (t.at && Date.now() - t.at > 180 * 86400000) return;
+      if (!m[t.id] || (t.at || 0) > (m[t.id].at || 0)) m[t.id] = t;
+    });
+    Object.keys(m).forEach(function (k) { out.push(m[k]); });
+    return out;
+  }
+  // UI 用的 recs 数组要跟 DATA.records 保持同一份内容
+  function refreshRecs() {
+    recs.length = 0;
+    (DATA.records || []).slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (x) { recs.push(x); });
+  }
+  // 同步失败后自动补一次：网络抖动不该让数据一直卡在本地
+  let _retryTimer = null;
+  function scheduleRetry() {
+    if (_retryTimer) return;
+    _retryTimer = setTimeout(function () {
+      _retryTimer = null;
+      const c = ghConf();
+      if (c.enabled && c.token && c.user && c.repo && syncState.status === 'error') ghSync(null, false);
+    }, 45000);
   }
   // 共享空间里有多少条是别人写的（用于状态提示和图例）
   function countOtherAuthors() {
@@ -2222,9 +2364,12 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     });
   }
   function setBotNav(active) {
-    ['navDash', 'navTl', 'navHist'].forEach(id => { const b = $('#' + id); if (b) b.classList.toggle('active', id === active); });
+    ['navDash', 'navTl', 'navHist', 'navTrash'].forEach(id => { const b = $('#' + id); if (b) b.classList.toggle('active', id === active); });
   }
+  let _viewName = 'dash';
   function switchView(name) {
+    closeTrash(); // 回收站是整屏页面，切别的视图先退出来
+    _viewName = name;
     const dash = name === 'dash';
     $('#bento').hidden = !dash;
     $('#timeBar').style.display = dash ? '' : 'none';
@@ -2232,29 +2377,68 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     $('#viewHist').hidden = name !== 'hist';
     if (name === 'tl') buildTimeline($('#viewTlList'));
     if (name === 'hist') buildHistory($('#viewHistList'));
-    setBotNav(name);
+    setBotNav('nav' + ({ dash: 'Dash', tl: 'Tl', hist: 'Hist' }[name] || 'Dash'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   function openHistory() { buildHistory($('#histList')); $('#histModal').classList.add('show'); $('#scrim').classList.add('show'); }
   function closeHistory() { $('#histModal').classList.remove('show'); $('#scrim').classList.remove('show'); }
-  function openTrash() { buildTrashList($('#trashList')); const c = $('#trashCount'); if (c) c.textContent = (DATA.trash || []).length; $('#trashModal').classList.add('show'); $('#scrim').classList.add('show'); }
-  function closeTrash() { $('#trashModal').classList.remove('show'); $('#scrim').classList.remove('show'); }
-  function buildTrashList(target) {
-    const list = target || $('#trashList'); if (!list) return;
-    const items = (DATA.trash || []).slice().sort(function (a, b) { return (a.date + (a.time || '')) < (b.date + (b.time || '')) ? 1 : -1; });
-    if (!items.length) { list.innerHTML = '<div class="empty" style="padding:40px">回收站是空的。删除的记录会先到这里，可以恢复，也可以彻底删除。</div>'; return; }
+
+  /* ---------- 回收站：独立整屏页面（不是弹窗） ---------- */
+  function trashMsg(t) { const m = $('#trashMsg'); if (m) m.textContent = t || ''; }
+  function trashOpened() { const p = $('#trashPage'); return !!(p && p.classList.contains('show')); }
+  function openTrash() {
+    const p = $('#trashPage'); if (!p || trashOpened()) return;
+    renderTrash();
+    p.classList.add('show'); p.scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+    setBotNav('navTrash');
+    trashMsg('');
+    try { history.pushState({ moodTrash: 1 }, '', '#trash'); } catch (e) {}
+    // 跨设备：在别的设备删掉的记录，进这个页面时也要能看到
+    const c = ghConf();
+    if (c.enabled && c.token && c.user && c.repo) {
+      trashMsg('正在从云端读取回收站…');
+      pullTrash().then(function () { renderTrash(); trashMsg('已和云端对齐，共 ' + (DATA.trash || []).length + ' 条'); })
+        .catch(function (e) { trashMsg('云端读取失败（' + ((e && e.message) || e) + '），下面显示的是本机的回收站'); });
+    }
+  }
+  function closeTrash(fromPop) {
+    const p = $('#trashPage'); if (!p || !p.classList.contains('show')) return;
+    p.classList.remove('show');
+    document.body.style.overflow = '';
+    trashMsg('');
+    setBotNav('nav' + ({ dash: 'Dash', tl: 'Tl', hist: 'Hist' }[_viewName] || 'Dash'));
+    if (!fromPop) { try { if (history.state && history.state.moodTrash) history.back(); } catch (e) {} }
+  }
+  function renderTrash() {
+    const list = $('#trashList'); if (!list) return;
+    const cnt = $('#trashCount'); if (cnt) cnt.textContent = (DATA.trash || []).length;
+    const items = (DATA.trash || []).slice().sort(function (a, b) {
+      return ((a.delAt || 0) < (b.delAt || 0)) ? 1 : ((a.delAt || 0) > (b.delAt || 0) ? -1 : ((a.date + (a.time || '')) < (b.date + (b.time || '')) ? 1 : -1));
+    });
+    if (!items.length) {
+      list.innerHTML = '<div class="empty" style="padding:56px 20px"><div class="big">回收站是空的</div><div class="sm">删掉的记录会先落到这里。<br>想清楚了再彻底删除，也不迟。</div></div>';
+      return;
+    }
     list.innerHTML = items.map(function (r) {
       const mc = moodColor(r.mood || 3);
-      const note = String(r.note || '').slice(0, 120);
-      return '<div class="hist-item" data-id="' + r.id + '">'
-        + '<div class="hmood" style="color:' + mc + '">' + (r.mood != null ? r.mood : '-') + '/5</div>'
-        + '<div class="hbody"><div class="hdate">' + (r.date || '') + (r.time ? (' ' + r.time.slice(0, 5)) : '') + (r.author ? (' · ' + escapeHtml(r.author)) : '') + '</div>'
-        + '<div class="hnote">' + escapeHtml(note) + '</div></div>'
-        + '<div class="hacts"><button class="btn small" data-act="restore" data-id="' + r.id + '">恢复</button>'
-        + '<button class="btn small danger" data-act="purge" data-id="' + r.id + '">彻底删除</button></div>'
-        + '</div>';
+      const tags = (r.tags || []).map(function (t) { return '<span class="ttag">' + escapeHtml(t) + '</span>'; }).join('');
+      const note = String(r.note || '');
+      const del = r.delAt ? (' · 删于 ' + new Date(r.delAt).toLocaleDateString('zh-CN')) : '';
+      return '<div class="trash-item" data-id="' + escapeHtml(String(r.id || '')) + '">'
+        + '<div class="tmood" style="color:' + mc + '">' + (r.mood != null ? r.mood : '-') + '/5</div>'
+        + '<div class="tbody">'
+        + '<div class="tdate">' + escapeHtml(r.date || '') + (r.time ? (' ' + String(r.time).slice(0, 5)) : '') + (r.author ? (' · ' + escapeHtml(r.author)) : '') + del + '</div>'
+        + (r.scene ? '<div class="tscene">' + escapeHtml(r.scene) + '</div>' : '')
+        + (note ? '<div class="tnote">' + escapeHtml(note.slice(0, 240)) + (note.length > 240 ? '…' : '') + '</div>' : '')
+        + (tags ? '<div class="ttags">' + tags + '</div>' : '')
+        + '<div class="tacts">'
+        + '<button class="btn sm" type="button" data-act="restore" data-id="' + escapeHtml(String(r.id || '')) + '">恢复</button>'
+        + '<button class="btn sm danger" type="button" data-act="purge" data-id="' + escapeHtml(String(r.id || '')) + '">彻底删除</button>'
+        + '</div></div></div>';
     }).join('');
   }
+  function buildTrashList() { renderTrash(); } // 兼容旧调用
   function buildTimeline(target) {
     const list = target || $('#tlList'); if (!list) return;
     const sorted = histFiltered();
@@ -2557,12 +2741,41 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     if (tl) tl.addEventListener('click', () => switchView('tl'));
     if (hist) hist.addEventListener('click', () => switchView('hist'));
     if (trash) trash.addEventListener('click', openTrash);
+    const back = $('#trashBack');
+    if (back) back.addEventListener('click', function () { closeTrash(); });
+    // 手机上的系统返回键 / 浏览器后退，也能退出回收站
+    window.addEventListener('popstate', function () { if (trashOpened()) closeTrash(true); });
+    const refresh = $('#trashRefresh');
+    if (refresh) refresh.addEventListener('click', function () {
+      const c = ghConf();
+      if (!c.enabled || !c.token || !c.user || !c.repo) { trashMsg('还没开启云同步，回收站只存在这台设备上'); return; }
+      trashMsg('正在从云端读取…');
+      pullTrash().then(function () { renderTrash(); trashMsg('✓ 已和云端对齐，共 ' + (DATA.trash || []).length + ' 条'); })
+        .catch(function (e) { trashMsg('✗ 读取失败：' + ((e && e.message) || e)); });
+    });
+    const pall = $('#trashPurgeAll');
+    if (pall) pall.addEventListener('click', function () {
+      const n = (DATA.trash || []).length;
+      if (!n) { trashMsg('回收站本来就是空的'); return; }
+      if (!confirm('清空回收站？这 ' + n + ' 条记录会永远消失，无法恢复。')) return;
+      purgeAllTrash().then(function () { renderTrash(); trashMsg('✓ 已清空'); })
+        .catch(function (e) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e && e.message) || e) + '（本机已清空，联网后会自动补上）'); });
+    });
     const tl2 = $('#trashList');
     if (tl2) tl2.addEventListener('click', function (e) {
       const btn = e.target.closest('[data-act]'); if (!btn) return;
-      const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act');
-      if (act === 'restore') restoreFromTrash(id).then(function () { buildTrashList($('#trashList')); renderAll(); });
-      else if (act === 'purge') { if (confirm('彻底删除后无法恢复，确定吗？')) purgeFromTrash(id).then(function () { buildTrashList($('#trashList')); }); }
+      const id = btn.getAttribute('data-id'), act = btn.getAttribute('data-act');
+      btn.disabled = true;
+      if (act === 'restore') {
+        trashMsg('正在恢复…');
+        restoreFromTrash(id).then(function () { renderTrash(); renderAll(); trashMsg('✓ 已恢复到主列表，回看板就能看到'); })
+          .catch(function (e2) { renderTrash(); trashMsg('✗ 恢复失败：' + ((e2 && e2.message) || e2)); });
+      } else if (act === 'purge') {
+        if (!confirm('彻底删除后无法恢复，确定吗？')) { btn.disabled = false; return; }
+        trashMsg('正在彻底删除…');
+        purgeFromTrash(id).then(function () { renderTrash(); trashMsg('✓ 已彻底删除'); })
+          .catch(function (e2) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e2 && e2.message) || e2)); });
+      }
     });
   }
 
@@ -3088,6 +3301,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     const date = now.toISOString().slice(0, 10);
     const time = now.toTimeString().slice(0, 8);
     const rec = {
+      id: genId(), // 没有 id 的记录只能靠内容指纹去重，跨设备容易重复或误合，这里补上
       date: date,
       time: time,
       mood: 3,
@@ -3198,16 +3412,27 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     const SERVE = '';
     const finishLocal = () => {
       if (state.editingId) { updateRecord(state.editingId, rec); }
-      else { DATA.records.push(rec); DATA.records.sort((a, b) => a.date < b.date ? -1 : 1); }
+      else { DATA.records.push(rec); DATA.records.sort((a, b) => a.date < b.date ? -1 : 1); refreshRecs(); }
       saveData();
       try { localStorage.setItem('mood.lastRecordDate', rec.date); } catch(e){}
       const c = ghConf();
-      if (c.enabled && c.token && c.auto) ghSync(null, false);
       sv.innerHTML = (c.enabled && c.token)
-        ? ('✓ 已保存' + (c.auto ? '，并已在后台同步到 GitHub 云仓库。' : '。可在「设置」点「立即同步」上传到云端。'))
+        ? ('✓ 已保存' + (c.auto ? '，正在同步到云端…' : '。可在「设置」点「立即同步」上传到云端。'))
         : '✓ 已保存。建议点「设置」启用 GitHub 云同步，手机电脑即可共用一份数据。';
       sv.classList.add('show');
-      setTimeout(() => location.reload(), 900);
+      // 以前是「发起同步 + 900ms 后强制刷新」，同步一般要 1 秒以上，
+      // 刷新会把还在飞的请求打断，于是这条要等下次操作才真正上云。改成等同步跑完再刷新。
+      if (c.enabled && c.token && c.auto) {
+        let done = false;
+        const go = () => { if (done) return; done = true; location.reload(); };
+        setTimeout(go, 8000); // 兜底：网络太慢也不能一直卡着不刷新
+        ghSync(null, false).then(function () {
+          sv.innerHTML = '✓ 已保存，并已同步到云端。';
+          setTimeout(go, 500);
+        }).catch(function () { setTimeout(go, 500); });
+      } else {
+        setTimeout(() => location.reload(), 900);
+      }
     };
     if (API_OK) {
       fetch(API_BASE + '/api/records', {
@@ -3221,8 +3446,13 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     }
   }
   function updateRecord(id, rec) {
+    const merged = Object.assign({}, (DATA.records || []).find(r => r.id === id) || {}, rec, { id: id });
+    // 两个数组都要更新：recs 是 UI 用的副本，DATA.records 才是存进 localStorage / 推上云的那份。
+    // 以前只改了 recs，结果编辑完一刷新就变回旧内容，云端也拿不到修改。
+    const di = (DATA.records || []).findIndex(r => r.id === id);
+    if (di >= 0) DATA.records[di] = merged; else DATA.records.push(merged);
     const i = recs.findIndex(r => r.id === id);
-    if (i >= 0) recs[i] = Object.assign({}, recs[i], rec, { id: id });
+    if (i >= 0) recs[i] = merged; else recs.push(merged);
     saveData();
     if (ghConf().auto) ghSync(null, false);
   }
@@ -3232,41 +3462,58 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     // 本地移除
     const i = recs.findIndex(x => x.id === id); if (i >= 0) recs.splice(i, 1);
     const di = DATA.records.findIndex(x => x.id === id); if (di >= 0) DATA.records.splice(di, 1);
-    // 墓碑：让主文件的删除能跨设备 / 下次同步传播，不再被云端旧版本“复活”
+    // 墓碑：让主文件的删除能跨设备 / 下次同步传播，不再被云端旧版本"复活"
     DATA.deleted = DATA.deleted || [];
-    if (!DATA.deleted.some(t => t.id === id)) DATA.deleted.push({ id: id, fp: recFingerprint(r), at: Date.now() });
-    // 软删除：移入回收站（收集“不愿面对的”），可在回收站恢复或彻底删除
+    DATA.deleted = DATA.deleted.filter(t => t.id !== id);
+    DATA.deleted.push({ id: id, fp: recFingerprint(r), at: Date.now() });
+    DATA.revived = (DATA.revived || []).filter(t => t.id !== id); // 之前恢复过的话，这次删除要盖过它
+    // 软删除：移入回收站（收集"不愿面对的"），可在回收站恢复或彻底删除
     DATA.trash = DATA.trash || [];
-    if (!DATA.trash.some(t => t.id === id)) DATA.trash.push(r);
+    DATA.trashPurged = (DATA.trashPurged || []).filter(t => t.id !== id); // 重新进回收站，清掉"已离开"标记
+    if (!DATA.trash.some(t => t.id === id)) DATA.trash.push(Object.assign({}, r, { delAt: Date.now() }));
     saveData();
     const c = ghConf();
     if (c.auto) {
+      await syncTrash().catch(function () {});        // 先把回收站存住，再改主文件，中途断网也不会把记录弄丢
       await ghSync(null, false).catch(function () {});
-      await syncTrash().catch(function () {});
     }
   }
   async function restoreFromTrash(id) {
     const i = (DATA.trash || []).findIndex(r => r.id === id);
     if (i < 0) return;
-    const r = DATA.trash[i];
+    const r = Object.assign({}, DATA.trash[i]);
+    delete r.delAt;
     DATA.trash.splice(i, 1);
-    DATA.deleted = (DATA.deleted || []).filter(t => t.id !== id); // 撤销墓碑，主同步不再过滤
+    DATA.trashPurged = mergeMarks(DATA.trashPurged, [{ id: id, at: Date.now() }]); // 让别的设备的回收站也移除它
+    DATA.deleted = (DATA.deleted || []).filter(t => t.id !== id);                  // 撤销本地墓碑
+    DATA.revived = mergeMarks(DATA.revived, [{ id: id, at: Date.now() }]);         // 并压过云端还留着的那份墓碑
     if (!DATA.records.some(x => x.id === id)) DATA.records.push(r);
-    if (!recs.some(x => x.id === id)) recs.push(r);
+    DATA.records.sort((a, b) => a.date < b.date ? -1 : 1);
     saveData();
+    refreshRecs();
     const c = ghConf();
-    if (c.auto) {
-      await ghSync(null, false).catch(function () {});
-      await syncTrash().catch(function () {});
+    if (c.enabled && c.token && c.user && c.repo) {
+      await ghSync(null, false);     // 先让记录回到主文件
+      await syncTrash();             // 再把它从云端回收站摘掉
     }
   }
   async function purgeFromTrash(id) {
     const i = (DATA.trash || []).findIndex(r => r.id === id);
     if (i < 0) return;
     DATA.trash.splice(i, 1);
+    // 记一笔"已彻底删除"，否则下次和云端一合并，这条又被拉回回收站，看起来像删不掉
+    DATA.trashPurged = mergeMarks(DATA.trashPurged, [{ id: id, at: Date.now() }]);
     saveData();
     const c = ghConf();
-    if (c.auto) await syncTrash().catch(function () {});
+    if (c.enabled && c.token && c.user && c.repo) await syncTrash();
+  }
+  async function purgeAllTrash() {
+    const marks = (DATA.trash || []).map(function (r) { return { id: r.id, at: Date.now() }; });
+    DATA.trash = [];
+    DATA.trashPurged = mergeMarks(DATA.trashPurged, marks);
+    saveData();
+    const c = ghConf();
+    if (c.enabled && c.token && c.user && c.repo) await syncTrash();
   }
   function openRecordDetail(id) {
     const r = recs.find(x => x.id === id); if (!r) return;
@@ -3381,7 +3628,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   function bindInteractions() {
     const panel = $('#themePanel');
     $('#themeBtn').addEventListener('click', () => { panel.classList.toggle('show'); $('#scrim').classList.toggle('show'); });
-    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); closeModal(); closeHistory(); closeTimeline(); closeTrash(); $('#extractModal').classList.remove('show'); $('#dayPickModal').classList.remove('show'); });
+    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); closeModal(); closeHistory(); closeTimeline(); $('#extractModal').classList.remove('show'); $('#dayPickModal').classList.remove('show'); });
     $('#viewLabel').addEventListener('click', () => { if (state.mode === 'day') { const ids = recs.filter(r => r.date === state.day).map(r => r.id); if (ids.length) pickDayRecords(ids, state.day); } });
 
     /* ---------- 设置：DeepSeek / 云同步与备份 ---------- */
@@ -3490,12 +3737,19 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
       const c = ghConf();
       if (!c.enabled || !c.token || !c.user || !c.repo) { const b = $('#setBtn'); if (b) b.click(); return; }
       // 不刷新页面，同步完直接重绘：正在写的东西不会丢
-      ghSync($('#ghMsg'), false).then(() => {
-        recs.length = 0;
-        (DATA.records || []).slice().sort((a, b) => a.date < b.date ? -1 : 1).forEach(x => recs.push(x));
-        renderAll();
-      }).catch(() => {});
+      ghSync($('#ghMsg'), false).then(() => { refreshRecs(); renderAll(); }).catch(() => {});
     });
+
+    // 断网时改的东西不会丢：网络回来、或从后台切回来时，自动把没推上去的补推一次
+    const autoResync = function () {
+      const c = ghConf();
+      if (!c.enabled || !c.token || !c.user || !c.repo || !c.auto) return;
+      if (!navigator.onLine) return;
+      if (syncState.status !== 'error' && pendingCount() <= 0) return;
+      ghSync(null, false).then(() => { refreshRecs(); renderAll(); }).catch(() => {});
+    };
+    window.addEventListener('online', autoResync);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(autoResync, 800); });
 
     // 折叠：高频标签 / 标签关系图（用户想「平常收起来」）
     const bindCollapse = (btnSel, bodySel, key) => {
@@ -3743,6 +3997,24 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   if (GEN_DATE) { const g = $('#genDate'); if (g) g.textContent = '生成于 ' + GEN_DATE; }
 })();
 </script>
+
+<!-- 回收站：独立整屏页面（不是弹窗） -->
+<div class="page" id="trashPage">
+  <div class="page-top">
+    <button class="page-back" id="trashBack" type="button">← 返回</button>
+    <div class="page-title">回收站<small>共 <span id="trashCount">0</span> 条 · 独立存放，不进主列表</small></div>
+  </div>
+  <div class="page-body">
+    <p class="page-lead">这里收着被你删掉的情绪记录。它们存在云端一个单独的文件里（情绪记录_回收站.json），不会出现在看板、时间轴和历史里。想起来了可以「恢复」，确定不要了就「彻底删除」。</p>
+    <div class="page-tools">
+      <button class="btn sm" id="trashRefresh" type="button">从云端刷新</button>
+      <button class="btn sm danger" id="trashPurgeAll" type="button">清空回收站</button>
+    </div>
+    <div class="page-msg" id="trashMsg"></div>
+    <div class="trash-list" id="trashList"></div>
+  </div>
+</div>
+
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){});});}</script>
 </body>
 </html>
