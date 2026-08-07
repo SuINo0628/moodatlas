@@ -456,6 +456,15 @@ body {
 .modal .mactions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 .modal .msaved { color: var(--accent); font-size: 13px; margin-top: 12px; min-height: 16px; line-height: 1.5; opacity: 0; transition: opacity 0.3s; }
 .modal .msaved.show { opacity: 1; }
+/* 同一天多条记录的选择弹窗 */
+.daypick-item { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border:1px solid var(--glass-brd); border-radius:var(--r-md); margin-bottom:10px; cursor:pointer; transition:border-color .2s, background .2s; background:var(--bg-1); }
+.daypick-item:hover { border-color:var(--accent); background:var(--bg-2); }
+.daypick-item .dp-mood { font-size:20px; font-weight:700; min-width:46px; text-align:center; line-height:1.2; }
+.daypick-item .dp-body { flex:1; min-width:0; }
+.daypick-item .dp-time { color:var(--ink-dim); font-size:12px; }
+.daypick-item .dp-scene { color:var(--ink); margin-top:2px; }
+.daypick-item .dp-note { color:var(--ink-soft); font-size:13px; margin-top:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.daypick-item .dp-imp { color:#ffd166; font-size:12px; margin-top:4px; }
 
 /* ---------- 主题面板 ---------- */
 .theme-panel {
@@ -939,13 +948,13 @@ body {
 
 .tg-wrap { width: 100%; margin-top: 4px; }
 .tg-svg { width: 100%; height: auto; aspect-ratio: 720 / 420; display: block; touch-action: none; }
-.tg-link { stroke: var(--ink-dim); opacity: .22; transition: opacity .25s, stroke .25s; }
+.tg-link { stroke: var(--ink-dim); opacity: .3; transition: opacity .25s, stroke .25s; }
 .tg-link.near { stroke: var(--accent); opacity: .6; }
 .tg-node { cursor: pointer; }
 .tg-node .tg-halo { opacity: .16; transition: opacity .2s; }
 .tg-node .tg-dot { opacity: .9; transition: opacity .2s; }
-.tg-node .tg-cnt { font-family: var(--font-mono); font-size: 11px; font-weight: 700; fill: #06121a; pointer-events: none; }
-.tg-node .tg-name { font-size: 11.5px; fill: var(--ink-soft); pointer-events: none; }
+.tg-node .tg-cnt { font-family: var(--font-mono); font-size: 10px; font-weight: 600; fill: var(--ink-dim); pointer-events: none; }
+.tg-node .tg-name { font-size: 12.5px; font-weight: 600; fill: var(--ink); pointer-events: none; }
 .tg-node:hover .tg-halo, .tg-node:focus-visible .tg-halo { opacity: .34; }
 .tg-node:hover .tg-name { fill: var(--ink); }
 .tg-node.on .tg-halo { opacity: .48; }
@@ -985,7 +994,7 @@ body {
   .tg-card { padding: 14px 13px; }
   .tg-svg { aspect-ratio: 1 / 1; }
   .tg-node .tg-name { font-size: 15px; }
-  .tg-node .tg-cnt { font-size: 14px; }
+  .tg-node .tg-cnt { font-size: 11px; }
   .tg-legend { gap: 7px; }
   .panel-head h2 { min-width: 0; }
 }
@@ -1046,13 +1055,13 @@ body {
 
 .tg-wrap { width: 100%; margin-top: 4px; }
 .tg-svg { width: 100%; height: auto; aspect-ratio: 720 / 420; display: block; touch-action: none; }
-.tg-link { stroke: var(--ink-dim); opacity: .22; transition: opacity .25s, stroke .25s; }
+.tg-link { stroke: var(--ink-dim); opacity: .3; transition: opacity .25s, stroke .25s; }
 .tg-link.near { stroke: var(--accent); opacity: .6; }
 .tg-node { cursor: pointer; }
 .tg-node .tg-halo { opacity: .16; transition: opacity .2s; }
 .tg-node .tg-dot { opacity: .9; transition: opacity .2s; }
-.tg-node .tg-cnt { font-family: var(--font-mono); font-size: 11px; font-weight: 700; fill: #06121a; pointer-events: none; }
-.tg-node .tg-name { font-size: 11.5px; fill: var(--ink-soft); pointer-events: none; }
+.tg-node .tg-cnt { font-family: var(--font-mono); font-size: 10px; font-weight: 600; fill: var(--ink-dim); pointer-events: none; }
+.tg-node .tg-name { font-size: 12.5px; font-weight: 600; fill: var(--ink); pointer-events: none; }
 .tg-node:hover .tg-halo, .tg-node:focus-visible .tg-halo { opacity: .34; }
 .tg-node:hover .tg-name { fill: var(--ink); }
 .tg-node.on .tg-halo { opacity: .48; }
@@ -1092,7 +1101,7 @@ body {
   .tg-card { padding: 14px 13px; }
   .tg-svg { aspect-ratio: 1 / 1; }
   .tg-node .tg-name { font-size: 15px; }
-  .tg-node .tg-cnt { font-size: 14px; }
+  .tg-node .tg-cnt { font-size: 11px; }
   .tg-legend { gap: 7px; }
   .panel-head h2 { min-width: 0; }
 }
@@ -1314,6 +1323,12 @@ body {
   </div>
 </div>
 <div class="scrim" id="scrim"></div>
+<div class="modal" id="dayPickModal">
+  <span class="mclose" id="dayPickClose">×</span>
+  <div class="mtag">同一天有多条</div>
+  <h3 id="dayPickTitle">这一天有 N 条记录</h3>
+  <div id="dayPickList"></div>
+</div>
 
 <!-- 作答模态框 -->
 <div class="modal" id="qModal">
@@ -1427,7 +1442,7 @@ body {
       <label class="switch"><input type="checkbox" id="ghEnable"> 启用同步</label>
       <label class="switch"><input type="checkbox" id="ghAuto"> 保存后自动同步</label>
     </div>
-    <div class="gh-guide" id="ghGuideWrap" style="display:none">
+    <div class="gh-guide" id="ghGuideWrap">
       第一次用？需要先在 GitHub 建一个自己的私有仓库和访问令牌（免费，约 3 分钟）。
       <a id="ghGuideLink" href="./guide.html" target="_blank" rel="noopener">查看从零开始的图文步骤</a>
     </div>
@@ -1526,7 +1541,7 @@ body {
   <button class="bnav-btn" id="navHist"><span>历史</span></button>
 </div>
 
-<script>window.__DATA__ = {"records": []};
+<script>window.__DATA__ = {"version":1,"records":[],"nextQuestions":[]};
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
@@ -1562,11 +1577,12 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   /* ---------- 本地服务连接探测（决定能否「网页内直接写回文件」） ---------- */
   let API_OK = false, API_BASE = '', PORT = 8137;
   function probeApi() {
+    updateConn(); return; /* 发布版无本地服务 */
     const setLive = (ok, base) => {
       API_OK = ok; API_BASE = base;
       updateConn();
     };
-    const abs = 'http://127.0.0.1:' + PORT + '/api/ping';
+    const abs = '';
     fetch('/api/ping', { cache: 'no-store' }).then(r => r.json()).then(j => { if (j && j.ok) setLive(true, ''); else throw 0; })
       .catch(() => fetch(abs, { cache: 'no-store' }).then(r => r.json()).then(j => { if (j && j.ok) setLive(true, abs); else throw 0; }).catch(() => setLive(false, '')));
   }
@@ -2335,7 +2351,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
         + '<circle class="tg-hitarea" r="' + (pts[i].r + 16).toFixed(1) + '" fill="transparent"/>'
         + '<circle class="tg-halo" r="' + (pts[i].r + 6).toFixed(1) + '" fill="' + col + '"/>'
         + '<circle class="tg-dot" r="' + pts[i].r.toFixed(1) + '" fill="' + col + '"/>'
-        + '<text class="tg-cnt" y="4.5" text-anchor="middle">' + cnt[t] + '</text>'
+        + '<text class="tg-cnt" y="' + (-pts[i].r - 9).toFixed(1) + '" text-anchor="middle">' + cnt[t] + '</text>'
         + '<text class="tg-name" y="' + (pts[i].r + 16).toFixed(1) + '" text-anchor="middle">' + escapeHtml(t) + '</text>'
         + '<title>' + escapeHtml(t) + ' · ' + cnt[t] + ' 条记录（点击只看这些）</title></g>';
     });
@@ -2666,7 +2682,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     if (state.mode === 'all') { lab.innerHTML = `共 ${recs.length} 条记录` + scope; return; }
     if (state.mode === 'year') { lab.innerHTML = `${state.year} 年 · ${v.length} 条` + scope; return; }
     if (state.mode === 'month') { lab.innerHTML = `${state.year}-${pad2(state.month)} · ${v.length} 条` + scope; return; }
-    if (state.mode === 'day') { lab.innerHTML = `${state.day} · ${v.length ? ('心情 ' + v[0].mood) : '无记录'}` + scope; return; }
+    if (state.mode === 'day') { lab.innerHTML = `${state.day} · ${v.length ? (v.length + ' 条 · 平均心情 ' + fmt(avg(v, 'mood')) + '/5') : '无记录'}` + scope; if (v.length) { lab.style.cursor = 'pointer'; lab.title = '点击查看这一天的全部记录'; } else { lab.style.cursor = 'default'; lab.title = ''; } return; }
   }
   function setupTimebar() {
     document.querySelectorAll('#tbSeg .tb-btn').forEach(b => {
@@ -3059,7 +3075,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
       if (nick) rec.author = nick;
     }
     const sv = $('#recSaved');
-    const SERVE = 'http://127.0.0.1:' + PORT + '/';
+    const SERVE = '';
     const finishLocal = () => {
       if (state.editingId) { updateRecord(state.editingId, rec); }
       else { DATA.records.push(rec); DATA.records.sort((a, b) => a.date < b.date ? -1 : 1); }
@@ -3111,6 +3127,33 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     fillRecordForm(r);
     md.classList.add('show'); $('#scrim').classList.add('show');
   }
+  function pickDayRecords(ids, dateLabel) {
+    if (!ids || !ids.length) return;
+    if (ids.length === 1) { openRecordDetail(ids[0]); return; }
+    const list = $('#dayPickList'); if (!list) { openRecordDetail(ids[0]); return; }
+    list.innerHTML = '';
+    ids.forEach(function (id) {
+      const r = recs.find(x => x.id === id); if (!r) return;
+      const mc = moodColor(r.mood || 3);
+      const item = el('div', 'daypick-item');
+      const dtxt = (r.time ? r.time.slice(0, 5) : '未记时间');
+      const note = String(r.note || '').slice(0, 80);
+      item.innerHTML =
+        '<div class="dp-mood" style="color:' + mc + '">' + (r.mood || '-') + '/5</div>' +
+        '<div class="dp-body">' +
+          '<div class="dp-time">' + dtxt + (r.author ? ' · 来自 ' + escapeHtml(r.author) : '') + (r.important ? ' · 重要事件' : '') + '</div>' +
+          (r.scene ? '<div class="dp-scene">' + escapeHtml(r.scene) + '</div>' : '') +
+          (note ? '<div class="dp-note">' + escapeHtml(note) + '</div>' : '') +
+        '</div>';
+      item.addEventListener('click', function () {
+        $('#dayPickModal').classList.remove('show'); $('#scrim').classList.remove('show');
+        openRecordDetail(id);
+      });
+      list.appendChild(item);
+    });
+    const t = $('#dayPickTitle'); if (t) t.textContent = (dateLabel || '这一天') + ' 有 ' + ids.length + ' 条记录，点开看详情';
+    $('#dayPickModal').classList.add('show'); $('#scrim').classList.add('show');
+  }
   function bindRecordModal() {
     $('#recBtn').addEventListener('click', () => {
       state.editingId = null;
@@ -3128,6 +3171,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
       $('#recModal').classList.add('show'); $('#scrim').classList.add('show');
     });
     $('#recClose').addEventListener('click', () => { $('#recModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
+    $('#dayPickClose').addEventListener('click', () => { $('#dayPickModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
     document.querySelectorAll('#recMood button').forEach(b => b.addEventListener('click', () => {
       document.querySelectorAll('#recMood button').forEach(x => x.classList.remove('active'));
       b.classList.add('active'); $('#recMood').dataset.val = b.dataset.m;
@@ -3182,7 +3226,8 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   function bindInteractions() {
     const panel = $('#themePanel');
     $('#themeBtn').addEventListener('click', () => { panel.classList.toggle('show'); $('#scrim').classList.toggle('show'); });
-    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); closeModal(); closeHistory(); closeTimeline(); $('#extractModal').classList.remove('show'); });
+    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); closeModal(); closeHistory(); closeTimeline(); $('#extractModal').classList.remove('show'); $('#dayPickModal').classList.remove('show'); });
+    $('#viewLabel').addEventListener('click', () => { if (state.mode === 'day') { const ids = recs.filter(r => r.date === state.day).map(r => r.id); if (ids.length) pickDayRecords(ids, state.day); } });
 
     /* ---------- 设置：DeepSeek / 云同步与备份 ---------- */
     $('#setBtn').addEventListener('click', () => {
@@ -3387,7 +3432,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
         cell.style.opacity = 0.35 + avg * 0.13;
         cell.classList.add('has');
         cell.title = d + '日 · 平均心情 ' + fmt(avg) + ' · ' + info.n + ' 条';
-        cell.addEventListener('click', () => openRecordDetail(info.ids[0]));
+        cell.addEventListener('click', () => pickDayRecords(info.ids, y + '-' + pad2(m) + '-' + pad2(d)));
       } else { cell.classList.add('none'); }
       grid.appendChild(cell);
     }
@@ -3527,5 +3572,6 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   if (GEN_DATE) { const g = $('#genDate'); if (g) g.textContent = '生成于 ' + GEN_DATE; }
 })();
 </script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){});});}</script>
 </body>
 </html>
