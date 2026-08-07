@@ -1508,6 +1508,15 @@ body {
   <div class="hist-list" id="histList"></div>
 </div>
 
+<!-- 回收站（被软删除的记录，可恢复或彻底删除） -->
+<div class="modal" id="trashModal">
+  <span class="mclose" id="trashClose">×</span>
+  <div class="mtag">回收站</div>
+  <h3>不愿面对的 · 共 <span id="trashCount">0</span> 条</h3>
+  <p class="rec-tip" style="font-weight:400;color:var(--ink-soft);margin:-4px 0 14px">这里收着被你删掉的情绪记录。可以「恢复」回到主列表，或「彻底删除」让它永远消失。</p>
+  <div class="hist-list" id="trashList"></div>
+</div>
+
 <!-- AI 总结报告 -->
 <div class="modal" id="reportModal">
   <span class="mclose" id="reportClose">×</span>
@@ -1539,6 +1548,7 @@ body {
   <button class="bnav-btn active" id="navDash"><span>看板</span></button>
   <button class="bnav-btn" id="navTl"><span>时间轴</span></button>
   <button class="bnav-btn" id="navHist"><span>历史</span></button>
+  <button class="bnav-btn" id="navTrash"><span>回收站</span></button>
 </div>
 
 <script>window.__DATA__ = {"version":1,"records":[],"nextQuestions":[]};
@@ -1567,6 +1577,8 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   // 给旧记录 / 导入数据补稳定 id，编辑与删除靠它定位
   (DATA.records || []).forEach(r => { if (!r.id) r.id = genId(); });
   if (!DATA.nextQuestions) DATA.nextQuestions = [];
+  if (!Array.isArray(DATA.deleted)) DATA.deleted = []; // 墓碑：记录被删的 id/指纹，用于跨设备传播删除
+  if (!Array.isArray(DATA.trash)) DATA.trash = []; // 回收站：被软删除的记录，可恢复或彻底删除
   const TODAY_Q = DATA.todayQuestion || window.__TODAY_Q__ || '今天过得怎么样？挑感受最明显的一件事，写两句。';
   const Q_PROMPTS = window.__Q_PROMPTS__ || [];
   const NEXT_Q = DATA.nextQuestions;
@@ -1589,6 +1601,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
 
   /* ---------- GitHub 云同步（前端直连 api.github.com，手机/电脑共用一份数据） ---------- */
   const GH_FILE = '情绪记录.json';
+  const GH_TRASH = '情绪记录_回收站.json';
   function ghProfile() { return localStorage.getItem('mood.ghProfile') || 'personal'; }
   function ghSuffix() { return ghProfile() === 'shared' ? '2' : ''; }
   function ghConf() {
@@ -1621,20 +1634,21 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     const c = ghConf();
     return { 'Authorization': 'Bearer ' + c.token, 'Accept': 'application/vnd.github+json' };
   }
-  function ghApiUrl(c) {
-    return 'https://api.github.com/repos/' + encodeURIComponent(c.user) + '/' + encodeURIComponent(c.repo) + '/contents/' + encodeURIComponent(GH_FILE);
+  function ghApiUrl(c, file) {
+    return 'https://api.github.com/repos/' + encodeURIComponent(c.user) + '/' + encodeURIComponent(c.repo) + '/contents/' + encodeURIComponent(file || GH_FILE);
   }
   function b64enc(s) { return btoa(unescape(encodeURIComponent(s))); }
   function b64dec(s) { return decodeURIComponent(escape(atob(s.replace(/\s/g, '')))); }
-  async function ghPull() {
+  async function ghPull(file) {
     const c = ghConf();
-    const res = await fetch(ghApiUrl(c), { headers: ghHeaders() });
+    const res = await fetch(ghApiUrl(c, file), { headers: ghHeaders() });
     if (res.status === 404) return null;
     if (!res.ok) { const e = new Error('拉取失败 HTTP ' + res.status); e.status = res.status; throw e; }
     const j = await res.json();
     let data; try { data = JSON.parse(b64dec(j.content)); } catch (e) { data = { records: [], nextQuestions: [] }; }
     if (!Array.isArray(data.records)) data.records = [];
     if (!Array.isArray(data.nextQuestions)) data.nextQuestions = [];
+    if (!Array.isArray(data.deleted)) data.deleted = [];
     return { data: data, sha: j.sha };
   }
   /* 合并策略修复：原来以 date 作唯一键，两个人在同一天各记一条时会互相覆盖（真实丢数据）。
@@ -1679,11 +1693,11 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     });
     return out;
   }
-  async function ghPush(payload, sha) {
+  async function ghPush(payload, sha, file) {
     const c = ghConf();
     const body = { message: 'mood sync ' + new Date().toISOString().slice(0, 19).replace('T', ' '), content: b64enc(JSON.stringify(payload)) };
     if (sha) body.sha = sha;
-    const res = await fetch(ghApiUrl(c), { method: 'PUT', headers: Object.assign(ghHeaders(), { 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
+    const res = await fetch(ghApiUrl(c, file), { method: 'PUT', headers: Object.assign(ghHeaders(), { 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
     if (!res.ok) {
       let detail = '';
       try { const b = await res.json(); if (b && b.message) detail = ' — ' + b.message; } catch (_) {}
@@ -1693,6 +1707,26 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     }
     const j = await res.json();
     return j.content.sha;
+  }
+  // 回收站：独立文件 情绪记录_回收站.json，与主文件互不干扰（不同 sha，不会互相 409 冲突）
+  async function syncTrash() {
+    const c = ghConf();
+    if (!c.enabled || !c.token || !c.user || !c.repo) return;
+    let sha = null;
+    try {
+      const r = await ghPull(GH_TRASH);
+      if (r && r.data && Array.isArray(r.data.records)) {
+        const seen = {}, out = [];
+        r.data.records.concat(DATA.trash || []).forEach(function (x) {
+          if (!x) return;
+          const k = x.id ? 'id:' + x.id : 'fp:' + recFingerprint(x);
+          if (!seen[k]) { seen[k] = 1; out.push(x); }
+        });
+        DATA.trash = out; saveData();
+        sha = r.sha;
+      }
+    } catch (e) { if (e && (e.status === 401 || e.status === 403)) throw e; }
+    await ghPush({ records: DATA.trash || [] }, sha, GH_TRASH);
   }
   let _ghBusy = false;
   let _ghPending = false;
@@ -1727,9 +1761,26 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
         const merged = remote
           ? { records: mergeRecords(DATA.records, remote.data.records), nextQuestions: mergeNext(DATA.nextQuestions, remote.data.nextQuestions) }
           : { records: DATA.records, nextQuestions: DATA.nextQuestions };
-        DATA.records = merged.records; DATA.nextQuestions = merged.nextQuestions;
+        // 墓碑合并：把本地 + 云端删除标记合并，过滤掉已被删的记录，使删除跨设备 / 跨次同步生效
+        const localDel = DATA.deleted || [], remoteDel = (remote && remote.data.deleted) || [];
+        const delSet = new Set();
+        localDel.concat(remoteDel).forEach(function (t) { if (!t) return; if (t.id) delSet.add('id:' + t.id); if (t.fp) delSet.add('fp:' + t.fp); });
+        const recs2 = merged.records.filter(function (r) {
+          if (!r) return false;
+          if (r.id && delSet.has('id:' + r.id)) return false;
+          if (delSet.has('fp:' + recFingerprint(r))) return false;
+          return true;
+        });
+        // 合并墓碑去重，丢弃 90 天前的老墓碑（防无限增长；90 天内任何设备都能拿到删除标记）
+        const mergedDel = [], seenT = new Set();
+        localDel.concat(remoteDel).forEach(function (t) {
+          if (!t || !t.id || seenT.has(t.id)) return;
+          if (t.at && Date.now() - t.at > 90 * 86400000) return;
+          seenT.add(t.id); mergedDel.push(t);
+        });
+        DATA.records = recs2; DATA.nextQuestions = merged.nextQuestions; DATA.deleted = mergedDel;
         saveData();
-        await ghPush({ records: DATA.records, nextQuestions: DATA.nextQuestions }, remote ? remote.sha : null);
+        await ghPush({ records: DATA.records, nextQuestions: DATA.nextQuestions, deleted: DATA.deleted }, remote ? remote.sha : null);
         setSyncState('ok');
         bumpSyncCount();
         const others = countOtherAuthors();
@@ -1905,12 +1956,22 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     try { const raw = localStorage.getItem(syncKey()); if (raw) { const o = JSON.parse(raw); if (o && o.status) syncState = o; } } catch (e) {}
     if (syncState.status === 'syncing') syncState.status = 'ready'; // 上次没跑完就关了页面
   }
+  let _errTimer = null;
   function setSyncState(status, err) {
     syncState = { status: status, at: status === 'ok' ? Date.now() : (syncState.at || 0), err: err || '' };
     try {
       localStorage.setItem(syncKey(), JSON.stringify(syncState));
       if (status === 'ok') localStorage.setItem(syncedCountKey(), String((DATA.records || []).length));
     } catch (e) {}
+    if (_errTimer) { clearTimeout(_errTimer); _errTimer = null; }
+    if (status === 'error') {
+      const frozen = syncState, frozenErr = err || '';
+      _errTimer = setTimeout(function () {
+        // 仅当仍是同一次失败时，才自动撤销“同步失败”黄标，避免旧的 409/422 永远卡着误导用户
+        if (syncState === frozen && syncState.err === frozenErr && syncState.status === 'error') setSyncState('idle');
+        _errTimer = null;
+      }, 30000);
+    }
     updateConn();
   }
   function pendingCount() {
@@ -2176,6 +2237,24 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   }
   function openHistory() { buildHistory($('#histList')); $('#histModal').classList.add('show'); $('#scrim').classList.add('show'); }
   function closeHistory() { $('#histModal').classList.remove('show'); $('#scrim').classList.remove('show'); }
+  function openTrash() { buildTrashList($('#trashList')); const c = $('#trashCount'); if (c) c.textContent = (DATA.trash || []).length; $('#trashModal').classList.add('show'); $('#scrim').classList.add('show'); }
+  function closeTrash() { $('#trashModal').classList.remove('show'); $('#scrim').classList.remove('show'); }
+  function buildTrashList(target) {
+    const list = target || $('#trashList'); if (!list) return;
+    const items = (DATA.trash || []).slice().sort(function (a, b) { return (a.date + (a.time || '')) < (b.date + (b.time || '')) ? 1 : -1; });
+    if (!items.length) { list.innerHTML = '<div class="empty" style="padding:40px">回收站是空的。删除的记录会先到这里，可以恢复，也可以彻底删除。</div>'; return; }
+    list.innerHTML = items.map(function (r) {
+      const mc = moodColor(r.mood || 3);
+      const note = String(r.note || '').slice(0, 120);
+      return '<div class="hist-item" data-id="' + r.id + '">'
+        + '<div class="hmood" style="color:' + mc + '">' + (r.mood != null ? r.mood : '-') + '/5</div>'
+        + '<div class="hbody"><div class="hdate">' + (r.date || '') + (r.time ? (' ' + r.time.slice(0, 5)) : '') + (r.author ? (' · ' + escapeHtml(r.author)) : '') + '</div>'
+        + '<div class="hnote">' + escapeHtml(note) + '</div></div>'
+        + '<div class="hacts"><button class="btn small" data-act="restore" data-id="' + r.id + '">恢复</button>'
+        + '<button class="btn small danger" data-act="purge" data-id="' + r.id + '">彻底删除</button></div>'
+        + '</div>';
+    }).join('');
+  }
   function buildTimeline(target) {
     const list = target || $('#tlList'); if (!list) return;
     const sorted = histFiltered();
@@ -2473,10 +2552,18 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     $('#extractApply').addEventListener('click', applyExtractNow);
   }
   function bindBotNav() {
-    const dash = $('#navDash'), tl = $('#navTl'), hist = $('#navHist');
+    const dash = $('#navDash'), tl = $('#navTl'), hist = $('#navHist'), trash = $('#navTrash');
     if (dash) dash.addEventListener('click', () => switchView('dash'));
     if (tl) tl.addEventListener('click', () => switchView('tl'));
     if (hist) hist.addEventListener('click', () => switchView('hist'));
+    if (trash) trash.addEventListener('click', openTrash);
+    const tl2 = $('#trashList');
+    if (tl2) tl2.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-act]'); if (!btn) return;
+      const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act');
+      if (act === 'restore') restoreFromTrash(id).then(function () { buildTrashList($('#trashList')); renderAll(); });
+      else if (act === 'purge') { if (confirm('彻底删除后无法恢复，确定吗？')) purgeFromTrash(id).then(function () { buildTrashList($('#trashList')); }); }
+    });
   }
 
   /* ---------- 主题引擎 ---------- */
@@ -3139,11 +3226,47 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
     saveData();
     if (ghConf().auto) ghSync(null, false);
   }
-  function deleteRecord(id) {
-    const i = recs.findIndex(r => r.id === id);
-    if (i >= 0) recs.splice(i, 1);
+  async function deleteRecord(id) {
+    const r = recs.find(x => x.id === id) || (DATA.records || []).find(x => x.id === id);
+    if (!r) return;
+    // 本地移除
+    const i = recs.findIndex(x => x.id === id); if (i >= 0) recs.splice(i, 1);
+    const di = DATA.records.findIndex(x => x.id === id); if (di >= 0) DATA.records.splice(di, 1);
+    // 墓碑：让主文件的删除能跨设备 / 下次同步传播，不再被云端旧版本“复活”
+    DATA.deleted = DATA.deleted || [];
+    if (!DATA.deleted.some(t => t.id === id)) DATA.deleted.push({ id: id, fp: recFingerprint(r), at: Date.now() });
+    // 软删除：移入回收站（收集“不愿面对的”），可在回收站恢复或彻底删除
+    DATA.trash = DATA.trash || [];
+    if (!DATA.trash.some(t => t.id === id)) DATA.trash.push(r);
     saveData();
-    if (ghConf().auto) ghSync(null, false);
+    const c = ghConf();
+    if (c.auto) {
+      await ghSync(null, false).catch(function () {});
+      await syncTrash().catch(function () {});
+    }
+  }
+  async function restoreFromTrash(id) {
+    const i = (DATA.trash || []).findIndex(r => r.id === id);
+    if (i < 0) return;
+    const r = DATA.trash[i];
+    DATA.trash.splice(i, 1);
+    DATA.deleted = (DATA.deleted || []).filter(t => t.id !== id); // 撤销墓碑，主同步不再过滤
+    if (!DATA.records.some(x => x.id === id)) DATA.records.push(r);
+    if (!recs.some(x => x.id === id)) recs.push(r);
+    saveData();
+    const c = ghConf();
+    if (c.auto) {
+      await ghSync(null, false).catch(function () {});
+      await syncTrash().catch(function () {});
+    }
+  }
+  async function purgeFromTrash(id) {
+    const i = (DATA.trash || []).findIndex(r => r.id === id);
+    if (i < 0) return;
+    DATA.trash.splice(i, 1);
+    saveData();
+    const c = ghConf();
+    if (c.auto) await syncTrash().catch(function () {});
   }
   function openRecordDetail(id) {
     const r = recs.find(x => x.id === id); if (!r) return;
@@ -3234,15 +3357,14 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
       presets.querySelectorAll('.tag-chip').forEach(c => c.classList.toggle('on', cur.has(c.textContent)));
     });
     const delBtn = $('#recDelete');
-    if (delBtn) delBtn.addEventListener('click', () => {
+    if (delBtn) delBtn.addEventListener('click', async () => {
       if (!state.editingId) return;
-      if (confirm('确定删除这条记录吗？此操作不可撤销。')) {
-        deleteRecord(state.editingId);
+      if (confirm('移入回收站？之后可在「回收站」里恢复，或彻底删除。')) {
+        await deleteRecord(state.editingId);
         const md = $('#recModal'); if (md) md.classList.remove('show');
         $('#scrim').classList.remove('show');
         renderAll();
-        if (ghConf().auto) ghSync(null, false).then(() => location.reload());
-        else location.reload();
+        location.reload();
       }
     });
   }
@@ -3259,7 +3381,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   function bindInteractions() {
     const panel = $('#themePanel');
     $('#themeBtn').addEventListener('click', () => { panel.classList.toggle('show'); $('#scrim').classList.toggle('show'); });
-    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); closeModal(); closeHistory(); closeTimeline(); $('#extractModal').classList.remove('show'); $('#dayPickModal').classList.remove('show'); });
+    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); closeModal(); closeHistory(); closeTimeline(); closeTrash(); $('#extractModal').classList.remove('show'); $('#dayPickModal').classList.remove('show'); });
     $('#viewLabel').addEventListener('click', () => { if (state.mode === 'day') { const ids = recs.filter(r => r.date === state.day).map(r => r.id); if (ids.length) pickDayRecords(ids, state.day); } });
 
     /* ---------- 设置：DeepSeek / 云同步与备份 ---------- */
