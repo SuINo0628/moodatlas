@@ -1427,7 +1427,7 @@ body {
       <label class="switch"><input type="checkbox" id="ghEnable"> 启用同步</label>
       <label class="switch"><input type="checkbox" id="ghAuto"> 保存后自动同步</label>
     </div>
-    <div class="gh-guide" id="ghGuideWrap">
+    <div class="gh-guide" id="ghGuideWrap" style="display:none">
       第一次用？需要先在 GitHub 建一个自己的私有仓库和访问令牌（免费，约 3 分钟）。
       <a id="ghGuideLink" href="./guide.html" target="_blank" rel="noopener">查看从零开始的图文步骤</a>
     </div>
@@ -1526,7 +1526,7 @@ body {
   <button class="bnav-btn" id="navHist"><span>历史</span></button>
 </div>
 
-<script>window.__DATA__ = {"version":1,"records":[],"nextQuestions":[]};
+<script>window.__DATA__ = {"records": []};
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
@@ -1562,12 +1562,11 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   /* ---------- 本地服务连接探测（决定能否「网页内直接写回文件」） ---------- */
   let API_OK = false, API_BASE = '', PORT = 8137;
   function probeApi() {
-    updateConn(); return; /* 发布版无本地服务 */
     const setLive = (ok, base) => {
       API_OK = ok; API_BASE = base;
       updateConn();
     };
-    const abs = '';
+    const abs = 'http://127.0.0.1:' + PORT + '/api/ping';
     fetch('/api/ping', { cache: 'no-store' }).then(r => r.json()).then(j => { if (j && j.ok) setLive(true, ''); else throw 0; })
       .catch(() => fetch(abs, { cache: 'no-store' }).then(r => r.json()).then(j => { if (j && j.ok) setLive(true, abs); else throw 0; }).catch(() => setLive(false, '')));
   }
@@ -3060,7 +3059,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
       if (nick) rec.author = nick;
     }
     const sv = $('#recSaved');
-    const SERVE = '';
+    const SERVE = 'http://127.0.0.1:' + PORT + '/';
     const finishLocal = () => {
       if (state.editingId) { updateRecord(state.editingId, rec); }
       else { DATA.records.push(rec); DATA.records.sort((a, b) => a.date < b.date ? -1 : 1); }
@@ -3528,6 +3527,5 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
   if (GEN_DATE) { const g = $('#genDate'); if (g) g.textContent = '生成于 ' + GEN_DATE; }
 })();
 </script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){});});}</script>
 </body>
 </html>
