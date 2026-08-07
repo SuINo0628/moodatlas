@@ -1731,6 +1731,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
         saveData();
         await ghPush({ records: DATA.records, nextQuestions: DATA.nextQuestions }, remote ? remote.sha : null);
         setSyncState('ok');
+        bumpSyncCount();
         const others = countOtherAuthors();
         if (msgEl) msgEl.textContent = '✓ 已同步到 ' + c.user + '/' + c.repo + '，共 ' + DATA.records.length + ' 条'
           + (others ? '（其中 ' + others + '条来自一起用的人，可在「历史」里按记录人筛选查看）' : '');
@@ -3273,6 +3274,7 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
       $('#dsModel').style.opacity = manual ? '1' : '0.5';
       loadGh();
       $('#setModal').classList.add('show'); $('#scrim').classList.add('show');
+      renderSetVer();
     });
     $('#setClose').addEventListener('click', () => { $('#setModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
     $('#dsKey').addEventListener('input', e => localStorage.setItem('mood.dsKey', e.target.value.trim()));
@@ -3583,8 +3585,23 @@ window.__BUILD__ = "v25 · 2026-08-07 16:48";</script>
 
   safeInit('renderAll', renderAll);
   // 版本标记：电脑版 / 手机版对不上时，一眼能看出哪台没更新
-  const _ver = $('#setVer');
-  if (_ver) _ver.textContent = '版本 ' + (window.__BUILD__ || '未知');
+  // 同步次数：每次成功推送 +1，并实时显示在设置底部「版本」行，方便一眼确认同步真的发生了
+  function renderSetVer() {
+    const el = $('#setVer'); if (!el) return;
+    let n = 0;
+    try { n = parseInt(localStorage.getItem('mood.syncCount' + ghSuffix()) || '0', 10) || 0; } catch (e) {}
+    let tail = ' · 已同步 ' + n + ' 次';
+    if (syncState && syncState.at) tail += ' · 最近 ' + timeAgo(syncState.at);
+    el.textContent = '版本 ' + (window.__BUILD__ || '未知') + tail;
+  }
+  function bumpSyncCount() {
+    let n = 0;
+    try { n = parseInt(localStorage.getItem('mood.syncCount' + ghSuffix()) || '0', 10) || 0; } catch (e) {}
+    n += 1;
+    try { localStorage.setItem('mood.syncCount' + ghSuffix(), String(n)); } catch (e) {}
+    renderSetVer();
+  }
+  renderSetVer();
   const _sc = ghConf();
   if (_sc.enabled && _sc.token) {
     // 打开页面即拉取云端数据：配置好同步的浏览器立刻就能看到历史，无需手动点同步
