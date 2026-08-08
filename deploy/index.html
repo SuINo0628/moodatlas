@@ -226,6 +226,21 @@ body {
 .set-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .set-row input[type="password"], .set-row select { flex: 1; min-width: 160px; }
 .set-row input, .set-row select { font-family: var(--font-mono); font-size: 13px; color: var(--ink); background: var(--glass-2); border: 1px solid var(--glass-brd); padding: 10px 12px; border-radius: 10px; }
+
+/* ---------- 密码框：显示/隐藏眼睛 + Key 格式提示 ---------- */
+.pwd-wrap { position: relative; display: flex; align-items: center; flex: 1; min-width: 0; }
+.pwd-wrap input { width: 100%; padding-right: 2.6em; }
+.eye-btn {
+  position: absolute; right: 0.4em; top: 50%; transform: translateY(-50%);
+  width: 1.9em; height: 1.9em; display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent; cursor: pointer;
+  color: var(--ink-dim); font-size: 1.05em; line-height: 1; border-radius: 50%;
+  transition: color .15s, background .15s;
+}
+.eye-btn:hover { color: var(--accent); background: var(--accent-soft); }
+.key-hint { font-size: 12px; line-height: 1.45; margin-top: 6px; min-height: 1em; color: var(--ink-dim); }
+.key-hint.bad { color: #ff7a7a; }
+.key-hint.ok { color: var(--accent); }
 .set-divider { height: 1px; background: var(--glass-brd); margin: 18px 0 4px; }
 
 /* 分段控件（个人 / 共享） */
@@ -456,6 +471,30 @@ body {
 .modal .mactions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 .modal .msaved { color: var(--accent); font-size: 13px; margin-top: 12px; min-height: 16px; line-height: 1.5; opacity: 0; transition: opacity 0.3s; }
 .modal .msaved.show { opacity: 1; }
+
+/* ---------- GitHub 测试连接结果弹窗（独立浮层） ---------- */
+.alert-scrim {
+  position: fixed; inset: 0; z-index: 120; background: rgba(4, 7, 14, 0.62);
+  backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.alert-scrim.show { opacity: 1; pointer-events: auto; }
+.alert-modal {
+  position: fixed; z-index: 130; left: 50%; top: 50%; transform: translate(-50%, -46%) scale(0.92);
+  width: min(420px, 90vw);
+  background: var(--bg-2); border: 1px solid var(--glass-brd); border-radius: var(--r-xl);
+  box-shadow: var(--shadow); padding: 30px 30px 24px; text-align: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.3s cubic-bezier(.2,.8,.2,1);
+}
+.alert-modal.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+.alert-ico {
+  width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700; line-height: 1;
+}
+.alert-modal.ok .alert-ico { color: #10b981; background: rgba(16,185,129,0.14); box-shadow: 0 0 0 6px rgba(16,185,129,0.08); }
+.alert-modal.err .alert-ico { color: #ef4444; background: rgba(239,68,68,0.14); box-shadow: 0 0 0 6px rgba(239,68,68,0.08); }
+.alert-modal h3 { font-family: var(--font-display); font-size: 21px; font-weight: 700; margin: 0 0 10px; color: var(--ink); }
+.alert-body { font-size: 14px; line-height: 1.65; color: var(--ink-soft); margin: 0 0 22px; }
+.alert-actions { display: flex; justify-content: center; }
 /* 同一天多条记录的选择弹窗 */
 .daypick-item { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border:1px solid var(--glass-brd); border-radius:var(--r-md); margin-bottom:10px; cursor:pointer; transition:border-color .2s, background .2s; background:var(--bg-1); }
 .daypick-item:hover { border-color:var(--accent); background:var(--bg-2); }
@@ -1002,128 +1041,185 @@ body {
 
 .tg-wrap { width: 100%; margin-top: 4px; }
 .tg-svg { width: 100%; height: auto; aspect-ratio: 720 / 420; display: block; touch-action: none; }
-.tg-link { stroke: var(--ink-dim); opacity: .3; transition: opacity .25s, stroke .25s; }
-.tg-link.near { stroke: var(--accent); opacity: .6; }
+
+/* 连接线：Obsidian 风格 — 细、淡、不抢节点风头 */
+.tg-link {
+  stroke: var(--ink-dim);
+  opacity: .18;
+  transition: opacity .35s, stroke .35s, stroke-width .35s;
+}
+
+.tg-link.near {
+  stroke: var(--accent);
+  opacity: .7;
+  stroke-dasharray: 5 3;
+  animation: tg-flow 1.6s linear infinite;
+}
+
+@keyframes tg-flow {
+  0% { stroke-dashoffset: 8; }
+  100% { stroke-dashoffset: 0; }
+}
+
+/* 呼吸光环：克制、轻柔，像 Obsidian 那种若有若无的生命感 */
+.tg-node .tg-pulse {
+  opacity: .07;
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tg-pulse 4.2s ease-in-out infinite;
+}
+@keyframes tg-pulse {
+  0%, 100% { opacity: .03; transform: scale(0.95); }
+  50%      { opacity: .13; transform: scale(1.18); }
+}
+
+/* 节点：Obsidian 式 — 小、干净、不抢戏 */
 .tg-node { cursor: pointer; }
-.tg-node .tg-halo { opacity: .16; transition: opacity .2s; }
-.tg-node .tg-dot { opacity: .9; transition: opacity .2s; }
-.tg-node .tg-cnt { font-family: var(--font-mono); font-size: 10px; font-weight: 600; fill: var(--ink-dim); pointer-events: none; }
-.tg-node .tg-name { font-size: 12.5px; font-weight: 600; fill: var(--ink); pointer-events: none; }
-.tg-node:hover .tg-halo, .tg-node:focus-visible .tg-halo { opacity: .34; }
-.tg-node:hover .tg-name { fill: var(--ink); }
-.tg-node.on .tg-halo { opacity: .48; }
-.tg-node.on .tg-name { fill: var(--ink); font-weight: 700; }
-.tg-node.dim { opacity: .3; }
-.tg-node.drag { cursor: grabbing; }
+.tg-node .tg-hitarea { fill: transparent; }
+
+.tg-node .tg-halo {
+  opacity: .1;
+  transition: opacity .35s, transform .35s;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.tg-node .tg-dot {
+  opacity: .88;
+  filter: drop-shadow(0 0 2.5px var(--c));
+  transition: opacity .3s, transform .3s ease, filter .3s;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.tg-node .tg-cnt {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--ink-dim);
+  pointer-events: none;
+  transition: fill .25s, transform .25s;
+}
+
+.tg-node .tg-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  fill: var(--ink);
+  pointer-events: none;
+  transition: fill .25s, transform .25s, font-weight .25s;
+}
+
+/* Hover：克制放大，光晕柔和 */
+.tg-node:hover .tg-halo {
+  opacity: .3;
+  transform: scale(1.15);
+}
+.tg-node:hover .tg-dot {
+  opacity: 1;
+  filter: drop-shadow(0 0 7px var(--c));
+  transform: scale(1.08);
+}
+.tg-node:hover .tg-cnt {
+  fill: var(--ink);
+  transform: translateY(-2px);
+}
+.tg-node:hover .tg-name {
+  fill: var(--ink);
+  transform: translateY(2px);
+  font-weight: 700;
+}
+
+/* Active / selected：选中态也克制，不用过冲 */
+.tg-node.on .tg-halo {
+  opacity: .38;
+  transform: scale(1.18);
+  animation: tg-halo-pulse 3s ease-in-out infinite;
+}
+.tg-node.on .tg-dot {
+  opacity: 1;
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 8px var(--c));
+}
+.tg-node.on .tg-name {
+  fill: var(--accent);
+  font-weight: 700;
+}
+
+@keyframes tg-halo-pulse {
+  0%, 100% { opacity: .32; transform: scale(1.14); }
+  50% { opacity: .48; transform: scale(1.24); }
+}
+
+/* Dimmed / inactive */
+.tg-node.dim {
+  opacity: .22;
+  filter: blur(1.5px);
+  transition: opacity .4s, filter .4s;
+}
+.tg-node.dim .tg-dot {
+  transform: scale(0.88);
+}
+
+/* Dragging */
+.tg-node.drag {
+  cursor: grabbing;
+  transition: none;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));
+}
+
 .tg-node:focus-visible { outline: none; }
-.tg-node:focus-visible .tg-dot { stroke: var(--ink); stroke-width: 2; }
-.tg-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
-.tg-active { font-size: 12px; color: var(--accent); font-family: var(--font-mono); }
-
-/* ---------- 概览：手机端不用数字，用可数的 5 段刻度 ---------- */
-.pill-viz { display: none; }
-.pv-segs { display: flex; gap: 3px; width: 100%; }
-.pv-seg {
-  flex: 1; height: 5px; border-radius: 3px; background: var(--c, var(--accent));
-  opacity: .12; transition: opacity .45s ease;
-}
-.pv-seg.in { opacity: calc(0.12 + var(--f, 0) * 0.88); }
-
-@media (max-width: 600px) {
-  /* 顶栏：同步状态独占一行、4 个按钮均分一行，不再互相挤压换行错位 */
-  .topbar { flex-wrap: wrap; gap: 10px; align-items: flex-start; }
-  .tools {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-    width: 100%; margin-left: 0;
-  }
-  .tools .conn { grid-column: 1 / -1; justify-content: center; width: 100%; }
-  .tools .btn { width: 100%; padding: 9px 4px; text-align: center; }
-
-  /* 概览：一行 4 格，隐藏数字，显示刻度 */
-  .glance .pill .v { display: none; }
-  .glance .pill .pill-viz { display: block; margin: 2px 0 5px; }
-  .glance .pill { padding: 10px 7px; }
-  .glance .pill .k { font-size: 10.5px; margin-top: 0; }
-
-  .tg-card { padding: 14px 13px; }
-  .tg-svg { aspect-ratio: 1 / 1; }
-  .tg-node .tg-name { font-size: 15px; }
-  .tg-node .tg-cnt { font-size: 11px; }
-  .tg-legend { gap: 7px; }
-  .panel-head h2 { min-width: 0; }
+.tg-node:focus-visible .tg-dot {
+  stroke: var(--ink);
+  stroke-width: 2;
 }
 
-/* 触摸设备：图上的字要更大才看得清 */
-@media (pointer: coarse) {
-  .tg-node .tg-name { font-size: 13px; }
+/* Entrance animation：柔和浮现，不要弹跳过冲 */
+.tg-pop {
+  animation: tg-pop-in 0.45s ease-out both;
 }
 
-/* ==========================================================================
-   新增：面板折叠 / 可点标签 / 标签关系图 / 概览刻度条 / 顶栏防挤压
-   ========================================================================== */
-
-/* ---------- 面板标题行 + 折叠按钮 ---------- */
-.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.panel-head h2 { margin: 0; }
-.collapse-btn {
-  font: inherit; font-size: 12px; color: var(--ink-soft); cursor: pointer;
-  background: var(--glass); border: 1px solid var(--glass-brd); border-radius: 999px;
-  padding: 5px 12px; min-height: 30px; transition: color .2s, border-color .2s, background .2s;
-  flex: none; touch-action: manipulation;
+.tg-pop .tg-dot {
+  animation: tg-dot-pop 0.5s ease-out both;
+  animation-delay: inherit;
 }
-.collapse-btn:hover { color: var(--ink); border-color: var(--accent); background: var(--glass-2); }
-.collapsible { overflow: hidden; transition: max-height .32s cubic-bezier(.2,.8,.2,1), opacity .22s; max-height: 2400px; opacity: 1; }
-.collapsible.collapsed { max-height: 0; opacity: 0; margin: 0; pointer-events: none; }
 
-/* ---------- 高频标签：现在是真按钮 ---------- */
-.tagcloud .chip {
-  font: inherit; font-size: 13px; color: var(--ink-soft);
-  display: inline-flex; align-items: center; gap: 7px;
-  cursor: pointer; min-height: 34px; touch-action: manipulation; text-align: left;
+.tg-pop .tg-halo {
+  animation: tg-halo-pop 0.6s ease-out both;
+  animation-delay: inherit;
 }
-.tagcloud .chip.on { color: #06121a; background: var(--accent); border-color: var(--accent); font-weight: 600; }
-.tagcloud .chip.on .n { color: #06121a; }
-.tagcloud .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.tag-hint { font-size: 11.5px; color: var(--ink-dim); line-height: 1.6; margin-top: 12px; }
 
-/* ---------- 标签关系图 ---------- */
-.tg-card {
-  margin: 14px 0 18px; padding: 16px 18px; border-radius: var(--r-md);
-  background: var(--glass); border: 1px solid var(--glass-brd);
-  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+@keyframes tg-pop-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
-.tg-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 6px; }
-.lg-title { font-size: 11.5px; color: var(--ink-dim); letter-spacing: .4px; margin-right: 2px; }
-.lg-item {
-  font: inherit; font-size: 12.5px; color: var(--ink-soft); cursor: pointer;
-  display: inline-flex; align-items: center; gap: 7px; min-height: 32px;
-  padding: 5px 12px; border-radius: 999px;
-  background: var(--glass); border: 1px solid var(--glass-brd);
-  transition: color .2s, border-color .2s, background .2s; touch-action: manipulation;
-}
-.lg-item:hover { color: var(--ink); border-color: var(--accent); background: var(--glass-2); }
-.lg-item.on { color: var(--ink); border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
-.lg-item i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.lg-item b { font-family: var(--font-mono); font-size: 11px; color: var(--ink-dim); font-weight: 500; }
-.lg-note { font-size: 11.5px; color: var(--ink-dim); line-height: 1.6; }
 
-.tg-wrap { width: 100%; margin-top: 4px; }
-.tg-svg { width: 100%; height: auto; aspect-ratio: 720 / 420; display: block; touch-action: none; }
-.tg-link { stroke: var(--ink-dim); opacity: .3; transition: opacity .25s, stroke .25s; }
-.tg-link.near { stroke: var(--accent); opacity: .6; }
-.tg-node { cursor: pointer; }
-.tg-node .tg-halo { opacity: .16; transition: opacity .2s; }
-.tg-node .tg-dot { opacity: .9; transition: opacity .2s; }
-.tg-node .tg-cnt { font-family: var(--font-mono); font-size: 10px; font-weight: 600; fill: var(--ink-dim); pointer-events: none; }
-.tg-node .tg-name { font-size: 12.5px; font-weight: 600; fill: var(--ink); pointer-events: none; }
-.tg-node:hover .tg-halo, .tg-node:focus-visible .tg-halo { opacity: .34; }
-.tg-node:hover .tg-name { fill: var(--ink); }
-.tg-node.on .tg-halo { opacity: .48; }
-.tg-node.on .tg-name { fill: var(--ink); font-weight: 700; }
-.tg-node.dim { opacity: .3; }
-.tg-node.drag { cursor: grabbing; }
-.tg-node:focus-visible { outline: none; }
-.tg-node:focus-visible .tg-dot { stroke: var(--ink); stroke-width: 2; }
+@keyframes tg-dot-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.06); }
+  100% { transform: scale(1); opacity: .88; }
+}
+
+@keyframes tg-halo-pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  100% { opacity: .1; transform: scale(1); }
+}
+
+.tg-node.on.tg-pop .tg-halo {
+  animation: tg-halo-pop-on 0.6s ease-out both;
+  animation-delay: inherit;
+}
+
+@keyframes tg-halo-pop-on {
+  0% { opacity: 0; transform: scale(0.6); }
+  100% { opacity: .38; transform: scale(1.18); }
+}
+
+.tg-node.on.tg-pop .tg-dot {
+  animation: tg-dot-pop 0.5s ease-out both;
+  animation-delay: inherit;
+}
+
 .tg-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
 .tg-active { font-size: 12px; color: var(--accent); font-family: var(--font-mono); }
 
@@ -1463,9 +1559,13 @@ body {
   <div class="set-block">
     <label>DeepSeek API Key（仅存本浏览器，不上传任何服务器）</label>
     <div class="set-row">
-      <input type="password" id="dsKey" placeholder="sk-...">
+      <div class="pwd-wrap">
+        <input type="password" id="dsKey" placeholder="sk-..." autocomplete="off" spellcheck="false">
+        <button type="button" class="eye-btn" id="dsKeyEye" title="显示 Key" aria-label="显示或隐藏 Key">👁</button>
+      </div>
       <button class="btn" id="dsTest">测试</button>
     </div>
+    <div class="key-hint" id="dsKeyHint"></div>
     <label>模型选择方式</label>
     <select id="dsRoute">
       <option value="auto">智能路由（推荐）</option>
@@ -1499,7 +1599,11 @@ body {
     <label>私有仓库名</label>
     <input type="text" id="ghRepo" placeholder="mood-atlas-sync">
     <label>访问令牌（Contents 读写权限 · 只存在你这台设备的浏览器里）</label>
-    <input type="password" id="ghToken" placeholder="github_pat_... 或 ghp_...">
+    <div class="pwd-wrap">
+      <input type="password" id="ghToken" placeholder="github_pat_... 或 ghp_..." autocomplete="off" spellcheck="false">
+      <button type="button" class="eye-btn" id="ghTokenEye" title="显示令牌" aria-label="显示或隐藏令牌">👁</button>
+    </div>
+    <div class="key-hint" id="ghTokenHint"></div>
     <div class="set-row-nick" id="ghNickWrap" style="display:none">
       <label>共享空间昵称（会出现在你共享的记录上，方便一起用的人辨认）</label>
       <input type="text" id="ghNick" placeholder="如 小苏 / 阿May">
@@ -1525,6 +1629,17 @@ body {
   </div>
   <div class="msaved" id="setMsg"></div>
   <div class="set-ver" id="setVer"></div>
+</div>
+
+<!-- GitHub 测试连接结果弹窗（独立浮层，可叠加在设置面板之上） -->
+<div class="alert-scrim" id="ghTestScrim"></div>
+<div class="alert-modal" id="ghTestModal" role="alertdialog" aria-modal="true" aria-labelledby="ghTestTitle">
+  <div class="alert-ico" id="ghTestIco">✓</div>
+  <h3 id="ghTestTitle">连接成功</h3>
+  <p class="alert-body" id="ghTestBody"></p>
+  <div class="alert-actions">
+    <button class="btn primary" id="ghTestOk">好的</button>
+  </div>
 </div>
 
 <!-- AI 帮填（对话式：随手写 → AI 理解/追问澄清 → 你确认） -->
@@ -1594,8 +1709,8 @@ body {
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
-window.__GEN_DATE__ = "2026-08-08 03:01";
-window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
+window.__GEN_DATE__ = "2026-08-08 16:43";
+window.__BUILD__ = "v25 · 2026-08-08 16:43";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -1663,6 +1778,7 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
     $('#ghUser').value = localStorage.getItem('mood.ghUser' + p) || '';
     $('#ghRepo').value = localStorage.getItem('mood.ghRepo' + p) || (ghProfile() === 'shared' ? 'mood-atlas-shared' : 'mood-atlas-sync');
     $('#ghToken').value = localStorage.getItem('mood.ghToken' + p) || '';
+    if (typeof updateGhTokenHint === 'function') updateGhTokenHint();
     $('#ghEnable').checked = localStorage.getItem('mood.ghEnabled' + p) === '1';
     $('#ghAuto').checked = localStorage.getItem('mood.ghAuto' + p) === '1';
     $('#ghNick').value = ghNick();
@@ -1849,8 +1965,31 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
       }
     }
   }
+  // 判断两次同步负载是否内容一致（忽略数组顺序），用于识别「没有新数据要同步」
+  function arrSig(arr) {
+    return (arr || []).map(function (x) { return JSON.stringify(x); }).sort().join('\u0001');
+  }
+  function payloadEquals(a, b) {
+    return ['records', 'nextQuestions', 'deleted', 'revived', 'purged'].every(function (k) {
+      return arrSig(a[k]) === arrSig(b[k]);
+    });
+  }
   let _ghBusy = false;
   let _ghPending = false;
+  // 设备指纹：基于浏览器特征生成一个稳定标识（同设备不同标签页/重启后一致），
+  // 用于多设备场景下追踪「这条记录是哪台设备写的」，合并时更智能。
+  function deviceFingerprint() {
+    var d = localStorage['mood.deviceFp'];
+    if (d) return d;
+    // 用屏幕分辨率 + 时区 + 平台 + 随机盐 生成一个足够稳定的短 hash
+    var raw = [screen.width, 'x', screen.height, Intl.DateTimeFormat().resolvedOptions().timeZone, navigator.platform, Math.random().toString(36).slice(2, 6)].join('|');
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < raw.length; i++) { h ^= raw.charCodeAt(i); h = (h * 16777619) >>> 0; }
+    d = 'dev_' + (h.toString(16) + Date.now().toString(36)).slice(0, 12);
+    localStorage['mood.deviceFp'] = d;
+    return d;
+  }
+  const DEVICE = deviceFingerprint();
   async function ghSync(msgEl, doReload, _retried) {
     // 同会话内多次触发同步（如"加一条、立刻删一条"）会让两个 ghSync 同时 fetch，
     // 第二个的 sha 在第一个 PUT 完成前就已过期，PUT 被拒为 409。
@@ -1925,6 +2064,17 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
         DATA.deleted = allDel;
         DATA.revived = allRev;
         saveData();
+        // 云端已有且内容完全一致 → 没有新数据要同步：跳过推送，避免无谓的 GitHub 写入与 409 冲突
+        if (remote && payloadEquals(
+          { records: DATA.records, nextQuestions: DATA.nextQuestions, deleted: DATA.deleted, revived: DATA.revived, purged: DATA.purged },
+          { records: remote.data.records, nextQuestions: remote.data.nextQuestions, deleted: remote.data.deleted, revived: remote.data.revived, purged: remote.data.purged }
+        )) {
+          refreshRecs();
+          setSyncState('ok');
+          if (msgEl) msgEl.textContent = '✓ 数据已同步过了，暂时没有新的要同步的数据';
+          if (doReload) setTimeout(function () { location.reload(); }, 700);
+          return;
+        }
         await ghPush({
           records: DATA.records, nextQuestions: DATA.nextQuestions,
           deleted: DATA.deleted, revived: DATA.revived, purged: DATA.purged,
@@ -1938,10 +2088,24 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
           + (others ? '（其中 ' + others + '条来自一起用的人，可在「历史」里按记录人筛选查看）' : '');
         if (doReload) setTimeout(function () { location.reload(); }, 700);
       } catch (e) {
-        if (e && (e.status === 409 || e.status === 422) && !_retried) {
-          // sha 过期（有别的写入抢先了）：释放锁，让递归重试真的能进去，重新拉一次再推
+        // 409/422 = sha 过期（别的设备/标签页抢先写了）：最多重试 3 次，指数退避，每次都重新拉最新 sha
+        if (e && (e.status === 409 || e.status === 422) && (!_retried || _retried < 3)) {
+          var nextRetried = (_retried || 0) + 1;
+          // 退避：第 1 次立刻重试，第 2 次等 2s，第 3 次等 5s
           _ghBusy = false; handoff = true;
-          return ghSync(msgEl, doReload, true);
+          var delay = nextRetried === 1 ? 0 : (nextRetried === 2 ? 2000 : 5000);
+          if (delay > 0) {
+            if (msgEl) msgEl.textContent = '· 同步冲突，第 ' + nextRetried + ' 次重试中…';
+            return new Promise(function (res) { setTimeout(res, delay); }).then(function () { return ghSync(msgEl, doReload, nextRetried); });
+          }
+          return ghSync(msgEl, doReload, nextRetried);
+        }
+        // 偶发冲突（多设备同时写入导致 sha 过期）：后台已自动重试，仍失败则温和提示，
+        // 不再抛出原始 409 报错吓人，本地数据已保留不会丢
+        if (e && (e.status === 409 || e.status === 422)) {
+          const m = '同步出现冲突（数据在别处被更新），已保留本地数据并稍后自动重试';
+          if (msgEl) msgEl.textContent = '· ' + m;
+          setSyncState('error', m); scheduleRetry(); return;
         }
         const m = (e && e.message ? e.message : String(e));
         if (msgEl) msgEl.textContent = '✗ 同步失败：' + m;
@@ -2032,6 +2196,40 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
   /* ---------- DeepSeek（浏览器直连，key 仅存本机，不上传任何服务器） ---------- */
   const DS_URL = 'https://api.deepseek.com/chat/completions';
   function dsKey() { return (localStorage.getItem('mood.dsKey') || '').trim(); }
+  // Key 格式校验：剥 Bearer 前缀 + sk- 开头 + 长度/空白检查，保存时即时红字提示
+  function validateDsKey(v) {
+    v = (v || '').trim();
+    if (!v) return { ok: false, msg: '请填写 DeepSeek API Key' };
+    if (/^bearer\s+/i.test(v)) return { ok: false, msg: '不要带 "Bearer " 前缀，只填 sk- 开头那段' };
+    if (/\s/.test(v)) return { ok: false, msg: 'Key 里含有空格或换行，请重新完整复制' };
+    if (!/^sk-/.test(v)) return { ok: false, msg: 'Key 应以 sk- 开头' };
+    if (v.length < 20) return { ok: false, msg: 'Key 长度过短，可能复制不全' };
+    return { ok: true, msg: '✓ Key 格式有效' };
+  }
+  function updateDsKeyHint() {
+    const inp = document.getElementById('dsKey'), hint = document.getElementById('dsKeyHint');
+    if (!hint) return;
+    const r = validateDsKey(inp ? inp.value : dsKey());
+    hint.textContent = r.msg;
+    hint.className = 'key-hint ' + (r.ok ? 'ok' : 'bad');
+  }
+  // GitHub 令牌格式校验：剥 Bearer 前缀 + 前缀/空白/长度检查，保存时即时红字提示
+  function validateGhToken(v) {
+    v = (v || '').trim();
+    if (!v) return { ok: false, msg: '请填写 GitHub 访问令牌 PAT' };
+    if (/^bearer\s+/i.test(v)) return { ok: false, msg: '不要带 "Bearer " 前缀，直接填令牌本体' };
+    if (/\s/.test(v)) return { ok: false, msg: '令牌里含有空格或换行，请重新完整复制' };
+    if (!/^(ghp_|github_pat_|gho_|ghu_|ghs_|ghr_)/.test(v)) return { ok: false, msg: 'GitHub 令牌应以 ghp_ / github_pat_ 等开头' };
+    if (v.length < 20) return { ok: false, msg: '令牌长度过短，可能复制不全' };
+    return { ok: true, msg: '✓ 令牌格式有效' };
+  }
+  function updateGhTokenHint() {
+    const inp = document.getElementById('ghToken'), hint = document.getElementById('ghTokenHint');
+    if (!hint) return;
+    const r = validateGhToken(inp ? inp.value : (localStorage.getItem('mood.ghToken' + ghSuffix()) || ''));
+    hint.textContent = r.msg;
+    hint.className = 'key-hint ' + (r.ok ? 'ok' : 'bad');
+  }
   // 模型名兼容：deepseek-chat / deepseek-reasoner 已于 2026-07-24 退役，映射到 V4 系列
   function dsModel() {
     const m = localStorage.getItem('mood.dsModel');
@@ -2613,7 +2811,7 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
       if (idx[p[0]] != null && idx[p[1]] != null) links.push({ a: idx[p[0]], b: idx[p[1]], w: pair[k] });
     });
     const maxC = cnt[nodes[0]] || 1;
-    const radius = function (t) { return 13 + Math.sqrt(cnt[t] / maxC) * 19; };
+    const radius = function (t) { return 8 + Math.sqrt(cnt[t] / maxC) * 12; };
 
     // 布局缓存：同一组标签复用上次结果（含你手动拖过的位置），避免每次刷新重新抖一遍
     const lkey = nodes.join('\u0001') + '#' + links.length + '#' + (state.histAuthor || '');
@@ -2625,7 +2823,7 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
       const N = nodes.length;
       pts = nodes.map(function (t, i) {
         const ang = (i / N) * Math.PI * 2 - Math.PI / 2;
-        const rad = 118 + (i % 3) * 32;
+        const rad = 90 + (i % 3) * 24;
         return { x: W / 2 + Math.cos(ang) * rad, y: H / 2 + Math.sin(ang) * rad * 0.72, r: radius(t) };
       });
       for (let it = 0; it < 300; it++) {
@@ -2634,12 +2832,12 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
           for (let j = i + 1; j < N; j++) {
             const dx = pts[j].x - pts[i].x, dy = pts[j].y - pts[i].y;
             const d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-            const min = pts[i].r + pts[j].r + 30;
+            const min = pts[i].r + pts[j].r + 20;
             if (d < min) {
               const f = (min - d) / d * 0.5;
               pts[i].x -= dx * f; pts[i].y -= dy * f; pts[j].x += dx * f; pts[j].y += dy * f;
             } else {
-              const g = 1100 / (d * d) * k;
+              const g = 700 / (d * d) * k;
               pts[i].x -= dx / d * g; pts[i].y -= dy / d * g; pts[j].x += dx / d * g; pts[j].y += dy / d * g;
             }
           }
@@ -2647,7 +2845,7 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
         links.forEach(function (l) {
           const A = pts[l.a], B = pts[l.b];
           const dx = B.x - A.x, dy = B.y - A.y, d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-          const target = A.r + B.r + 52;
+          const target = A.r + B.r + 36;
           const f = (d - target) / d * 0.05 * Math.min(3, l.w) * k;
           A.x += dx * f; A.y += dy * f; B.x -= dx * f; B.y -= dy * f;
         });
@@ -2684,15 +2882,16 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
       const on = state.histTag === t;
       const dim = activeI != null && !on && !links.some(function (l) { return (l.a === activeI && l.b === i) || (l.b === activeI && l.a === i); });
       const col = colorOf(t);
-      s += '<g class="tg-node' + (on ? ' on' : '') + (dim ? ' dim' : '') + '" data-tag="' + escapeHtml(t) + '" data-i="' + i + '"'
-        + ' tabindex="0" role="button" aria-label="标签 ' + escapeHtml(t) + '，' + cnt[t] + ' 条记录"'
-        + ' transform="translate(' + pts[i].x.toFixed(1) + ',' + pts[i].y.toFixed(1) + ')">'
-        + '<circle class="tg-hitarea" r="' + (pts[i].r + 16).toFixed(1) + '" fill="transparent"/>'
-        + '<circle class="tg-halo" r="' + (pts[i].r + 6).toFixed(1) + '" fill="' + col + '"/>'
-        + '<circle class="tg-dot" r="' + pts[i].r.toFixed(1) + '" fill="' + col + '"/>'
-        + '<text class="tg-cnt" y="' + (-pts[i].r - 9).toFixed(1) + '" text-anchor="middle">' + cnt[t] + '</text>'
-        + '<text class="tg-name" y="' + (pts[i].r + 16).toFixed(1) + '" text-anchor="middle">' + escapeHtml(t) + '</text>'
-        + '<title>' + escapeHtml(t) + ' · ' + cnt[t] + ' 条记录（点击只看这些）</title></g>';
+    s += '<g class="tg-node' + (on ? ' on' : '') + (dim ? ' dim' : '') + '" data-tag="' + escapeHtml(t) + '" data-i="' + i + '"'
+      + ' tabindex="0" role="button" aria-label="标签 ' + escapeHtml(t) + '，' + cnt[t] + ' 条记录"'
+      + ' transform="translate(' + pts[i].x.toFixed(1) + ',' + pts[i].y.toFixed(1) + ')" style="--c:' + col + '">'
+      + '<circle class="tg-hitarea" r="' + (pts[i].r + 14).toFixed(1) + '" fill="transparent"/>'
+      + '<circle class="tg-pulse" r="' + (pts[i].r + 4).toFixed(1) + '" fill="' + col + '" style="animation-delay:-' + ((i * 0.43) % 4).toFixed(2) + 's"/>'
+      + '<circle class="tg-halo" r="' + (pts[i].r + 4).toFixed(1) + '" fill="' + col + '"/>'
+      + '<circle class="tg-dot" r="' + pts[i].r.toFixed(1) + '" fill="' + col + '"/>'
+      + '<text class="tg-cnt" y="' + (-pts[i].r - 7).toFixed(1) + '" text-anchor="middle">' + cnt[t] + '</text>'
+      + '<text class="tg-name" y="' + (pts[i].r + 13).toFixed(1) + '" text-anchor="middle">' + escapeHtml(t) + '</text>'
+      + '<title>' + escapeHtml(t) + ' · ' + cnt[t] + ' 条记录（点击只看这些）</title></g>';
     });
     svg.innerHTML = s;
     if (act) {
@@ -3354,7 +3553,8 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
       body: [], behavior: [],
       note: q + '\n' + txt,
       cause: '',
-      important: true
+      important: true,
+      _device: DEVICE
     };
     if (ghProfile() === 'shared') {
       const nick = ghNick();
@@ -3445,7 +3645,8 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
       behavior: f('recBehavior') ? f('recBehavior').split(/[,，]/).map(s => s.trim()).filter(Boolean) : [],
       note: f('recNote'),
       cause: f('recCause'),
-      important: $('#recImportant') ? $('#recImportant').checked : false
+      important: $('#recImportant') ? $('#recImportant').checked : false,
+      _device: DEVICE
     };
     if (ghProfile() === 'shared') {
       const nick = ghNick();
@@ -3678,7 +3879,7 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
     $('#setBtn').addEventListener('click', () => {
       const lm = localStorage.getItem('mood.dsModel');
       if (lm === 'deepseek-chat' || lm === 'deepseek-reasoner') localStorage.setItem('mood.dsModel', dsModel()); // 退役模型自动迁移
-      $('#dsKey').value = dsKey(); $('#dsModel').value = dsModel();
+      $('#dsKey').value = dsKey(); $('#dsModel').value = dsModel(); updateDsKeyHint();
       const route = dsRouteMode();
       $('#dsRoute').value = route;
       const manual = route === 'manual';
@@ -3689,7 +3890,13 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
       renderSetVer();
     });
     $('#setClose').addEventListener('click', () => { $('#setModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
-    $('#dsKey').addEventListener('input', e => localStorage.setItem('mood.dsKey', e.target.value.trim()));
+    $('#dsKey').addEventListener('input', e => {
+      let v = e.target.value.trim();
+      if (/^bearer\s+/i.test(v)) v = v.replace(/^bearer\s+/i, ''); // 自动剥掉误粘的 Bearer 前缀
+      localStorage.setItem('mood.dsKey', v);
+      if (e.target.value !== v) e.target.value = v; // 回写清洗后的值，让用户看到
+      updateDsKeyHint();
+    });
     $('#dsModel').addEventListener('change', e => localStorage.setItem('mood.dsModel', e.target.value));
     $('#dsRoute').addEventListener('change', e => {
       localStorage.setItem('mood.dsRoute', e.target.value);
@@ -3699,10 +3906,27 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
     });
     $('#dsTest').addEventListener('click', async () => {
       const sm = $('#setMsg');
-      if (!dsKey()) { sm.textContent = '请先填写 DeepSeek API Key'; return; }
+      const r = validateDsKey(dsKey());
+      if (!r.ok) { sm.textContent = '✗ ' + r.msg; return; }
       sm.textContent = '连接测试中…';
       try { await callDeepSeek('你是测试助手，只回复「ok」', 'hi', { task: 'chat' }); sm.textContent = '✓ DeepSeek 连接成功'; }
       catch (e) { sm.textContent = '✗ 连接失败：' + (e && e.message ? e.message : e); }
+    });
+    // 密码框显示/隐藏眼睛
+    const dsEye = $('#dsKeyEye');
+    if (dsEye) dsEye.addEventListener('click', () => {
+      const inp = $('#dsKey'); const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      dsEye.textContent = show ? '🙈' : '👁';
+      dsEye.title = show ? '隐藏 Key' : '显示 Key';
+    });
+    // GitHub 令牌框的眼睛（复用同一套逻辑）
+    const ghEye = $('#ghTokenEye');
+    if (ghEye) ghEye.addEventListener('click', () => {
+      const inp = $('#ghToken'); const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      ghEye.textContent = show ? '🙈' : '👁';
+      ghEye.title = show ? '隐藏令牌' : '显示令牌';
     });
     $('#setExport').addEventListener('click', exportData);
     $('#setImportBtn').addEventListener('click', () => $('#setImport').click());
@@ -3714,19 +3938,37 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
     }));
     $('#ghUser').addEventListener('input', e => localStorage.setItem('mood.ghUser' + ghSuffix(), e.target.value.trim()));
     $('#ghRepo').addEventListener('input', e => localStorage.setItem('mood.ghRepo' + ghSuffix(), e.target.value.trim()));
-    $('#ghToken').addEventListener('input', e => localStorage.setItem('mood.ghToken' + ghSuffix(), e.target.value.trim()));
+    $('#ghToken').addEventListener('input', e => { localStorage.setItem('mood.ghToken' + ghSuffix(), e.target.value.trim()); if (typeof updateGhTokenHint === 'function') updateGhTokenHint(); });
     $('#ghEnable').addEventListener('change', e => localStorage.setItem('mood.ghEnabled' + ghSuffix(), e.target.checked ? '1' : '0'));
     $('#ghAuto').addEventListener('change', e => localStorage.setItem('mood.ghAuto' + ghSuffix(), e.target.checked ? '1' : '0'));
     $('#ghNick').addEventListener('input', e => localStorage.setItem('mood.ghNick' + ghSuffix(), e.target.value.trim()));
+    // GitHub 测试连接：成功 / 失败都弹窗（独立浮层，叠加在设置面板之上），同时保留行内状态文字
+    function ghTestAlert(ok, title, body) {
+      const m = $('#ghTestModal'), s = $('#ghTestScrim');
+      $('#ghTestTitle').textContent = title;
+      $('#ghTestBody').textContent = body;
+      $('#ghTestIco').textContent = ok ? '✓' : '✕';
+      m.classList.toggle('ok', ok);
+      m.classList.toggle('err', !ok);
+      m.classList.add('show'); s.classList.add('show');
+    }
+    const ghTestClose = () => { $('#ghTestModal').classList.remove('show'); $('#ghTestScrim').classList.remove('show'); };
+    $('#ghTestOk').addEventListener('click', ghTestClose);
+    $('#ghTestScrim').addEventListener('click', ghTestClose);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { const am = $('#ghTestModal'); if (am && am.classList.contains('show')) ghTestClose(); }
+    });
     $('#ghTest').addEventListener('click', async () => {
       const sm = $('#ghMsg'); const c = ghConf();
-      if (!c.token) { sm.textContent = '请先填写访问令牌 PAT'; return; }
-      if (!c.repo) { sm.textContent = '请填写仓库名'; return; }
+      if (!c.token) { sm.textContent = '请先填写访问令牌 PAT'; ghTestAlert(false, '还差一步', '请先填写 GitHub 访问令牌（PAT）再测试连接。'); return; }
+      const tr = validateGhToken(c.token);
+      if (!tr.ok) { sm.textContent = '✗ ' + tr.msg; ghTestAlert(false, '令牌格式不对', tr.msg); return; }
+      if (!c.repo) { sm.textContent = '请填写仓库名'; ghTestAlert(false, '还差一步', '请填写私有仓库名（如 mood-atlas-sync）再测试连接。'); return; }
       sm.textContent = '连接测试中…';
       try {
         const me = await fetch('https://api.github.com/user', { headers: { 'Authorization': 'Bearer ' + c.token } });
-        if (me.status === 401) { sm.textContent = '✗ 令牌无效（检查权限是否勾了 Contents 读写、是否过期）'; return; }
-        if (!me.ok) { sm.textContent = '✗ 连接失败 HTTP ' + me.status; return; }
+        if (me.status === 401) { sm.textContent = '✗ 令牌无效（检查权限是否勾了 Contents 读写、是否过期）'; ghTestAlert(false, '令牌无效', '这个令牌被 GitHub 拒绝了（HTTP 401）。请检查：令牌是否过期、有没有勾选 Contents 读写权限，必要时去重新生成一个。'); return; }
+        if (!me.ok) { sm.textContent = '✗ 连接失败 HTTP ' + me.status; ghTestAlert(false, '连接失败', 'GitHub 返回了 HTTP ' + me.status + '，暂时连不上，稍后重试。'); return; }
         /* 用户名留空时，用令牌自动认出你的 GitHub 用户名并填好，省一步 */
         let user = c.user;
         if (!user) {
@@ -3739,12 +3981,23 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
             }
           } catch (e) {}
         }
-        if (!user) { sm.textContent = '✗ 请填写 GitHub 用户名'; return; }
+        if (!user) { sm.textContent = '✗ 请填写 GitHub 用户名'; ghTestAlert(false, '还差一步', '没拿到用户名，请在上方填写你的 GitHub 用户名再测试。'); return; }
         const r = await fetch('https://api.github.com/repos/' + encodeURIComponent(user) + '/' + encodeURIComponent(c.repo), { headers: { 'Authorization': 'Bearer ' + c.token } });
-        if (r.status === 404) sm.textContent = '✓ 令牌有效，但仓库「' + c.repo + '」还不存在或令牌没勾中它（先在 GitHub 建好这个私有仓库，令牌里也要选上）';
-        else if (r.ok) sm.textContent = '✓ 已连上 ' + user + '/' + c.repo + '，可以用了';
-        else sm.textContent = '✓ 令牌有效（仓库检查返回 ' + r.status + '）';
-      } catch (e) { sm.textContent = '✗ 连接出错：' + (e && e.message ? e.message : e); }
+        if (r.status === 404) {
+          sm.textContent = '✓ 令牌有效，但仓库不存在';
+          ghTestAlert(false, '仓库还没建好', '令牌有效，但仓库「' + c.repo + '」还不存在，或这个令牌没被选上它。请先在 GitHub 建好这个私有仓库，并在令牌里选上它，之后就能同步了。');
+        } else if (r.ok) {
+          sm.textContent = '✓ 已连上 ' + user + '/' + c.repo;
+          ghTestAlert(true, '连接成功', '已连上 ' + user + '/' + c.repo + '，可以开始同步了。点击「立即同步」把数据推上去吧。');
+        } else {
+          sm.textContent = '✓ 令牌有效（仓库检查返回 ' + r.status + '）';
+          ghTestAlert(false, '基本可用', '令牌有效，但仓库检查返回 ' + r.status + '。如果仓库确实存在，多半能正常同步；若同步失败，请检查仓库名与令牌权限。');
+        }
+      } catch (e) {
+        const msg = '✗ 连接出错：' + (e && e.message ? e.message : e);
+        sm.textContent = msg;
+        ghTestAlert(false, '连接出错', '测试过程中出了点问题：' + (e && e.message ? e.message : e) + '。请检查网络后重试。');
+      }
     });
     $('#ghSync').addEventListener('click', () => ghSync($('#ghMsg'), true));
     $('#setClear').addEventListener('click', clearLocal);
@@ -4024,7 +4277,18 @@ window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
   const _sc = ghConf();
   if (_sc.enabled && _sc.token) {
     // 打开页面即拉取云端数据：配置好同步的浏览器立刻就能看到历史，无需手动点同步
-    ghSync(null, false).catch(function () {}).then(function () { renderAll(); genOpening(); });
+    // 同步期间顶栏显示「同步中…」，成功/失败都有明确提示（不再静默吞错误）
+    setSyncState('syncing');
+    ghSync(null, false).then(function () {
+      renderAll(); genOpening();
+    }).catch(function (e) {
+      // 加载时同步失败：仍然用本地数据渲染（可能是离线或临时网络问题），不白屏
+      renderAll(); genOpening();
+      var m = (e && e.message ? e.message : '同步失败');
+      if (!(e && e.status)) m = '无法连接 GitHub（' + m + '），目前显示的是本地缓存数据';
+      setSyncState('error', '· ' + m);
+      console.warn('[Mood Atlas] 启动同步失败:', m, e);
+    });
   } else {
     genOpening();
   }
