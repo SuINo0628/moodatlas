@@ -46,7 +46,7 @@
   --font-body: 'PingFang SC', 'Microsoft YaHei', 'Outfit', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
 
-  /* 强调色（由主题引擎注入；默认：极光青） */
+  /* 强调色（运行时由 derivePalette() 从单一主题色派生；此处为兜底默认） */
   --accent: #5eead4;
 
   /* 心情语义色（由主题引擎注入，跟随 --accent 变化；此处为兜底） */
@@ -60,18 +60,33 @@
   --a2: #38bdf8;
   --a3: #c084fc;
   --a4: #818cf8;
+
+  /* 文字色：根据底色亮度自动选深/浅，保证任意主题色下都清晰可读（由 derivePalette 注入，此处为兜底） */
+  --on-accent: #0b1118;
+  --on-mood-low: #ffffff;
+  --on-mood-mid: var(--on-accent);
+  --on-mood-high: var(--on-accent);
+
+  /* 语义/状态色：全部从主题色家族派生，不再写死绿/黄/红 */
+  --src-good: var(--accent);
+  --src-mid: var(--accent-2);
+  --src-bad: var(--a3);
+  --corr-pos: var(--accent);
+  --corr-neg: var(--a3);
+  --ok: var(--accent);
+  --warn: var(--accent-2);
+  --bad: var(--a3);
+  --on-ok: var(--on-accent);
+  --on-warn: var(--on-accent);
+  --on-bad: #ffffff;
+
+  /* 各维度数据色（图表/概览） */
+  --energy: var(--accent-2);
+  --sleep: var(--a3);
+  --tension: var(--a4);
 }
 
-/* ---------- 多主题引擎（仅改强调色 + 极光色，基底保持流动玻璃） ---------- */
-[data-palette="aurora"]   { --accent:#5eead4; --accent-2:#38bdf8; --accent-soft:rgba(94,234,212,.16); --accent-glow:rgba(94,234,212,.36); --a1:#5eead4; --a2:#38bdf8; --a3:#c084fc; --a4:#818cf8; }
-[data-palette="rose"]     { --accent:#fb7185; --accent-2:#f472b6; --accent-soft:rgba(251,113,133,.16); --accent-glow:rgba(251,113,133,.36); --a1:#fb7185; --a2:#f472b6; --a3:#c084fc; --a4:#fda4af; }
-[data-palette="ocean"]    { --accent:#22d3ee; --accent-2:#38bdf8; --accent-soft:rgba(34,211,238,.16); --accent-glow:rgba(34,211,238,.36); --a1:#22d3ee; --a2:#38bdf8; --a3:#34d399; --a4:#818cf8; }
-[data-palette="sunset"]   { --accent:#fb923c; --accent-2:#f59e0b; --accent-soft:rgba(251,146,60,.16); --accent-glow:rgba(251,146,60,.36); --a1:#fb923c; --a2:#f59e0b; --a3:#f43f5e; --a4:#fbbf24; }
-[data-palette="forest"]   { --accent:#34d399; --accent-2:#10b981; --accent-soft:rgba(52,211,153,.16); --accent-glow:rgba(52,211,153,.36); --a1:#34d399; --a2:#10b981; --a3:#a3e635; --a4:#22d3ee; }
-[data-palette="twilight"] { --accent:#a78bfa; --accent-2:#8b5cf6; --accent-soft:rgba(167,139,250,.16); --accent-glow:rgba(167,139,250,.36); --a1:#a78bfa; --a2:#8b5cf6; --a3:#c084fc; --a4:#f472b6; }
-[data-palette="neon"]     { --accent:#f0abfc; --accent-2:#22d3ee; --accent-soft:rgba(240,171,252,.16); --accent-glow:rgba(240,171,252,.36); --a1:#f0abfc; --a2:#22d3ee; --a3:#f472b6; --a4:#a3e635; }
-[data-palette="mono"]     { --accent:#e2e8f0; --accent-2:#94a3b8; --accent-soft:rgba(226,232,240,.14); --accent-glow:rgba(226,232,240,.3); --a1:#e2e8f0; --a2:#94a3b8; --a3:#64748b; --a4:#cbd5e1; }
-
+/* 所有主题色均由 JS derivePalette() 从单一主题色实时派生（见 app.js），这里不再写死，避免多来源冲突 */
 [data-theme="light"] {
   --bg-0: #e9edf6;
   --bg-1: #f3f6fc;
@@ -175,10 +190,10 @@ body {
 }
 .btn:hover { background: var(--glass-2); border-color: var(--accent); box-shadow: 0 0 22px -6px var(--accent-glow); }
 .btn:active { transform: scale(0.95); }
-.btn.primary { background: linear-gradient(100deg, var(--accent), var(--accent-2)); color: #04121a; border: none; }
-[data-theme="light"] .btn.primary { color: #06231f; }
-.btn.primary:hover { box-shadow: 0 0 28px -4px var(--accent-glow); }
-.btn.voice.on { background: var(--accent); color: #04121a; border-color: var(--accent); animation: vc 1.3s ease-out infinite; }
+.btn.primary { background: var(--accent); color: var(--on-accent); border: 1px solid color-mix(in srgb, var(--on-accent) 12%, transparent); }
+[data-theme="light"] .btn.primary { color: var(--on-accent); }
+.btn.primary:hover { filter: brightness(1.08); border-color: color-mix(in srgb, var(--on-accent) 24%, transparent); box-shadow: 0 0 28px -4px var(--accent-glow); }
+.btn.voice.on { background: var(--accent); color: var(--on-accent); border-color: color-mix(in srgb, var(--on-accent) 16%, transparent); animation: vc 1.3s ease-out infinite; }
 .btn.sm { padding: 7px 14px; font-size: 12.5px; border-radius: 999px; }
 .btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
@@ -196,6 +211,8 @@ body {
 .ai-chat:empty { display: flex; align-items: center; justify-content: center; min-height: 110px; text-align: center; }
 .ai-chat:empty::before { content: '还没有对话。写点今天的感受，AI 会结合你的记录回应你～'; color: var(--ink-dim); font-size: 12.5px; line-height: 1.65; max-width: 260px; padding: 0 16px; }
 .ai-row { margin-top: 14px; }
+.ai-record-prompt { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--accent) 10%, var(--bg-1)); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+.ai-record-prompt .arp-txt { font-size: 13px; color: var(--ink); flex: 1 1 auto; min-width: 140px; }
 .ai-input-wrap { position: relative; display: flex; align-items: center; width: 100%; }
 #aiInput {
   width: 100%; min-height: 50px; max-height: 110px; resize: none; overflow-y: auto;
@@ -216,8 +233,8 @@ body {
   #aiSend { height: 28px; padding: 0 11px; font-size: 11.5px; right: 4px; }
 }
 .bubble { max-width: 86%; padding: 11px 14px; border-radius: 14px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
-.bubble.user { align-self: flex-end; background: linear-gradient(100deg, var(--accent), var(--accent-2)); color: #04121a; border-bottom-right-radius: 4px; }
-[data-theme="light"] .bubble.user { color: #06231f; }
+.bubble.user { align-self: flex-end; background: var(--accent); color: var(--on-accent); border-bottom-right-radius: 4px; }
+[data-theme="light"] .bubble.user { color: var(--on-accent); }
 .bubble.ai { align-self: flex-start; background: var(--glass-2); border: 1px solid var(--glass-brd); color: var(--ink); border-bottom-left-radius: 4px; }
 
 /* ---------- 设置弹窗 ---------- */
@@ -241,7 +258,7 @@ body {
 }
 .eye-btn:hover { color: var(--accent); background: var(--accent-soft); }
 .key-hint { font-size: 12px; line-height: 1.45; margin-top: 6px; min-height: 1em; color: var(--ink-dim); }
-.key-hint.bad { color: #ff7a7a; }
+.key-hint.bad { color: var(--bad); }
 .key-hint.ok { color: var(--accent); }
 .set-divider { height: 1px; background: var(--glass-brd); margin: 18px 0 4px; }
 
@@ -249,7 +266,7 @@ body {
 .seg { display: flex; gap: 4px; background: rgba(0,0,0,.18); padding: 4px; border-radius: 999px; margin: 10px 0 2px; }
 [data-theme="light"] .seg { background: rgba(20,40,80,.08); }
 .seg-btn { flex: 1; border: none; background: transparent; color: var(--ink-soft); font-size: 13px; padding: 8px 0; border-radius: 999px; cursor: pointer; transition: background .2s, color .2s; font-family: inherit; }
-.seg-btn.active { background: linear-gradient(100deg, var(--accent), var(--accent-2)); color: #04121a; font-weight: 600; }
+.seg-btn.active { background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--on-accent) 12%, transparent); }
 .set-hint { font-size: 11.5px; color: var(--ink-dim); line-height: 1.5; margin: 6px 2px 2px; }
 .set-ver { font-size: 11px; color: var(--ink-dim); opacity: .62; text-align: right; margin: 14px 2px 0; letter-spacing: .02em; }
 .gh-guide {
@@ -272,8 +289,8 @@ body {
 .switch { display: inline-flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-soft); cursor: pointer; user-select: none; }
 .switch input { appearance: none; -webkit-appearance: none; width: 40px; height: 23px; border-radius: 999px; background: var(--glass-2); border: 1px solid var(--glass-brd); position: relative; cursor: pointer; transition: background .2s, border-color .2s; flex: 0 0 auto; }
 .switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; border-radius: 50%; background: var(--ink-dim); transition: transform .2s, background .2s; }
-.switch input:checked { background: linear-gradient(100deg, var(--accent), var(--accent-2)); border-color: transparent; }
-.switch input:checked::after { transform: translateX(17px); background: #04121a; }
+.switch input:checked { background: var(--accent); border-color: color-mix(in srgb, var(--on-accent) 16%, transparent); }
+.switch input:checked::after { transform: translateX(17px); background: var(--on-accent); }
 
 @keyframes vc { 0% { box-shadow: 0 0 0 0 var(--accent-glow); } 70% { box-shadow: 0 0 0 13px rgba(0,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } }
 
@@ -292,7 +309,7 @@ body {
   transition: all .2s;
 }
 .tb-btn:hover { color: var(--ink); }
-.tb-btn.active { background: linear-gradient(100deg, var(--accent), var(--accent-2)); color: #04121a; }
+.tb-btn.active { background: var(--accent); color: var(--on-accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--on-accent) 12%, transparent); }
 .tb-pick { display: flex; gap: 8px; align-items: center; }
 .tb-pick select {
   font-family: var(--font-body); font-size: 13px; color: var(--ink);
@@ -366,6 +383,10 @@ body {
 .row2 { display: grid; grid-template-columns: 1.55fr 1fr; gap: 20px; margin-top: 20px; }
 .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 20px; }
 
+/* 看板垂直节奏统一：所有区块之间等距，避免热力图/标签行与日历之间缝隙突兀 */
+#bento > * { margin: 0; }
+#bento > * + * { margin-top: 20px; }
+
 /* ---------- 图表通用 ---------- */
 .chart { width: 100%; display: block; }
 .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; font-size: 12px; color: var(--ink-soft); }
@@ -385,12 +406,17 @@ body {
 .heat-months { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-dim); margin-bottom: 8px; font-family: var(--font-mono); }
 
 /* 标签：流动词云 chips */
-.tagcloud { display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; }
+.tagcloud { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; align-content: flex-start; }
 .chip {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 15px; border-radius: 999px; font-size: 13.5px; color: var(--ink);
+  padding: 9px 12px; border-radius: 999px; font-size: 13.5px; color: var(--ink);
   background: var(--glass); border: 1px solid var(--glass-brd);
   transition: transform 0.2s, border-color 0.2s, background 0.2s;
+  min-width: 0;
+}
+.chip .au {
+  width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto;
+  box-shadow: 0 0 0 1.5px var(--bg-1);
 }
 .chip:hover { border-color: var(--accent); background: var(--glass-2); box-shadow: 0 0 18px -8px var(--accent-glow); }
 .chip .n { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
@@ -495,8 +521,8 @@ body {
   width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700; line-height: 1;
 }
-.alert-modal.ok .alert-ico { color: #10b981; background: rgba(16,185,129,0.14); box-shadow: 0 0 0 6px rgba(16,185,129,0.08); }
-.alert-modal.err .alert-ico { color: #ef4444; background: rgba(239,68,68,0.14); box-shadow: 0 0 0 6px rgba(239,68,68,0.08); }
+.alert-modal.ok .alert-ico { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--ok) 8%, transparent); }
+.alert-modal.err .alert-ico { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--bad) 8%, transparent); }
 .alert-modal h3 { font-family: var(--font-display); font-size: 21px; font-weight: 700; margin: 0 0 10px; color: var(--ink); }
 .alert-body { font-size: 14px; line-height: 1.65; color: var(--ink-soft); margin: 0 0 22px; }
 .alert-actions { display: flex; justify-content: center; }
@@ -508,7 +534,7 @@ body {
 .daypick-item .dp-time { color:var(--ink-dim); font-size:12px; }
 .daypick-item .dp-scene { color:var(--ink); margin-top:2px; }
 .daypick-item .dp-note { color:var(--ink-soft); font-size:13px; margin-top:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
-.daypick-item .dp-imp { color:#ffd166; font-size:12px; margin-top:4px; }
+.daypick-item .dp-imp { color:var(--warn); font-size:12px; margin-top:4px; }
 
 /* ---------- 主题面板 ---------- */
 .theme-panel {
@@ -528,9 +554,9 @@ body {
   position: relative; transition: transform 0.18s, border-color 0.2s; overflow: hidden;
 }
 .swatch:hover { transform: translateY(-3px) scale(1.05); }
-.swatch.active { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
-.swatch .nm { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font-size: 10px; color: #04121a; font-weight: 700; text-shadow: 0 1px 2px rgba(255,255,255,.5); }
-[data-theme="light"] .swatch .nm { color: #04121a; }
+.swatch.active { border-color: var(--on-accent); box-shadow: 0 0 0 2px var(--on-accent); }
+.swatch .nm { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font-size: 10px; color: var(--on-accent); font-weight: 700; }
+[data-theme="light"] .swatch .nm { color: var(--on-accent); }
 .tp-divider { height: 1px; background: var(--glass-brd); margin: 18px 0; }
 .tp-custom { display: flex; align-items: center; gap: 12px; }
 .tp-custom label { font-size: 13px; color: var(--ink-soft); flex: 1; }
@@ -541,8 +567,8 @@ body {
 .tp-custom input[type=color]::-webkit-color-swatch { border: 1px solid var(--glass-brd); border-radius: 12px; }
 .tp-toggle { display: flex; gap: 8px; margin-top: 16px; }
 .tp-toggle .btn { flex: 1; text-align: center; padding: 9px 0; }
-.tp-toggle .btn.active { background: var(--accent); color: #04121a; border-color: var(--accent); }
-[data-theme="light"] .tp-toggle .btn.active { color: #06231f; }
+.tp-toggle .btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+[data-theme="light"] .tp-toggle .btn.active { color: var(--on-accent); }
 
 /* ---------- 空状态 ---------- */
 .empty { text-align: center; padding: 70px 20px; color: var(--ink-soft); }
@@ -571,13 +597,13 @@ body {
   border: 1px solid var(--glass-brd); background: var(--glass); white-space: nowrap;
 }
 .conn i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-dim); transition: all .3s; }
-.conn.live { color: var(--accent); border-color: var(--accent-glow); }
-.conn.live i { background: #34d399; box-shadow: 0 0 9px #34d399; animation: pulse 2.4s ease-in-out infinite; }
+.conn.live { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 36%, transparent); }
+.conn.live i { background: var(--ok); box-shadow: 0 0 9px var(--ok); animation: pulse 2.4s ease-in-out infinite; }
 /* 可点击：点一下真的去同步 / 重试（不再是纯装饰） */
 .conn { cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
 .conn:hover { border-color: var(--accent); color: var(--ink); background: var(--glass-2); }
-.conn.warn { color: #fbbf24; border-color: rgba(251,191,36,.42); }
-.conn.warn i { background: #fbbf24; box-shadow: 0 0 9px rgba(251,191,36,.7); }
+.conn.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 42%, transparent); }
+.conn.warn i { background: var(--warn); box-shadow: 0 0 9px var(--warn); }
 .conn.busy { color: var(--accent); border-color: var(--accent-glow); }
 .conn.busy i { background: var(--accent); animation: connblink 1s ease-in-out infinite; }
 @keyframes connblink { 0%,100% { opacity: .25; } 50% { opacity: 1; } }
@@ -595,7 +621,7 @@ body {
   transition: all .18s ease;
 }
 .tag-chip:hover { color: var(--ink); border-color: var(--accent-glow); background: var(--glass-2); }
-.tag-chip.on { color: #06121a; background: var(--accent); border-color: var(--accent); font-weight: 600; box-shadow: 0 4px 14px -4px var(--accent-glow); }
+.tag-chip.on { color: var(--on-accent); background: var(--accent); border-color: var(--accent); font-weight: 600; box-shadow: 0 4px 14px -4px var(--accent-glow); }
 .rec-field { flex: 1; min-width: 130px; display: flex; flex-direction: column; gap: 6px; }
 .rec-field label { font-size: 12px; color: var(--ink-soft); letter-spacing: .3px; }
 .rec-field input, .rec-field textarea {
@@ -612,7 +638,7 @@ body {
   cursor: pointer; transition: all .2s;
 }
 .mood-pick button:hover { color: var(--ink); border-color: var(--accent); background: var(--glass-2); }
-.mood-pick button.active { background: linear-gradient(100deg, var(--accent), var(--accent-2)); color: #04121a; border-color: transparent; }
+.mood-pick button.active { background: var(--accent); color: var(--on-accent); border-color: color-mix(in srgb, var(--on-accent) 16%, transparent); }
 
 /* ---------- 响应式 ---------- */
 @media (max-width: 980px) {
@@ -788,7 +814,7 @@ body {
 .hist-item .htime { color: var(--accent); font-size: 10.5px; }
 .hist-item .hmood {
   width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 800; font-size: 18px; color: #04121a;
+  font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--on-accent);
 }
 .hist-item .hbody { min-width: 0; }
 .hist-item .hscene { font-size: 13px; color: var(--ink); margin-bottom: 6px; }
@@ -820,13 +846,13 @@ body {
 .extract-chat:empty { display: none; }
 .xbubble { max-width: 92%; padding: 11px 14px; border-radius: 14px; font-size: 14px; line-height: 1.62; white-space: pre-wrap; word-break: break-word; }
 .xbubble.ai { align-self: flex-start; background: var(--glass-2); border: 1px solid var(--glass-brd); }
-.xbubble.user { align-self: flex-end; background: linear-gradient(100deg, var(--accent), var(--accent-2)); color: #04121a; }
+.xbubble.user { align-self: flex-end; background: var(--accent); color: var(--on-accent); }
 #extractAns { min-height: 72px; margin-top: 10px; }
 
 /* ---------- 时间轴 ---------- */
 .tl-list { display: flex; flex-direction: column; max-height: 64vh; overflow-y: auto; margin-top: 6px; padding: 4px 2px; }
-.tl-item { position: relative; display: grid; grid-template-columns: 84px 22px 1fr; gap: 10px; padding: 12px 0; }
-.tl-item::before { content: ""; position: absolute; left: 94px; top: 0; bottom: 0; width: 2px; background: var(--line); }
+.tl-item { position: relative; display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 12px 0; }
+.tl-item::before { content: ""; position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: var(--line); }
 .tl-item:first-child::before { top: 20px; }
 .tl-item:last-child::before { bottom: auto; height: 20px; }
 .tl-date { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-dim); text-align: right; padding-top: 3px; line-height: 1.3; }
@@ -842,6 +868,48 @@ body {
 .tl-tag { font-size: 11.5px; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-glow); padding: 2px 9px; border-radius: 999px; }
 .tl-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; margin-top: 6px; word-break: break-word; }
 .tl-imp-flag { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--accent); margin-left: 8px; font-weight: 600; }
+/* 多人共享：作者徽章（彩色圆点+名字），无色条 */
+.tl-author { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ac); font-weight: 600; margin-left: 6px; vertical-align: middle; padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--ac) 10%, transparent); }
+.tl-author i { width: 7px; height: 7px; border-radius: 50%; background: var(--ac); flex: none; }
+
+/* 日期分组：每天一个可折叠的头 */
+.tl-date-group { margin-bottom: 6px; }
+.tl-date-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 4px; cursor: pointer; user-select: none;
+  border-bottom: 1px solid var(--glass-brd);
+  transition: background .2s;
+}
+.tl-date-head:hover { background: var(--glass-2); border-radius: 8px; }
+.tl-date-head .tl-date-label {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  color: var(--ink); letter-spacing: .3px;
+}
+.tl-date-head .tl-date-dow {
+  font-size: 11.5px; color: var(--ink-soft); margin-left: 2px;
+}
+.tl-date-head .tl-date-count {
+  font-size: 11px; color: var(--ink-dim); margin-left: auto;
+  background: var(--glass); padding: 1px 8px; border-radius: 999px;
+}
+.tl-date-head .tl-chevron {
+  width: 16px; height: 16px; transition: transform .25s cubic-bezier(.2,.8,.2,1);
+  color: var(--ink-dim); flex-shrink: 0;
+}
+.tl-date-group.collapsed .tl-chevron { transform: rotate(-90deg); }
+.tl-date-group.collapsed .tl-date-body { display: none; }
+.tl-date-body { padding-left: 4px; }
+
+/* 时间轴日期跳转 */
+.tl-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+.tl-date-jump {
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--ink); background: var(--glass);
+  border: 1px solid var(--glass-brd); padding: 5px 10px;
+  border-radius: 8px; outline: none;
+}
+.tl-date-jump:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.tl-legend { margin-top: 4px; }
 
 /* AI 开场白（hero 下方首句） */
 .hero-ai { margin-top: 16px; font-size: 14px; color: var(--ink); line-height: 1.7; max-width: 560px; padding-left: 13px; border-left: 2px solid var(--accent); font-style: italic; min-height: 22px; opacity: 0; transition: opacity .5s; }
@@ -938,13 +1006,13 @@ body {
   font-size: 11px; color: var(--ink-dim); transition: transform .15s, box-shadow .2s;
 }
 .cal-cell.empty { background: transparent; border-color: transparent; }
-.cal-cell.has { cursor: pointer; color: #fff; border-color: transparent; }
+.cal-cell.has { cursor: pointer; border-color: transparent; }
 .cal-cell.has:hover { transform: translateY(-2px); box-shadow: 0 6px 18px -8px rgba(0,0,0,.5); }
 .cal-cell.none { opacity: 0.5; }
 .cal-d { font-family: var(--font-mono); font-weight: 600; line-height: 1; }
 .cal-legend { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-soft); }
 .cal-lg { font-family: var(--font-mono); }
-.cal-grad { width: 90px; height: 8px; border-radius: 999px; background: linear-gradient(90deg, #fb7185, #fbbf24, #5eead4, #34d399, #38bdf8); }
+.cal-grad { width: 90px; height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--mood-low), var(--mood-mid), var(--mood-high)); }
 .cal-note { margin-left: auto; opacity: 0.8; }
 
 /* 历史/时间轴 搜索工具条 */
@@ -966,17 +1034,36 @@ body {
   font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all .18s;
 }
 .mood-chip:hover { border-color: var(--accent); color: var(--ink); }
-.mood-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.mood-chip.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
-/* 首页快捷「回顾」入口 */
-.quick-row { display: flex; justify-content: center; margin: 2px 0 6px; }
-.quick-row .btn { width: 100%; max-width: 600px; font-size: 15px; padding: 13px; box-shadow: 0 6px 18px rgba(124, 92, 255, .25); }
+/* 首页快捷入口：回顾 / 导出 PDF（响应式，桌面并排、手机竖排，颜色跟随主题） */
+.quick-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; align-items: stretch; }
+.quick-row .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 15px; font-weight: 600; padding: 14px 22px; border-radius: 16px;
+  transition: transform .2s, box-shadow .25s, border-color .25s, background .25s, color .25s;
+}
+/* 回顾：主按钮，底色用主题渐变，辉光用主题变量（不再写死紫色） */
+.quick-row #reviewBtn { flex: 1 1 320px; max-width: 540px; box-shadow: 0 10px 26px -8px var(--accent-glow); }
+.quick-row #reviewBtn:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -8px var(--accent-glow); }
+/* 导出 PDF：次按钮，玻璃描边，hover 跟随主题 */
+.quick-row #heroPdf { flex: 0 0 auto; background: var(--glass); border: 1px solid var(--glass-brd); color: var(--ink); }
+.quick-row #heroPdf:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 8px 22px -8px var(--accent-glow); }
+@media (max-width: 600px) {
+  .quick-row { flex-direction: column; gap: 10px; }
+  .quick-row #reviewBtn, .quick-row #heroPdf { width: 100%; max-width: 100%; flex: 1 1 auto; }
+}
 
 /* AI 总结报告弹窗 */
 .report-range { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0 14px; }
 .report-range label { font-size: 13px; color: var(--ink-soft); }
 .report-range select { padding: 7px 12px; border-radius: 999px; background: var(--bg-1); border: 1px solid var(--glass-brd); color: var(--ink); font-family: var(--font-display); }
 .report-hint { font-size: 12px; color: var(--ink-dim); }
+.report-custom { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 4px; }
+.report-custom .rep-date { padding: 7px 12px; border-radius: 999px; background: var(--bg-1); border: 1px solid var(--glass-brd); color: var(--ink); font-family: var(--font-display); font-size: 13px; }
+.report-custom .rep-arrow { color: var(--ink-dim); font-size: 13px; }
+.rep-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-soft); margin-left: auto; cursor: pointer; user-select: none; }
+.rep-check input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
 .report-body {
   font-size: 14px; line-height: 1.85; color: var(--ink); white-space: pre-wrap; word-break: break-word;
   max-height: 56vh; overflow-y: auto; padding: 16px; border-radius: 14px;
@@ -989,23 +1076,87 @@ body {
 .report-stats .rs .v { font-size: 20px; font-weight: 600; color: var(--ink); line-height: 1.2; }
 .report-stats .rs .v small { font-size: 12px; font-weight: 400; color: var(--ink-dim); margin-left: 3px; }
 .report-stats .rs .sub { font-size: 11.5px; color: var(--ink-dim); margin-top: 5px; line-height: 1.4; }
-.report-actions { margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end; }
+/* 回顾弹窗头部：标题 + 导出按钮并排 */
+.report-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.report-head h3 { margin: 0; font-size: 17px; font-weight: 600; color: var(--ink); }
+#reportPdf { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 999px; font-weight: 600; white-space: nowrap; box-shadow: 0 2px 12px -3px var(--accent-glow); }
+#reportPdf svg { flex: 0 0 auto; }
+
+/* 趋势图作者切换：我们 / 自己（标题栏右上角，不占额外空间） */
+.trend-toggle { float: right; display: inline-flex; background: var(--bg-1); border: 1px solid var(--glass-brd); border-radius: 999px; padding: 2px; gap: 2px; }
+.trend-toggle button { border: none; background: transparent; color: var(--ink-dim); font-family: var(--font-display); font-size: 12px; padding: 4px 12px; border-radius: 999px; cursor: pointer; transition: all .18s; }
+.trend-toggle button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+[data-theme="light"] .trend-toggle button.on { color: var(--on-accent); }
 /* 打印回顾 PDF：只显示临时打印区 */
 @media print {
   body * { visibility: hidden; }
   #printArea, #printArea * { visibility: visible; }
-  #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 24px 28px; color: #14181f; background: #fff; }
-  #printArea h1 { font-size: 21px; margin: 0 0 4px; color: #14181f; }
-  #printArea .pv-date { color: #6b7280; font-size: 13px; margin: 0 0 16px; }
-  #printArea .pv-stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 18px; }
-  #printArea .pv-stats div { background: #f4f4f5; border-radius: 8px; padding: 9px 13px; font-size: 13px; color: #374151; }
-  #printArea .pv-body { white-space: pre-wrap; line-height: 1.8; font-size: 14px; color: #1f2937; }
+  #printArea {
+    position: absolute; left: 0; top: 0; width: 100%;
+    padding: 0; color: #1e293b; background: #fff;
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  /* ---- 封面头 ---- */
+  .pv-cover {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f766e 100%);
+    padding: 48px 36px 36px; margin-bottom: 0;
+    border-radius: 0; color: #fff;
+  }
+  .pv-cover-inner { max-width: 640px; }
+  .pv-title { font-size: 28px; font-weight: 800; letter-spacing: 1px; margin: 0 0 6px; }
+  .pv-subtitle { font-size: 15px; opacity: 0.8; margin: 0 0 8px; }
+  .pv-meta { font-size: 11px; opacity: 0.5; margin: 0; }
+  /* ---- 统计卡片网格 ---- */
+  .pv-stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px; padding: 20px 28px 4px;
+  }
+  .pv-stats-grid .rs {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 12px 14px; page-break-inside: avoid;
+  }
+  .pv-stats-grid .rs .k { font-size: 11px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .pv-stats-grid .rs .v { font-size: 22px; font-weight: 700; color: #0f172a; }
+  .pv-stats-grid .rs .v small { font-size: 12px; font-weight: 400; color: #94a3b8; }
+  .pv-stats-grid .rs .sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+  /* ---- 图表区 ---- */
+  .pv-chart-section { padding: 16px 28px; }
+  .pv-chart-section svg { border: 1px solid #e2e8f0; border-radius: 10px; }
+  .pv-section-label {
+    font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px;
+    padding-left: 2px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  /* ---- 标签区 ---- */
+  .pv-tags-section { padding: 12px 28px; }
+  .pv-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pv-tag {
+    display: inline-block; background: #f0fdfa; border: 1px solid #99f6e4;
+    color: #0d9488; border-radius: 20px; padding: 3px 10px; font-size: 12px;
+  }
+  .pv-tag em { font-style: normal; opacity: 0.6; margin-left: 2px; }
+  /* ---- AI 总结 ---- */
+  .pv-ai-section {
+    margin: 16px 28px 24px; padding: 18px 20px;
+    background: #fafbff; border: 1px solid #e0e7ff; border-radius: 12px;
+    page-break-inside: avoid;
+  }
+  .pv-ai-label {
+    font-size: 11px; font-weight: 600; color: #6366f1; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 8px;
+  }
+  .pv-ai-body { white-space: pre-wrap; line-height: 1.85; font-size: 13.5px; color: #334155; }
+  /* ---- 页脚 ---- */
+  .pv-footer {
+    text-align: center; padding: 16px 28px 24px;
+    font-size: 10px; color: #94a3b8; border-top: 1px solid #f1f5f9;
+    margin-top: 8px;
+  }
   #printArea * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
 /* 危险/幽灵按钮 */
-.btn.danger { color: #fb7185; border-color: rgba(251,113,133,.45); background: rgba(251,113,133,.08); }
-.btn.danger:hover { background: rgba(251,113,133,.16); }
+.btn.danger { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: color-mix(in srgb, var(--bad) 8%, transparent); }
+.btn.danger:hover { background: color-mix(in srgb, var(--bad) 16%, transparent); }
 .btn.ghost { background: transparent; border-color: var(--glass-brd); color: var(--ink-soft); }
 .btn.ghost:hover { border-color: var(--accent); color: var(--ink); }
 
@@ -1036,14 +1187,41 @@ body {
 .collapsible { overflow: hidden; transition: max-height .32s cubic-bezier(.2,.8,.2,1), opacity .22s; max-height: 2400px; opacity: 1; }
 .collapsible.collapsed { max-height: 0; opacity: 0; margin: 0; pointer-events: none; }
 
+/* ---------- 情绪洞察面板（时间轴页：来源分析 + 维度相关性） ---------- */
+.insight-panel { margin-top: 20px; }
+.insight-body.collapsed { display: none; }
+.insight-grid { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 16px; margin-top: 6px; }
+.insight-card { background: var(--bg-1); border: 1px solid var(--glass-brd); border-radius: 14px; padding: 14px; min-width: 0; }
+.insight-card h3 { margin: 0 0 10px; font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+.src-list, .corr-list { display: flex; flex-direction: column; gap: 9px; }
+.src-row, .corr-row { display: grid; grid-template-columns: 1fr 108px; grid-template-areas: "name meta" "track track"; gap: 4px 8px; align-items: center; }
+.src-name, .corr-name { grid-area: name; font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.src-meta, .corr-meta { grid-area: meta; font-size: 11.5px; color: var(--ink-dim); text-align: right; font-family: var(--font-display); line-height: 1.3; }
+.src-track, .corr-track { grid-area: track; height: 7px; border-radius: 999px; background: var(--bg-2, rgba(120,120,140,0.14)); overflow: hidden; }
+.src-fill, .corr-fill { height: 100%; border-radius: 999px; transition: width .5s cubic-bezier(.2,.8,.2,1); }
+/* 来源：按心情 valence 着色（绿=滋养 / 黄=中性 / 红=消耗） */
+.src-row.good .src-fill { background: linear-gradient(90deg, var(--src-good), color-mix(in srgb, var(--src-good) 72%, var(--ink))); }
+.src-row.mid .src-fill { background: linear-gradient(90deg, var(--src-mid), color-mix(in srgb, var(--src-mid) 72%, var(--ink))); }
+.src-row.bad .src-fill { background: linear-gradient(90deg, var(--src-bad), color-mix(in srgb, var(--src-bad) 72%, var(--ink))); }
+/* 相关性：正/负均取自主题色家族，避免写死红色 */
+.corr-row.pos .corr-fill { background: linear-gradient(90deg, var(--corr-pos), color-mix(in srgb, var(--corr-pos) 72%, var(--ink))); }
+.corr-row.neg .corr-fill { background: linear-gradient(90deg, var(--corr-neg), color-mix(in srgb, var(--corr-neg) 72%, var(--ink))); }
+.src-empty { font-size: 12.5px; color: var(--ink-dim); padding: 8px 2px; line-height: 1.5; }
+#insightAi { margin-top: 12px; }
+.insight-ai-out { margin-top: 10px; font-size: 13px; line-height: 1.7; color: var(--ink); white-space: pre-wrap; background: var(--bg-1); border: 1px solid var(--glass-brd); border-radius: 10px; padding: 10px 12px; }
+@media (max-width: 760px) { .insight-grid { grid-template-columns: 1fr; } }
+
 /* ---------- 高频标签：现在是真按钮 ---------- */
 .tagcloud .chip {
   font: inherit; font-size: 13px; color: var(--ink-soft);
   display: inline-flex; align-items: center; gap: 7px;
   cursor: pointer; min-height: 34px; touch-action: manipulation; text-align: left;
+  overflow: hidden;
 }
-.tagcloud .chip.on { color: #06121a; background: var(--accent); border-color: var(--accent); font-weight: 600; }
-.tagcloud .chip.on .n { color: #06121a; }
+.tagcloud .chip .n { flex: 0 0 auto; }
+.tagcloud .chip span:not(.n):not(.au) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tagcloud .chip.on { color: var(--on-accent); background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.tagcloud .chip.on .n { color: var(--on-accent); }
 .tagcloud .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tag-hint { font-size: 11.5px; color: var(--ink-soft); line-height: 1.6; margin-top: 12px; }
 
@@ -1351,9 +1529,10 @@ body {
       </div>
     </section>
 
-    <!-- 快捷：回顾（首页入口，一步进回顾弹窗） -->
+    <!-- 快捷：回顾 / 导出 PDF（首页入口） -->
     <div class="quick-row reveal">
       <button class="btn primary" id="reviewBtn" type="button">回顾 · 看这段时间自己的情绪总结</button>
+      <button class="btn" id="heroPdf" type="button">导出 PDF</button>
     </div>
 
     <!-- 概览（无形胶囊） -->
@@ -1362,20 +1541,35 @@ body {
 
     <!-- 趋势 -->
     <section class="panel reveal">
-      <h2><span class="ic"></span>心情趋势 · 近 30 天</h2>
+      <h2><span class="ic"></span>心情趋势 · 近 30 天
+        <span class="trend-toggle" id="trendToggle" data-self-toggle>
+          <button type="button" data-v="all" class="on">我们</button>
+          <button type="button" data-v="self">自己</button>
+        </span>
+      </h2>
       <div id="trend"></div>
       <div class="legend" id="trendLegend"></div>
     </section>
 
     <div class="row2">
       <section class="panel reveal">
-        <h2><span class="ic"></span>情绪热力图 · 近 13 周</h2>
+        <h2><span class="ic"></span>情绪热力图 · 近 13 周
+          <span class="trend-toggle" data-self-toggle>
+            <button type="button" data-v="all" class="on">我们</button>
+            <button type="button" data-v="self">自己</button>
+          </span>
+        </h2>
         <div class="heat-months" id="heatMonths"></div>
         <div class="heat" id="heat"></div>
       </section>
       <section class="panel reveal" id="tagPanel">
         <div class="panel-head">
-          <h2><span class="ic"></span>高频标签</h2>
+          <h2><span class="ic"></span>高频标签
+            <span class="trend-toggle" data-self-toggle>
+              <button type="button" data-v="all" class="on">我们</button>
+              <button type="button" data-v="self">自己</button>
+            </span>
+          </h2>
           <button class="collapse-btn" id="tagsToggle" type="button" aria-expanded="true">收起</button>
         </div>
         <div class="collapsible" id="tagsBody">
@@ -1434,6 +1628,11 @@ body {
           <button class="btn primary" id="aiSend" aria-label="发送">发送</button>
         </div>
       </div>
+      <div class="ai-record-prompt" id="aiRecordPrompt" style="display:none">
+        <span class="arp-txt">要把这次聊到的情绪记一笔吗？</span>
+        <button class="btn sm primary" id="aiRecordSave" type="button">记一笔</button>
+        <button class="btn sm ghost" id="aiRecordSkip" type="button">不用了</button>
+      </div>
       <div class="assist-saved" id="aiChatStatus"></div>
     </section>
 
@@ -1444,7 +1643,40 @@ body {
     <div class="view-head">
       <h2>情绪轨迹 · 重要的事会亮起来</h2>
       <p>顺着时间看自己。带「重要」标记的是你标记过的重要事件，方便回看当时发生了什么。</p>
+      <div class="tl-toolbar">
+        <input type="date" id="tlDateJump" class="tl-date-jump" title="跳转到指定日期">
+        <div class="tg-legend tl-legend" id="tlAuthorLegend"></div>
+      </div>
     </div>
+    <section class="insight-panel panel reveal" id="insightPanel">
+      <div class="panel-head">
+        <h2><span class="ic"></span>情绪洞察 · 来源与相关
+          <span class="trend-toggle" data-self-toggle id="insightToggle">
+            <button type="button" data-v="all" class="on">我们</button>
+            <button type="button" data-v="self">自己</button>
+          </span>
+        </h2>
+        <button class="collapse-btn" id="insightCollapse" type="button" aria-expanded="true">收起</button>
+      </div>
+      <div class="insight-body" id="insightBody">
+        <div class="insight-grid">
+          <div class="insight-card">
+            <h3>来源分析 · 标签</h3>
+            <div id="insightTagSrc" class="src-list"></div>
+          </div>
+          <div class="insight-card">
+            <h3>来源分析 · 场景</h3>
+            <div id="insightSceneSrc" class="src-list"></div>
+          </div>
+          <div class="insight-card insight-card-wide">
+            <h3>维度相关性</h3>
+            <div id="insightCorr" class="corr-list"></div>
+            <button class="btn ghost sm" id="insightAi" type="button">让 AI 解读</button>
+            <div id="insightAiOut" class="insight-ai-out"></div>
+          </div>
+        </div>
+      </div>
+    </section>
     <div class="tl-list" id="viewTlList"></div>
   </section>
 
@@ -1720,22 +1952,32 @@ body {
 <div class="modal" id="reportModal">
   <span class="mclose" id="reportClose">×</span>
   <div class="mtag">AI 总结</div>
-  <h3>这段时间的情绪回顾</h3>
+  <div class="report-head">
+    <h3>这段时间的情绪回顾</h3>
+    <button class="btn sm primary" id="reportPdf" type="button">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      导出 PDF
+    </button>
+  </div>
   <div class="report-range">
     <label>范围</label>
     <select id="repRange">
       <option value="week">近 7 天</option>
-      <option value="month">近 30 天</option>
+      <option value="month" selected>近 30 天</option>
       <option value="year">近 1 年</option>
       <option value="all">全部</option>
+      <option value="custom">自定义…</option>
     </select>
-    <span class="report-hint">切范围后点上方「生成 AI 总结」重新生成</span>
+    <div class="report-custom" id="repCustom" style="display:none">
+      <input type="date" id="repStart" class="rep-date" aria-label="起始日期">
+      <span class="rep-arrow">→</span>
+      <input type="date" id="repEnd" class="rep-date" aria-label="结束日期">
+    </div>
+    <label class="rep-check"><input type="checkbox" id="repDaily" checked> 包含每日明细</label>
+    <span class="report-hint">切范围后点「生成 AI 总结」可重新生成</span>
   </div>
   <div class="report-stats" id="reportStats"></div>
   <div class="report-body" id="reportBody"></div>
-  <div class="report-actions">
-    <button class="btn sm ghost" id="reportPdf" type="button">导出 PDF</button>
-  </div>
 </div>
 
 <!-- 问数据：用自然语言查询自己的历史记录 -->
@@ -1775,8 +2017,8 @@ body {
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
-window.__GEN_DATE__ = "2026-08-08 18:21";
-window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
+window.__GEN_DATE__ = "2026-08-09 04:06";
+window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -2384,6 +2626,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     }
     appendBubble(box, 'user', txt); inp.value = '';
     if (sv) sv.textContent = '';
+    const rp0 = $('#aiRecordPrompt'); if (rp0) rp0.style.display = 'none';
     const sys = '你是一个温柔、专业、不评判的情绪陪伴助手。用中文，简短共情地回应，偶尔给一个可操作的小建议。结合用户提供的近期情绪记录来理解语境，但用自然语言表达，不要直接罗列数据格式。';
     const user = '我的近期情绪记录：\n' + (recentSummary(14) || '（暂无记录）') + '\n\n我的话：' + txt;
     const loading = appendBubble(box, 'ai', '思考中…');
@@ -2391,8 +2634,36 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
       const res = await callDeepSeek(sys, user, { task: 'chat' });
       loading.textContent = res.text;
       if (sv) sv.textContent = '（' + res.model + (res.thinking === 'enabled' ? ' · 思考' : '') + '）';
+      aiOfferRecord();
     }
     catch (e) { loading.textContent = '✗ ' + (e && e.message ? e.message : e); }
+  }
+  // AI 聊完后询问是否记录这次聊到的情绪
+  function aiOfferRecord() {
+    const rp = $('#aiRecordPrompt'); if (!rp) return;
+    const ub = document.querySelectorAll('#aiChat .bubble.user');
+    const ab = document.querySelectorAll('#aiChat .bubble.ai');
+    if (!ub.length) { rp.style.display = 'none'; return; }
+    rp.dataset.user = (ub[ub.length - 1].textContent || '').slice(0, 300);
+    rp.dataset.ai = (ab.length ? ab[ab.length - 1].textContent : '').slice(0, 300);
+    rp.style.display = '';
+  }
+  // 打开「记一笔」弹窗并预填对话摘要（日期用本地日期，避免时区偏移）
+  function openNewRecordWithNote(text) {
+    const md = $('#recModal'); if (!md) return;
+    state.editingId = null;
+    const tag = md.querySelector('.mtag'); if (tag) tag.textContent = '记一笔';
+    const h3 = md.querySelector('h3'); if (h3) h3.textContent = '今天的状态，随手记下';
+    const sv = $('#recSave'); if (sv) sv.textContent = '落到地图';
+    const del = $('#recDelete'); if (del) del.style.display = 'none';
+    $('#recDate').value = isoLocal(new Date());
+    $('#recTime').value = new Date().toTimeString().slice(0, 8);
+    const tip = $('#recTip'); if (tip) { tip.style.display = 'none'; tip.classList.remove('show'); }
+    $('#recFree').value = '';
+    $('#recImportant').checked = false;
+    const sg = $('#recSuggest'); if (sg) { sg.style.display = 'none'; sg.innerHTML = ''; }
+    $('#recNote').value = text || '';
+    md.classList.add('show'); $('#scrim').classList.add('show');
   }
   /* ---------- 同步状态（真实反映结果，不再是只看配置的摆设） ----------
      状态：idle 未配置 / ready 已配置未同步 / syncing 进行中 / ok 成功 / error 失败
@@ -2658,7 +2929,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
       const dtxt = (r.date || '') + (r.time ? `<br><span class="htime">${r.time}</span>` : '');
       item.innerHTML = `
         <div class="hdate">${dtxt}</div>
-        <div class="hmood" style="background:${mc}">${r.mood || '-'}</div>
+        <div class="hmood" style="background:${mc};color:${onMood(r.mood || 3)}">${r.mood || '-'}</div>
         <div class="hbody">
           ${r.scene ? `<div class="hscene">${r.scene}</div>` : ''}
           <div class="htags">${tags || '<span class="hmuted">无标签</span>'}</div>
@@ -2682,7 +2953,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     $('#timeBar').style.display = dash ? '' : 'none';
     $('#viewTl').hidden = name !== 'tl';
     $('#viewHist').hidden = name !== 'hist';
-    if (name === 'tl') buildTimeline($('#viewTlList'));
+    if (name === 'tl') { buildTimeline($('#viewTlList')); renderInsights(); }
     if (name === 'hist') buildHistory($('#viewHistList'));
     setBotNav('nav' + ({ dash: 'Dash', tl: 'Tl', hist: 'Hist' }[name] || 'Dash'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2746,28 +3017,61 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     }).join('');
   }
   function buildTrashList() { renderTrash(); } // 兼容旧调用
+  const DAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
+  function formatDow(dateStr) {
+    try { return DAY_NAMES[new Date(dateStr + 'T00:00:00').getDay()] || ''; } catch(e) { return ''; }
+  }
   function buildTimeline(target) {
     const list = target || $('#tlList'); if (!list) return;
     const sorted = histFiltered();
     list.innerHTML = '';
     if (!sorted.length) { list.innerHTML = '<div class="empty" style="padding:40px">' + ((state.histQ || state.histTag || state.histMood || state.histAuthor) ? '没有匹配的记录' : '还没有记录') + '</div>'; return; }
+    // 多人时上作者色
+    const multi = authorList().length > 1;
+    const cmap = authorColors();
+    // 按日期分组
+    const groups = {};
     sorted.forEach(r => {
-      const mc = moodColor(r.mood || 3);
-      const imp = !!r.important;
-      const tags = (r.tags || []).map(t => `<span class="tl-tag">${t}</span>`).join('');
-      const item = el('div', 'tl-item' + (imp ? ' important' : ''));
-      item.dataset.id = r.id;
-      item.addEventListener('click', () => openRecordDetail(r.id));
-      const dtxt = (r.date || '') + (r.time ? `<br><span class="tl-time">${r.time}</span>` : '');
-      item.innerHTML = `
-        <div class="tl-date">${dtxt}</div>
-        <div class="tl-axis"><span class="tl-dot"></span></div>
-        <div class="tl-body">
-          <div class="tl-scene"><span class="m" style="color:${mc}">${r.mood || '-'}/5</span> ${r.scene ? '· ' + r.scene : ''}${r.author ? ' · 来自 ' + escapeHtml(r.author) : ''}${imp ? '<span class="tl-imp-flag">重要事件</span>' : ''}</div>
-          ${tags ? `<div class="tl-tags">${tags}</div>` : ''}
-          ${r.note ? `<div class="tl-note">${String(r.note).slice(0, 120)}</div>` : ''}
-        </div>`;
-      list.appendChild(item);
+      const d = r.date || 'unknown';
+      if (!groups[d]) groups[d] = [];
+      groups[d].push(r);
+    });
+    const dates = Object.keys(groups).sort().reverse(); // 最新的在前
+    dates.forEach(d => {
+      const recsOfDay = groups[d];
+      const group = el('div', 'tl-date-group');
+      // 日期头（可点击折叠）
+      const head = el('div', 'tl-date-head');
+      head.innerHTML = `<svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <span class="tl-date-label">${escapeHtml(d)}</span>
+        <span class="tl-date-dow">${formatDow(d)}</span>
+        <span class="tl-date-count">${recsOfDay.length} 条</span>`;
+      head.addEventListener('click', () => { group.classList.toggle('collapsed'); });
+      group.appendChild(head);
+      // 当天记录体
+      const body = el('div', 'tl-date-body');
+      recsOfDay.forEach(r => {
+        const mc = moodColor(r.mood || 3);
+        const imp = !!r.important;
+        const tags = (r.tags || []).map(t => `<span class="tl-tag">${t}</span>`).join('');
+        const au = authorKey(r);
+        const ac = multi ? (cmap[au] || 'var(--accent)') : null;
+        const item = el('div', 'tl-item' + (imp ? ' important' : ''));
+        item.dataset.id = r.id;
+        item.addEventListener('click', () => openRecordDetail(r.id));
+        const ttxt = r.time ? `<span class="tl-time">${r.time}</span>` : '';
+        const authorBadge = multi ? ` <span class="tl-author" style="--ac:${ac}"><i></i>${escapeHtml(au)}</span>` : '';
+        item.innerHTML = `
+          <div class="tl-axis"><span class="tl-dot"${multi ? ` style="border-color:${ac}"` : ''}></span></div>
+          <div class="tl-body">
+            <div class="tl-scene">${authorBadge}<span class="m" style="color:${mc}">${r.mood || '-'}/5</span> ${ttxt} ${r.scene ? '· ' + r.scene : ''}${imp ? '<span class="tl-imp-flag">重要事件</span>' : ''}</div>
+            ${tags ? `<div class="tl-tags">${tags}</div>` : ''}
+            ${r.note ? `<div class="tl-note">${String(r.note).slice(0, 120)}</div>` : ''}
+          </div>`;
+        body.appendChild(item);
+      });
+      group.appendChild(body);
+      list.appendChild(group);
     });
   }
   /* ---------- 作者配色：共享空间里「谁是谁」一眼分清 ----------
@@ -2797,11 +3101,20 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     const map = {};
     const n = Math.max(list.length, 1);
     const step = n > 1 ? Math.max(46, Math.min(120, 300 / n)) : 0;
+    const isGray = base.s === 0;
     list.forEach(function (a, i) {
-      const h = (base.h + i * step) % 360;
-      const s = Math.min(0.86, Math.max(0.48, base.s));
-      const l = Math.min(0.74, Math.max(0.5, base.l + (i % 2 ? 0.04 : 0)));
-      map[a] = hslToHex(h, s, l);
+      if (isGray) {
+        // 灰度主题（纯黑/纯白/灰阶）：作者色也保持灰阶，只用亮度阶梯区分，避免强行加饱和
+        const span = 0.42;
+        const lo = clamp(base.l, 0.12, 0.88);
+        const l = n === 1 ? base.l : clamp(lo + (i - (n - 1) / 2) * span / (n - 1), 0.12, 0.88);
+        map[a] = hslToHex(base.h, 0, l);
+      } else {
+        const h = (base.h + i * step) % 360;
+        const s = Math.min(0.86, Math.max(0.48, base.s));
+        const l = Math.min(0.74, Math.max(0.5, base.l + (i % 2 ? 0.04 : 0)));
+        map[a] = hslToHex(h, s, l);
+      }
     });
     _authorColorCache = { key: key, map: map };
     return map;
@@ -2809,14 +3122,17 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   function authorColor(a) { return authorColors()[(a || '').trim() || '未署名'] || 'var(--accent)'; }
 
   // 共享空间图例：谁是谁 + 各写了多少条 + 点色块只看这个人（这就是「查看对方内容」的入口）
-  function renderAuthorLegend() {
-    const box = $('#authorLegend'); if (!box) return;
+  // target 不传 = 历史视图的标签关系图下方；传 #tlAuthorLegend = 时间轴视图顶部
+  function renderAuthorLegend(target) {
+    const isTl = target && target.id === 'tlAuthorLegend';
+    const box = target || $('#authorLegend'); if (!box) return;
     const map = authorColors();
     const names = Object.keys(map);
     const cnt = {};
     (recs || []).forEach(function (r) { const a = authorKey(r); cnt[a] = (cnt[a] || 0) + 1; });
     if (names.length <= 1) {
-      box.innerHTML = '<span class="lg-note">点越大 = 这个标签出现得越多；连线 = 两个标签常常一起出现。</span>';
+      // 时间轴视图单人时不需要图例（保持清爽）；历史视图仍显示标签图提示
+      box.innerHTML = isTl ? '' : '<span class="lg-note">点越大 = 这个标签出现得越多；连线 = 两个标签常常一起出现。</span>';
       return;
     }
     const me = ghNick();
@@ -3032,8 +3348,10 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     buildHistory($('#viewHistList'));
     buildTimeline($('#tlList'));
     buildTimeline($('#viewTlList'));
+    renderInsights();
     renderTagGraph();
     renderAuthorLegend();
+    renderAuthorLegend($('#tlAuthorLegend'));
   }
   function openTimeline() { buildTimeline($('#tlList')); $('#tlModal').classList.add('show'); $('#scrim').classList.add('show'); }
   function closeTimeline() { $('#tlModal').classList.remove('show'); $('#scrim').classList.remove('show'); }
@@ -3088,15 +3406,16 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   }
 
   /* ---------- 主题引擎 ---------- */
+  // 每个预设只保留「主题色」一个种子，其余颜色全部由 derivePalette() 从它实时派生
   const PALETTES = {
-    aurora:   { name: '极光', accent: '#5eead4', accent2: '#38bdf8', a3: '#c084fc', a4: '#818cf8' },
-    rose:     { name: '玫瑰', accent: '#fb7185', accent2: '#f472b6', a3: '#c084fc', a4: '#fda4af' },
-    ocean:    { name: '海洋', accent: '#22d3ee', accent2: '#38bdf8', a3: '#34d399', a4: '#818cf8' },
-    sunset:   { name: '日落', accent: '#fb923c', accent2: '#f59e0b', a3: '#f43f5e', a4: '#fbbf24' },
-    forest:   { name: '森林', accent: '#34d399', accent2: '#10b981', a3: '#a3e635', a4: '#22d3ee' },
-    twilight: { name: '暮光', accent: '#a78bfa', accent2: '#8b5cf6', a3: '#c084fc', a4: '#f472b6' },
-    neon:     { name: '霓虹', accent: '#f0abfc', accent2: '#22d3ee', a3: '#f472b6', a4: '#a3e635' },
-    mono:     { name: '单色', accent: '#e2e8f0', accent2: '#94a3b8', a3: '#64748b', a4: '#cbd5e1' }
+    aurora:   { name: '极光', accent: '#5eead4' },
+    rose:     { name: '玫瑰', accent: '#fb7185' },
+    ocean:    { name: '海洋', accent: '#22d3ee' },
+    sunset:   { name: '日落', accent: '#fb923c' },
+    forest:   { name: '森林', accent: '#34d399' },
+    twilight: { name: '暮光', accent: '#a78bfa' },
+    neon:     { name: '霓虹', accent: '#f0abfc' },
+    mono:     { name: '单色', accent: '#e2e8f0' }
   };
   const EXTRA_Q = [
     '此刻身体哪个部位有感觉？胸口、肩膀、胃……写下来。',
@@ -3105,7 +3424,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   // 记一笔 · 标签预设（点选即可，想不起来也能选）
   const TAG_PRESETS = ['学习', '复习', '考试', '模考', '熬夜', '疲惫', '焦虑', '挫败', '委屈', '孤单',
     '平静', '安心', '期待', '开心', '成就感', '放松', '社交', '运动', '干扰', '想逃', '暴躁', '整理', '设计', '身体']
-  // 心情语义色：跟随主题（由 applyAccent 注入 --mood-low/-mid/-high），不再写死
+  // 心情语义色：跟随主题（由 derivePalette 注入 --mood-low/-mid/-high），不再写死
   const moodColor = m => m <= 2 ? 'var(--mood-low)' : (m === 3 ? 'var(--mood-mid)' : 'var(--mood-high)');
   const moodBand = m => m <= 2 ? '低落' : (m === 3 ? '平稳' : '高涨');
 
@@ -3127,39 +3446,125 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     const to = x => ('0' + Math.round(x * 255).toString(16)).slice(-2);
     return '#' + to(r) + to(g) + to(b);
   };
-  function applyAccent(hex, a2, a3, a4) {
-    const { r, g, b } = hexToRgb(hex);
-    root.style.setProperty('--accent', hex);
-    root.style.setProperty('--accent-2', a2);
-    root.style.setProperty('--accent-soft', `rgba(${r},${g},${b},0.16)`);
-    root.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.36)`);
-    root.style.setProperty('--a1', hex); root.style.setProperty('--a2', a2);
-    root.style.setProperty('--a3', a3); root.style.setProperty('--a4', a4);
-    // 心情语义色：从强调色派生（低落更暗、平稳=强调色、高涨更亮更饱和），随主题变化
-    const hl = hexToHsl(hex);
-    root.style.setProperty('--mood-low', hslToHex(hl.h, Math.max(0, hl.s - 0.04), Math.max(0.16, hl.l - 0.22)));
-    root.style.setProperty('--mood-mid', hex);
-    root.style.setProperty('--mood-high', hslToHex(hl.h, Math.min(1, hl.s + 0.12), Math.min(0.92, hl.l + 0.16)));
+  // 单一主题色 → 全调色板：强调色、同源和谐色、心情语义色、玻璃/背景，以及保证可读的 on-color
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  let currentAccent = '#5eead4';
+  // WCAG 相对亮度（0..1）
+  function relLum({ r, g, b }) {
+    const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  }
+  // 在某底色上反推选「对比更清晰」的文字色（浅底→深字，深底→浅字）
+  function onColorFor(hex) {
+    try { return relLum(hexToRgb(hex)) > 0.55 ? '#0b1118' : '#ffffff'; }
+    catch (e) { return '#04121a'; }
+  }
+  // 心情文字色：按 mood 取对应语义色的反相色（带缓存，accent 不变则复用）
+  const moodVarName = m => (m <= 2 ? '--mood-low' : (m === 3 ? '--mood-mid' : '--mood-high'));
+  const _onMoodCache = {};
+  function onMood(m) {
+    const k = Math.max(1, Math.min(5, Math.round(m)));
+    if (_onMoodCache[k]) return _onMoodCache[k];
+    const v = getComputedStyle(root).getPropertyValue(moodVarName(k)).trim();
+    return _onMoodCache[k] = onColorFor(v);
+  }
+  function derivePalette(hex, theme) {
+    currentAccent = hex;
+    Object.keys(_onMoodCache).forEach(k => delete _onMoodCache[k]); // 主题色变了，心情文字色缓存失效
+    const base = hexToHsl(hex);
+    const h = base.h, s = base.s, l = base.l;
+    const isGray = s === 0; // 纯灰度（#000/#fff/灰阶）保持真正的黑白，不强行加色调
+    const sat = isGray ? 0 : clamp(s, 0.35, 0.95);
+    const accent = hex;
+    // 灰度主题：和谐色为同亮度的灰阶；彩色主题：按色相环偏移
+    const a2 = isGray
+      ? hslToHex(0, 0, clamp(l + 0.08, 0, 1))
+      : hslToHex((h + 30) % 360, clamp(sat, 0.4, 0.95), clamp(l + 0.05, 0.45, 0.95));
+    const a3 = isGray
+      ? hslToHex(0, 0, clamp(l + 0.18, 0, 1))
+      : hslToHex((h + 150) % 360, clamp(sat - 0.05, 0.35, 0.9), clamp(l, 0.45, 0.9));
+    const a4 = isGray
+      ? hslToHex(0, 0, clamp(l - 0.12, 0, 1))
+      : hslToHex((h + 205) % 360, clamp(sat - 0.05, 0.35, 0.9), clamp(l - 0.06, 0.4, 0.82));
+    const rgb = hexToRgb(hex);
+    const soft = `rgba(${rgb.r},${rgb.g},${rgb.b},0.16)`;
+    const glow = `rgba(${rgb.r},${rgb.g},${rgb.b},0.36)`;
+    const moodLow = isGray
+      ? hslToHex(0, 0, clamp(l - 0.18, 0.12, 0.55))
+      : hslToHex(h, clamp(sat - 0.05, 0.2, 0.95), clamp(l - 0.22, 0.16, 0.6));
+    const moodMid = hex;
+    const moodHigh = isGray
+      ? hslToHex(0, 0, clamp(l + 0.14, 0.55, 1))
+      : hslToHex(h, clamp(sat + 0.1, 0.3, 1), clamp(l + 0.16, 0.55, 0.92));
+    const onAccent = onColorFor(hex);
+    const onLow = onColorFor(moodLow), onMid = onColorFor(moodMid), onHigh = onColorFor(moodHigh);
+    // 语义色：全部从主题色家族派生，不保留写死绿/黄/红
+    const srcGood = accent, srcMid = a2, srcBad = a3;
+    const corrPos = accent, corrNeg = a3;
+    const ok = accent, warn = a2, bad = a3;
+    const onOk = onAccent, onWarn = onColorFor(warn), onBad = onColorFor(bad);
+    // 各维度数据色（图表/概览）：保证彼此可区分且全部来自主题色家族
+    const energy = a2, sleep = a3, tension = a4;
+    // 背景/文字/玻璃：保持深或浅基调，仅以主题色轻微染色；纯灰度时给出真正的黑白
+    let bg0, bg1, bg2, ink, inkSoft, inkDim, glass, glass2, glassBrd, glassIn, line, shadow;
+    if (theme === 'light') {
+      if (isGray) {
+        bg0 = hslToHex(0, 0, 1.0);
+        bg1 = hslToHex(0, 0, 0.975);
+        bg2 = hslToHex(0, 0, 0.95);
+      } else {
+        bg0 = hslToHex(h, clamp(sat * 0.32, 0.1, 0.4), 0.95);
+        bg1 = hslToHex(h, clamp(sat * 0.28, 0.08, 0.35), 0.975);
+        bg2 = hslToHex(h, clamp(sat * 0.24, 0.06, 0.3), 1.0);
+      }
+      ink = '#0f172a'; inkSoft = '#334155'; inkDim = '#64748b';
+      glass = 'rgba(255,255,255,0.58)'; glass2 = 'rgba(255,255,255,0.8)'; glassBrd = 'rgba(20,40,80,0.12)'; glassIn = 'rgba(255,255,255,0.7)'; line = 'rgba(20,40,80,0.08)';
+      shadow = '0 30px 70px -30px rgba(40,60,110,0.42)';
+    } else {
+      if (isGray) {
+        bg0 = hslToHex(0, 0, 0);
+        bg1 = hslToHex(0, 0, 0.045);
+        bg2 = hslToHex(0, 0, 0.09);
+      } else {
+        bg0 = hslToHex(h, clamp(sat * 0.5, 0.08, 0.38), 0.045);
+        bg1 = hslToHex(h, clamp(sat * 0.45, 0.07, 0.34), 0.065);
+        bg2 = hslToHex(h, clamp(sat * 0.4, 0.06, 0.3), 0.09);
+      }
+      ink = '#eef2fb'; inkSoft = '#c8d2e0'; inkDim = '#8892a6';
+      glass = 'rgba(255,255,255,0.08)'; glass2 = 'rgba(255,255,255,0.11)'; glassBrd = 'rgba(255,255,255,0.18)'; glassIn = 'rgba(255,255,255,0.14)'; line = 'rgba(255,255,255,0.09)';
+      shadow = '0 30px 80px -28px rgba(0,0,0,0.72)';
+    }
+    const set = (k, v) => root.style.setProperty(k, v);
+    set('--accent', accent); set('--accent-2', a2);
+    set('--accent-soft', soft); set('--accent-glow', glow);
+    set('--a1', accent); set('--a2', a2); set('--a3', a3); set('--a4', a4);
+    set('--mood-low', moodLow); set('--mood-mid', moodMid); set('--mood-high', moodHigh);
+    set('--on-accent', onAccent); set('--on-mood-low', onLow); set('--on-mood-mid', onMid); set('--on-mood-high', onHigh);
+    set('--src-good', srcGood); set('--src-mid', srcMid); set('--src-bad', srcBad);
+    set('--corr-pos', corrPos); set('--corr-neg', corrNeg);
+    set('--ok', ok); set('--warn', warn); set('--bad', bad);
+    set('--on-ok', onOk); set('--on-warn', onWarn); set('--on-bad', onBad);
+    set('--energy', energy); set('--sleep', sleep); set('--tension', tension);
+    set('--bg-0', bg0); set('--bg-1', bg1); set('--bg-2', bg2);
+    set('--ink', ink); set('--ink-soft', inkSoft); set('--ink-dim', inkDim);
+    set('--glass', glass); set('--glass-2', glass2); set('--glass-brd', glassBrd); set('--glass-in', glassIn); set('--line', line);
+    set('--shadow', shadow);
   }
   function applyCustom(hex) {
-    const { h, s, l } = hexToHsl(hex);
-    const a2 = hslToHex((h + 32) % 360, s, Math.min(0.95, l + 0.05));
-    const a3 = hslToHex((h + 150) % 360, s, l);
-    const a4 = hslToHex((h + 205) % 360, s, Math.max(0.3, l - 0.1));
-    applyAccent(hex, a2, a3, a4);
+    derivePalette(hex, localStorage.getItem('mood.theme') || 'dark');
     localStorage.setItem('mood.custom', hex);
     localStorage.removeItem('mood.palette');
     root.removeAttribute('data-palette');
     syncSwatches(null);
-    document.getElementById('customColor').value = hex;
+    const cc = document.getElementById('customColor'); if (cc) cc.value = hex;
   }
   function applyPalette(key) {
     const p = PALETTES[key]; if (!p) return;
-    applyAccent(p.accent, p.accent2, p.a3, p.a4);
+    derivePalette(p.accent, localStorage.getItem('mood.theme') || 'dark');
     root.setAttribute('data-palette', key);
     localStorage.setItem('mood.palette', key);
     localStorage.removeItem('mood.custom');
-    document.getElementById('customColor').value = p.accent;
+    const cc = document.getElementById('customColor'); if (cc) cc.value = p.accent;
     syncSwatches(key);
   }
   function initTheme() {
@@ -3169,7 +3574,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     root.setAttribute('data-theme', theme);
     if (custom) applyCustom(custom);
     else if (pal && PALETTES[pal]) applyPalette(pal);
-    else { root.setAttribute('data-palette', 'aurora'); syncSwatches('aurora'); document.getElementById('customColor').value = PALETTES.aurora.accent; }
+    else { root.setAttribute('data-palette', 'aurora'); derivePalette(PALETTES.aurora.accent, theme); syncSwatches('aurora'); document.getElementById('customColor').value = PALETTES.aurora.accent; }
     document.getElementById('modeDark').classList.toggle('active', theme === 'dark');
     document.getElementById('modeLight').classList.toggle('active', theme === 'light');
   }
@@ -3178,7 +3583,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     Object.entries(PALETTES).forEach(([key, p]) => {
       const s = document.createElement('div');
       s.className = 'swatch'; s.dataset.key = key;
-      s.style.background = `linear-gradient(135deg, ${p.accent}, ${p.accent2})`;
+      s.style.background = `linear-gradient(135deg, ${p.accent}, ${hslToHex((hexToHsl(p.accent).h + 30) % 360, hexToHsl(p.accent).s, Math.min(0.95, hexToHsl(p.accent).l + 0.05))})`;
       s.innerHTML = `<span class="nm">${p.name}</span>`;
       s.addEventListener('click', () => applyPalette(key));
       wrap.appendChild(s);
@@ -3273,7 +3678,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   }
 
   /* ---------- 时间筛选 ---------- */
-  const state = { mode: 'all', year: null, month: null, day: null, editingId: null, histQ: '', histTag: '', histMood: 0, histAuthor: '', calMonth: '' };
+  const state = { mode: 'all', year: null, month: null, day: null, editingId: null, histQ: '', histTag: '', histMood: 0, histAuthor: '', calMonth: '', trendSelf: false };
   function pad2(n) { return ('0' + n).slice(-2); }
   function getViewRecs() {
     if (state.mode === 'all') return recs;
@@ -3283,6 +3688,104 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
       if (state.mode === 'day') return r.date === state.day;
       return true;
     });
+  }
+  // 本地日期（避免 toISOString 在 GMT+8 下被偏移一天，导致热力图等按日期比对错位）
+  function isoLocal(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  // 仪表盘统一的「自己 / 共同」过滤：时间维度由 getViewRecs 处理，作者维度由 state.trendSelf 处理
+  function dashRecs() {
+    let v = getViewRecs();
+    if (state.trendSelf) { const me = ghNick() || '未署名'; v = v.filter(r => authorKey(r) === me); }
+    return v;
+  }
+  // 切换「自己 / 共同」，同步所有 data-self-toggle 控件并重渲染整个仪表盘
+  function setViewSelf(v) {
+    state.trendSelf = (v === 'self');
+    document.querySelectorAll('[data-self-toggle] button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    renderDash();
+    if (_viewName === 'tl') renderInsights();
+  }
+  function syncSelfToggles() {
+    const show = authorList().length > 1;
+    document.querySelectorAll('[data-self-toggle]').forEach(t => t.style.display = show ? '' : 'none');
+  }
+  function renderDash() {
+    renderStats(); renderTrend(); renderHeat(); renderTags(); renderSleep(); renderScatter(); renderPeaks(); renderCalendar(); syncSelfToggles();
+  }
+  // 皮尔逊相关系数
+  function pearson(pts) {
+    const n = pts.length; if (n < 2) return NaN;
+    let sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+    for (const p of pts) { const x = p[0], y = p[1]; sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y; }
+    const cov = n * sxy - sx * sy;
+    const dx = n * sxx - sx * sx, dy = n * syy - sy * sy;
+    if (dx <= 0 || dy <= 0) return NaN;
+    return cov / Math.sqrt(dx * dy);
+  }
+  // 情绪洞察：来源分析（标签 / 场景）+ 跨维度相关性，统一接入 dashRecs() 的 自己/共同 过滤
+  function renderInsights() {
+    const box = $('#insightPanel'); if (!box) return;
+    const v = dashRecs();
+    // 来源：按标签分组
+    const tagMap = {};
+    v.forEach(r => (r.tags || []).forEach(t => { (tagMap[t] = tagMap[t] || []).push(+r.mood || 3); }));
+    const tagRows = Object.keys(tagMap)
+      .map(t => ({ name: t, n: tagMap[t].length, avg: tagMap[t].reduce((a, b) => a + b, 0) / tagMap[t].length }))
+      .filter(x => x.n >= 2).sort((a, b) => b.avg - a.avg);
+    // 来源：按场景分组
+    const sceneMap = {};
+    v.forEach(r => { const s = (r.scene || '').trim(); if (s) (sceneMap[s] = sceneMap[s] || []).push(+r.mood || 3); });
+    const sceneRows = Object.keys(sceneMap)
+      .map(s => ({ name: s, n: sceneMap[s].length, avg: sceneMap[s].reduce((a, b) => a + b, 0) / sceneMap[s].length }))
+      .filter(x => x.n >= 2).sort((a, b) => b.avg - a.avg);
+    const srcBar = (rows, empty) => {
+      if (!rows.length) return '<div class="src-empty">' + empty + '</div>';
+      const maxN = Math.max.apply(null, rows.map(r => r.n));
+      return rows.map(r => {
+        const pct = Math.max(10, Math.round(r.n / maxN * 100));
+        const cls = r.avg >= 3.5 ? 'good' : (r.avg <= 2.5 ? 'bad' : 'mid');
+        return '<div class="src-row ' + cls + '">' +
+          '<div class="src-name">' + escapeHtml(r.name) + '</div>' +
+          '<div class="src-track"><div class="src-fill" style="width:' + pct + '%"></div></div>' +
+          '<div class="src-meta">' + fmt(r.avg) + '<small>/5</small> · ' + r.n + '次</div>' +
+          '</div>';
+      }).join('');
+    };
+    $('#insightTagSrc').innerHTML = srcBar(tagRows, '标签数据不足（每个标签至少记 2 次）');
+    $('#insightSceneSrc').innerHTML = srcBar(sceneRows, '场景数据不足（同一场景至少 2 次）');
+    // 跨维度相关性
+    const pairs = [['sleep', 'mood', '睡眠', '心情'], ['energy', 'mood', '精力', '心情'], ['tension', 'mood', '紧绷', '心情'], ['energy', 'tension', '精力', '紧绷'], ['sleep', 'energy', '睡眠', '精力'], ['sleep', 'tension', '睡眠', '紧绷']];
+    const corrHtml = pairs.map(([a, b, la, lb]) => {
+      const pts = v.map(r => [+r[a], +r[b]]).filter(p => p[0] > 0 && !isNaN(p[0]) && p[1] != null && !isNaN(p[1]));
+      if (pts.length < 5) return '';
+      const r = pearson(pts); if (isNaN(r)) return '';
+      const mag = Math.abs(r);
+      const dir = r > 0 ? '正相关' : '负相关';
+      const strength = mag >= 0.6 ? '强' : mag >= 0.3 ? '中' : '弱';
+      const cls = r > 0 ? 'pos' : 'neg';
+      return '<div class="corr-row ' + cls + '">' +
+        '<div class="corr-name">' + la + ' ↔ ' + lb + '</div>' +
+        '<div class="corr-track"><div class="corr-fill" style="width:' + Math.round(mag * 100) + '%"></div></div>' +
+        '<div class="corr-meta">r=' + r.toFixed(2) + ' · ' + dir + strength + '</div>' +
+        '</div>';
+    }).filter(Boolean).join('') || '<div class="src-empty">维度数据不足（睡眠/精力/紧绷每项至少 5 条）</div>';
+    $('#insightCorr').innerHTML = corrHtml;
+  }
+  async function insightAiSummary() {
+    const btn = $('#insightAi'); if (!btn) return;
+    const out = $('#insightAiOut');
+    if (!dsKey()) { if (out) out.textContent = '请先在「⚙ 设置」里填入 DeepSeek API Key。'; return; }
+    const tagTxt = ($('#insightTagSrc').textContent || '').trim();
+    const corrTxt = ($('#insightCorr').textContent || '').trim();
+    if (!tagTxt && !corrTxt) { if (out) out.textContent = '当前范围数据不足，先多记几笔再来解读。'; return; }
+    const sys = '你是情绪数据分析师。基于下面整理的「来源分析」和「维度相关性」，用中文写一段不超过 150 字的解读：哪些来源最滋养 / 最消耗用户，睡眠、精力、紧绷和心情的关系意味着什么，最后给一句温和的提醒。不要诊断、不要恐吓。';
+    const user = '来源分析（标签）：\n' + tagTxt + '\n\n维度相关性：\n' + corrTxt;
+    btn.disabled = true; btn.textContent = '解读中…';
+    if (out) out.textContent = '';
+    try {
+      const res = await callDeepSeek(sys, user, { task: 'chat' });
+      if (out) out.textContent = res.text;
+    } catch (e) { if (out) out.textContent = '解读失败：' + ((e && e.message) || e); }
+    finally { btn.disabled = false; btn.textContent = '让 AI 解读'; }
   }
   function yearsOf() { return [...new Set(recs.map(r => r.date.slice(0, 4)))].sort(); }
   function buildSel(opts, val) {
@@ -3398,12 +3901,12 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   function renderStats() {
     const wrap = $('#stats'); if (!wrap) return;
     wrap.innerHTML = '';
-    const v = getViewRecs();
+    const v = dashRecs();
     const items = [
       { v: avg(v, 'mood'), max: 5, dec: 1, k: '平均心情', suf: ' / 5', col: 'var(--accent)' },
-      { v: avg(v, 'sleep'), max: 10, dec: 1, k: '平均睡眠', suf: ' h', col: '#818cf8' },
-      { v: avg(v, 'energy'), max: 5, dec: 1, k: '平均精力', suf: ' / 5', col: '#fbbf24' },
-      { v: avg(v, 'tension'), max: 5, dec: 1, k: '平均紧绷', suf: ' / 5', col: '#f472b6' }
+      { v: avg(v, 'sleep'), max: 10, dec: 1, k: '平均睡眠', suf: ' h', col: 'var(--sleep)' },
+      { v: avg(v, 'energy'), max: 5, dec: 1, k: '平均精力', suf: ' / 5', col: 'var(--energy)' },
+      { v: avg(v, 'tension'), max: 5, dec: 1, k: '平均紧绷', suf: ' / 5', col: 'var(--tension)' }
     ];
     items.forEach((it, idx) => {
       const p = el('div', 'pill');
@@ -3420,31 +3923,101 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   }
 
   function renderTrend() {
-    const data = getViewRecs().slice(-30); const n = data.length;
-    const W = 760, H = 260, pad = 34;
+    const data = dashRecs().slice(-30);
+    const n = data.length;
+    const W = 760, H = 340, pad = 40, topPad = 20;
     const x = i => pad + (W - 2 * pad) * (n === 1 ? 0.5 : i / (n - 1));
-    const y = v => H - pad - (H - 2 * pad) * ((v - 1) / 4);
+    const y = v => H - pad - (H - 2 * pad - topPad) * ((v - 1) / 4);
     if (!n) { $('#trend').innerHTML = '<div class="empty" style="padding:30px">该范围暂无数据</div>'; $('#trendLegend').innerHTML = ''; return; }
     curView = data;
-    const series = [
-      { key: 'mood', color: 'var(--accent)', fill: true, label: '心情' },
-      { key: 'energy', color: '#818cf8', fill: false, label: '精力' },
-      { key: 'tension', color: '#f472b6', fill: false, label: '紧绷' }
+    // 全部维度：检查每个维度是否有真实数据（不全为 null/undefined/默认值）
+    const allSeries = [
+      { key: 'mood', color: 'var(--accent)', fill: true, label: '心情', grad: 'tg' },
+      { key: 'energy', color: 'var(--energy)', fill: true, label: '精力', grad: 'tgE' },
+      { key: 'tension', color: 'var(--tension)', fill: true, label: '紧绷', grad: 'tgT' }
     ];
+    // 只保留有真实数据的系列（至少一条记录填了该字段）
+    const series = allSeries.filter(s => data.some(d => d[s.key] != null && d[s.key] !== undefined));
+    // 睡眠单独处理（量程不同 0-10h，用底部柱状条表示）
+    const hasSleep = data.some(d => d.sleep != null && d.sleep > 0);
     const path = key => data.map((d, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ' ' + y(d[key] || 3).toFixed(1)).join(' ');
     let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
-    for (let g = 1; g <= 5; g++) { const yy = y(g); svg += `<line x1="${pad}" y1="${yy}" x2="${W - pad}" y2="${yy}" stroke="var(--line)" stroke-width="1"/><text x="${pad - 8}" y="${yy + 4}" fill="var(--ink-dim)" font-size="10" text-anchor="end" font-family="JetBrains Mono, monospace">${g}</text>`; }
-    const areaD = path('mood') + ` L ${x(n - 1).toFixed(1)} ${H - pad} L ${x(0).toFixed(1)} ${H - pad} Z`;
-    svg += `<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity="0.34"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>`;
-    svg += `<path d="${areaD}" fill="url(#tg)"/>`;
-    series.forEach(s => { svg += `<path class="draw" d="${path(s.key)}" fill="none" stroke="${s.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`; });
+    // Y 轴网格线 + 刻度
+    for (let g = 1; g <= 5; g++) {
+      const yy = y(g);
+      svg += `<line x1="${pad}" y1="${yy}" x2="${W - pad}" y2="${yy}" stroke="var(--line)" stroke-width="1"/>`;
+      svg += `<text x="${pad - 8}" y="${yy + 4}" fill="var(--ink-dim)" font-size="10" text-anchor="end" font-family="JetBrains Mono, monospace">${g}</text>`;
+    }
+    // x 轴基线（绘图区底部，睡眠柱与日期标签都基于它）
+    const baseY = H - 22;
+    svg += `<line x1="${pad}" y1="${baseY}" x2="${W - pad}" y2="${baseY}" stroke="var(--line)" stroke-width="1"/>`;
+    // 睡眠柱状（量程 0-10h，画在基线上方）
+    if (hasSleep) {
+      const maxBarH = 26;
+      data.forEach((d, i) => {
+        if (d.sleep != null && d.sleep > 0) {
+          const bh = Math.max(2, (Math.min(d.sleep, 10) / 10) * maxBarH);
+          const bx = x(i);
+          svg += `<rect x="${bx - 5}" y="${baseY - bh}" width="10" height="${bh}" rx="2" fill="var(--sleep)" opacity="0.22">
+            <title>${d.date || ''} · 睡眠 ${d.sleep}h</title></rect>`;
+        }
+      });
+    }
+    // 每个有数据的系列都画渐变面积填充（心情/精力/紧绷各自颜色），先画填充再画线
+    const gradColors = { mood: 'var(--accent)', energy: 'var(--energy)', tension: 'var(--tension)' };
+    let defs = '';
+    series.forEach(s => {
+      if (!s.grad) return;
+      const c = gradColors[s.key] || s.color;
+      defs += `<linearGradient id="${s.grad}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${c}" stop-opacity="0.28"/><stop offset="100%" stop-color="${c}" stop-opacity="0"/></linearGradient>`;
+    });
+    if (defs) svg += `<defs>${defs}</defs>`;
+    // 填充按其视觉权重从低到高叠：紧绷 → 精力 → 心情（心情最显眼在最上）
+    ['tension', 'energy', 'mood'].forEach(k => {
+      const s = series.find(x => x.key === k);
+      if (!s || !s.grad) return;
+      const areaD = path(k) + ` L ${x(n - 1).toFixed(1)} ${baseY} L ${x(0).toFixed(1)} ${baseY} Z`;
+      svg += `<path d="${areaD}" fill="url(#${s.grad})"/>`;
+    });
+    // 每条线
+    series.forEach(s => {
+      svg += `<path class="draw" d="${path(s.key)}" fill="none" stroke="${s.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+    });
+    // 每个数据点 —— 所有有数据的系列都画点，用不同大小/样式区分
     data.forEach((d, i) => {
-      svg += `<circle cx="${x(i)}" cy="${y(d.mood || 3)}" r="3.2" fill="var(--accent)" opacity="0.9"><title>${d.date} · 心情 ${d.mood}</title></circle>`;
-      svg += `<rect x="${x(i) - 8}" y="${pad}" width="16" height="${H - 2 * pad}" fill="transparent" data-i="${i}" class="hit"/>`;
+      const cx = x(i);
+      series.forEach(s => {
+        const val = d[s.key];
+        if (val != null && val !== undefined) {
+          const cy = y(val);
+          const isMood = s.key === 'mood';
+          const r = isMood ? 3.6 : 2.8;
+          svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${s.color}" opacity="0.9">
+            <title>${d.date || ''} · ${s.label} ${val}</title></circle>`;
+        }
+      });
+      // 交互热区
+      svg += `<rect x="${cx - 10}" y="${topPad}" width="20" height="${baseY - topPad}" fill="transparent" data-i="${i}" class="hit"/>`;
+    });
+    // x 轴日期标签（最多约 6 个刻度，避免重叠）
+    const step = Math.max(1, Math.ceil(n / 6));
+    const ticks = [];
+    for (let i = 0; i < n; i += step) ticks.push(i);
+    if (ticks[ticks.length - 1] !== n - 1) ticks.push(n - 1);
+    ticks.forEach(i => {
+      const cx = x(i);
+      const dd = (data[i].date || '').slice(5);
+      svg += `<text x="${cx}" y="${H - 5}" fill="var(--ink-dim)" font-size="9" text-anchor="middle" font-family="JetBrains Mono, monospace">${dd}</text>`;
     });
     svg += `</svg>`;
     $('#trend').innerHTML = svg;
-    $('#trendLegend').innerHTML = series.map(s => `<span><i style="background:${s.color}"></i>${s.label}</span>`).join('');
+    // 图例：只显示有数据的系列 + 睡眠
+    let legendHtml = series.map(s => `<span><i style="background:${s.color}"></i>${s.label}</span>`).join('');
+    if (hasSleep) legendHtml += `<span><i style="background:var(--sleep);opacity:0.5"></i>睡眠</span>`;
+    $('#trendLegend').innerHTML = legendHtml;
+    // 单人时隐藏所有「自己/共同」切换（自己 == 共同的，切换无意义）
+    syncSelfToggles();
+    // 线条动画
     $('#trend').querySelectorAll('.draw').forEach(p => {
       const L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L;
       requestAnimationFrame(() => requestAnimationFrame(() => p.classList.add('in')));
@@ -3452,34 +4025,63 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   }
 
   function renderHeat() {
-    const weeks = 13, days = weeks * 7; const map = {}; recs.forEach(r => map[r.date] = r);
-    const end = new Date(); end.setDate(end.getDate() - (end.getDay() + 1));
+    const weeks = 13, days = weeks * 7;
+    const v = dashRecs();
+    const map = {}; v.forEach(r => map[r.date] = r);
+    const end = new Date();
     const start = new Date(end); start.setDate(start.getDate() - (days - 1));
     const grid = $('#heat'); grid.innerHTML = '';
     for (let i = 0; i < days; i++) {
       const d = new Date(start); d.setDate(start.getDate() + i);
-      const k = d.toISOString().slice(0, 10); const r = map[k];
+      const k = isoLocal(d); const r = map[k];
       const cell = el('div', 'cell');
       if (r) { cell.style.background = moodColor(r.mood); cell.style.opacity = 0.28 + r.mood * 0.14; cell.title = `${k} · 心情 ${r.mood}`; }
       grid.appendChild(cell);
     }
-    $('#heatMonths').textContent = (end.getMonth() + 1) + '月前 → 本周';
+    $('#heatMonths').textContent = isoLocal(start).slice(5) + ' → ' + isoLocal(end).slice(5);
   }
 
   function renderTags() {
-    const v = getViewRecs();
-    const cnt = {}; v.forEach(r => (r.tags || []).forEach(t => cnt[t] = (cnt[t] || 0) + 1));
-    const arr = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const v = dashRecs();
+    const cnt = {}, byAuthor = {};
+    v.forEach(r => {
+      const a = authorKey(r);
+      (r.tags || []).forEach(t => {
+        cnt[t] = (cnt[t] || 0) + 1;
+        byAuthor[t] = byAuthor[t] || {};
+        byAuthor[t][a] = (byAuthor[t][a] || 0) + 1;
+      });
+    });
+    let arr = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 10);
     const wrap = $('#tags'); wrap.innerHTML = '';
     if (!arr.length) { wrap.innerHTML = '<div class="empty" style="padding:18px">暂无标签</div>'; return; }
     const max = arr[0][1];
+    const authors = authorList();
+    const multi = authors.length > 1 && !state.trendSelf;
+    const me = ghNick() || '未署名';
+    const mainOf = t => Object.entries(byAuthor[t] || {}).sort((x, y) => y[1] - x[1])[0];
+    // “我们”模式下：把「我」作为主要记录人的标签排前面，再按次数排；chip 加作者色小点
+    if (multi) {
+      arr.sort((a, b) => {
+        const ma = mainOf(a[0]), mb = mainOf(b[0]);
+        const aIsMe = ma && ma[0] === me;
+        const bIsMe = mb && mb[0] === me;
+        if (aIsMe !== bIsMe) return aIsMe ? -1 : 1;
+        return b[1] - a[1];
+      });
+    }
     arr.forEach(([name, c], i) => {
       // 改成真正的 button：可点、可聚焦、可键盘操作；点了直接跳到历史并筛出这个标签
       const chip = el('button', 'chip' + (state.histTag === name ? ' on' : ''));
       chip.type = 'button';
       chip.dataset.tag = name;
       chip.title = '查看「' + name + '」下的全部记录（共 ' + c + ' 条）';
-      chip.innerHTML = '<span>' + escapeHtml(name) + '</span><span class="n">' + c + '</span>';
+      let dot = '';
+      if (multi) {
+        const main = mainOf(name);
+        if (main) dot = '<i class="au" style="background:' + authorColor(main[0]) + '" title="主要记录人：' + escapeHtml(main[0]) + '"></i>';
+      }
+      chip.innerHTML = dot + '<span>' + escapeHtml(name) + '</span><span class="n">' + c + '</span>';
       // 不再用 translateY 做入场：任何 transform 都可能和点击热区打架，这里只用透明度
       chip.style.opacity = 0;
       chip.addEventListener('click', () => jumpToTag(name));
@@ -3489,10 +4091,10 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   }
 
   function renderSleep() {
-    const v = getViewRecs();
+    const v = dashRecs();
     const val = avg(v, 'sleep'); const target = 8; const pct = Math.min(1, val / target);
     const R = 52, C = 2 * Math.PI * R;
-    const col = val >= 7 ? '#5eead4' : val >= 6 ? '#fbbf24' : '#fb7185';
+    const col = val >= 7 ? 'var(--accent)' : val >= 6 ? 'var(--warn)' : 'var(--bad)';
     $('#sleep').innerHTML = `
       <svg viewBox="0 0 140 140" style="width:100%;max-width:170px">
         <circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--line)" stroke-width="12"/>
@@ -3506,7 +4108,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   }
 
   function renderScatter() {
-    const v = getViewRecs();
+    const v = dashRecs();
     const W = 240, H = 200, pad = 26;
     const x = vx => pad + (W - 2 * pad) * ((vx - 1) / 4);
     const y = vy => H - pad - (H - 2 * pad) * ((vy - 1) / 4);
@@ -3524,7 +4126,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
   }
 
   function renderPeaks() {
-    const v = getViewRecs();
+    const v = dashRecs();
     if (!v.length) { $('#peaks').innerHTML = ''; return; }
     const best = v.reduce((a, b) => (b.mood > a.mood ? b : a));
     const worst = v.reduce((a, b) => (b.mood < a.mood ? b : a));
@@ -4114,8 +4716,8 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     on('#aiSend', 'click', aiChat);
     on('#aiInput', 'keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') aiChat(); });
     on('#customColor', 'input', e => applyCustom(e.target.value));
-    on('#modeDark', 'click', () => { root.setAttribute('data-theme', 'dark'); localStorage.setItem('mood.theme', 'dark'); const d = $('#modeDark'); if (d) d.classList.add('active'); const l = $('#modeLight'); if (l) l.classList.remove('active'); });
-    on('#modeLight', 'click', () => { root.setAttribute('data-theme', 'light'); localStorage.setItem('mood.theme', 'light'); const l = $('#modeLight'); if (l) l.classList.add('active'); const d = $('#modeDark'); if (d) d.classList.remove('active'); });
+    on('#modeDark', 'click', () => { root.setAttribute('data-theme', 'dark'); localStorage.setItem('mood.theme', 'dark'); derivePalette(currentAccent, 'dark'); const d = $('#modeDark'); if (d) d.classList.add('active'); const l = $('#modeLight'); if (l) l.classList.remove('active'); });
+    on('#modeLight', 'click', () => { root.setAttribute('data-theme', 'light'); localStorage.setItem('mood.theme', 'light'); derivePalette(currentAccent, 'light'); const l = $('#modeLight'); if (l) l.classList.add('active'); const d = $('#modeDark'); if (d) d.classList.remove('active'); });
 
     // 同步状态点一下就能真的同步 / 重试；没配置过就直接把设置面板打开
     on('#connDot', 'click', () => {
@@ -4154,6 +4756,8 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     };
     bindCollapse('#tagsToggle', '#tagsBody', 'mood.ui.tagsOpen');
     bindCollapse('#tgToggle', '#tgBody', 'mood.ui.graphOpen');
+    bindCollapse('#insightCollapse', '#insightBody', 'mood.ui.insightOpen');
+    on('#insightAi', 'click', insightAiSummary);
     on('#tgReset', 'click', () => {
       state.histTag = ''; state.histAuthor = ''; state.histMood = 0; state.histQ = '';
       const hs = $('#histSearch'); if (hs) hs.value = '';
@@ -4205,7 +4809,7 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     const parts = state.calMonth.split('-'); const y = +parts[0], m = +parts[1];
     const title = $('#calTitle'); if (title) title.textContent = y + '年' + m + '月';
     const map = {};
-    recs.forEach(r => {
+    dashRecs().forEach(r => {
       if (r.date && r.date.indexOf(state.calMonth + '-') === 0) {
         const day = +r.date.slice(8, 10);
         if (!map[day]) map[day] = { sum: 0, n: 0, ids: [] };
@@ -4224,6 +4828,9 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
       if (info) {
         const avg = info.sum / info.n;
         cell.style.background = moodColor(avg);
+        const oc = onMood(avg);
+        cell.style.color = oc;
+        const cd = cell.querySelector('.cal-d'); if (cd) cd.style.color = oc;
         cell.style.opacity = 0.35 + avg * 0.13;
         cell.classList.add('has');
         cell.title = d + '日 · 平均心情 ' + fmt(avg) + ' · ' + info.n + ' 条';
@@ -4248,21 +4855,17 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
     if (hasToday || !gap) { bar.style.display = 'none'; return; }
     bar.style.display = '';
   }
-  async function genReport(range) {
+  async function genReport() {
     const box = $('#reportBody');
     const open = () => { $('#reportModal').classList.add('show'); $('#scrim').classList.add('show'); };
     if (!dsKey()) { if (box) box.textContent = '请先在「⚙ 设置」里填入 DeepSeek API Key 再生成总结。'; open(); return; }
-    const end = new Date(); const start = new Date(end);
-    if (range === 'week') start.setDate(start.getDate() - 6);
-    else if (range === 'month') start.setDate(start.getDate() - 29);
-    else if (range === 'year') start.setDate(start.getDate() - 364);
-    const s = start.toISOString().slice(0, 10), e = end.toISOString().slice(0, 10);
-    const slice = recs.filter(r => r.date >= s && r.date <= e);
+    const p = reportRangeParams();
+    const slice = reportSlice(p.range, p.start, p.end);
     if (!slice.length) { renderReportStats([]); if (box) box.textContent = '这段时间还没有记录，先记几笔再来生成总结吧。'; open(); return; }
     renderReportStats(slice);   // 纯前端统计，立即显示，不用等 AI
     const text = slice.map(r => [r.date + ' 心情' + r.mood, r.scene ? '场景:' + r.scene : '', (r.tags || []).length ? '标签:' + r.tags.join('/') : '', r.note ? '备注:' + r.note : '', r.cause ? '原因:' + r.cause : ''].filter(Boolean).join(' · ')).join('\n');
     const sys = '你是温柔而专业的情绪陪伴与分析师。基于用户提供的情绪记录，给出一段结构化总结：1) 这段时间整体情绪基调；2) 反复出现的场景或触发因素；3) 一两个值得注意的模式；4) 一句温和的提醒或建议。语言平实、不诊断、不恐吓。';
-    const usr = '时间范围：' + (range === 'week' ? '近 7 天' : range === 'month' ? '近 30 天' : range === 'year' ? '近 1 年' : '全部') + '，共 ' + slice.length + ' 条记录：\n' + text;
+    const usr = '时间范围：' + p.label + '，共 ' + slice.length + ' 条记录：\n' + text;
     const btn = $('#genReport'); if (btn) { btn.disabled = true; btn.textContent = '生成中…'; }
     try {
       const r = await callDeepSeek(sys, usr, { task: 'summary' });
@@ -4274,17 +4877,18 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
       open();
     }
   }
+  // 切换范围选择时同步 UI：显示/隐藏自定义日期、刷新预览统计
+  function syncReportRangeUI() {
+    const sel = $('#repRange'); if (!sel) return;
+    const custom = sel.value === 'custom';
+    const box = $('#repCustom'); if (box) box.style.display = custom ? '' : 'none';
+    const p = reportRangeParams();
+    renderReportStats(reportSlice(p.range, p.start, p.end));
+  }
   // 首页「回顾」入口：直接打开弹窗并渲染纯前端统计（不强制 AI），有 Key 再点「生成 AI 总结」
   function openReview(range) {
-    range = range || 'month';
-    const sel = $('#repRange'); if (sel) sel.value = range;
-    const end = new Date(), start = new Date(end);
-    if (range === 'week') start.setDate(start.getDate() - 6);
-    else if (range === 'month') start.setDate(start.getDate() - 29);
-    else if (range === 'year') start.setDate(start.getDate() - 364);
-    const s = start.toISOString().slice(0, 10), e = end.toISOString().slice(0, 10);
-    const slice = recs.filter(r => r.date >= s && r.date <= e);
-    renderReportStats(slice);
+    const sel = $('#repRange'); if (sel && range) sel.value = range;
+    syncReportRangeUI();
     const m = $('#reportModal'), sc = $('#scrim');
     if (m) m.classList.add('show');
     if (sc) sc.classList.add('show');
@@ -4335,22 +4939,230 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
       loading.textContent = '查询失败：' + (e && e.message ? e.message : e);
     }
   }
-  // 导出回顾为 PDF（纯前端：构造临时打印区 + 浏览器打印，不引入任何外部依赖，保持离线可用）
-  function exportReportPdf() {
-    const stats = $('#reportStats'), body = $('#reportBody');
-    const range = $('#repRange') ? $('#repRange').value : 'all';
-    const rangeLabel = { week: '近 7 天', month: '近 30 天', year: '近 1 年', all: '全部' }[range] || range;
-    const area = document.createElement('div'); area.id = 'printArea';
-    let html = '<h1>情绪回顾 · ' + rangeLabel + '</h1><div class="pv-date">生成于 ' + new Date().toLocaleString('zh-CN') + '</div>';
-    if (stats && stats.innerHTML.trim()) {
-      const clean = stats.innerHTML.replace(/ class="(rs|k|v|sub)"/g, '');
-      html += '<div class="pv-stats">' + clean + '</div>';
+  // 导出回顾为 PDF（纯前端：构造精美打印区 + 浏览器打印，不引入任何外部依赖，保持离线可用）
+  /* ---------- 导出 PDF（纯前端：Canvas 绘制 → JPEG → 内嵌 PDF，离线可用，支持中文） ---------- */
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function wrapText(ctx, text, maxW, font) {
+    ctx.font = font; const out = []; let line = '';
+    for (const ch of String(text)) {
+      const test = line + ch;
+      if (ctx.measureText(test).width > maxW && line) { out.push(line); line = ch; }
+      else line = test;
     }
-    if (body && body.textContent.trim()) html += '<div class="pv-body">' + body.textContent.replace(/</g, '&lt;') + '</div>';
-    area.innerHTML = html;
-    document.body.appendChild(area);
-    window.print();
-    setTimeout(function () { if (area.parentNode) area.parentNode.removeChild(area); }, 600);
+    if (line) out.push(line);
+    return out;
+  }
+  // 读取报告弹窗当前选择的范围（预设 or 自定义起止日期）
+  function reportRangeParams() {
+    const range = $('#repRange') ? $('#repRange').value : 'month';
+    let start = '', end = '', label = '';
+    if (range === 'custom') {
+      start = $('#repStart') ? $('#repStart').value : '';
+      end = $('#repEnd') ? $('#repEnd').value : '';
+      label = (start || '起始') + ' 至 ' + (end || '今天');
+    } else {
+      label = { week: '近 7 天', month: '近 30 天', year: '近 1 年', all: '全部' }[range] || range;
+    }
+    return { range, start, end, label };
+  }
+  function reportSlice(range, start, end) {
+    const all = recs;
+    if (range === 'all' && !start && !end) return all.slice();
+    let s, e;
+    if (range === 'custom') { s = start || '0000-01-01'; e = end || isoLocal(new Date()); }
+    else {
+      const endD = new Date(), startD = new Date(endD);
+      if (range === 'week') startD.setDate(startD.getDate() - 6);
+      else if (range === 'month') startD.setDate(startD.getDate() - 29);
+      else if (range === 'year') startD.setDate(startD.getDate() - 364);
+      else { s = '0000-01-01'; e = isoLocal(new Date()); return all.filter(r => r.date >= s && r.date <= e); }
+      s = isoLocal(startD); e = isoLocal(endD);
+    }
+    return all.filter(r => r.date >= s && r.date <= e);
+  }
+  // 绘制 PDF 内的趋势折线图（心情/精力/紧绷），返回新的 y 光标
+  function drawReportTrend(ctx, slice, L, R, top, dim, ink, accent, line) {
+    const data = slice.filter(r => r.mood != null).slice(-60);
+    const w = R - L, h = 150;
+    ctx.fillStyle = accent; ctx.font = 'bold 14px sans-serif'; ctx.fillText('心情趋势', L, top);
+    top += 9; ctx.strokeStyle = line; ctx.beginPath(); ctx.moveTo(L, top); ctx.lineTo(R, top); ctx.stroke(); top += 12;
+    const plotH = h - 34, baseY = top;
+    const yy = v => baseY + plotH - plotH * ((v - 1) / 4);
+    ctx.strokeStyle = '#ececec'; ctx.fillStyle = dim; ctx.font = '9px sans-serif';
+    for (let g = 1; g <= 5; g++) { const gy = yy(g); ctx.beginPath(); ctx.moveTo(L, gy); ctx.lineTo(R, gy); ctx.stroke(); ctx.fillText(String(g), L - 13, gy + 3); }
+    if (!data.length) { ctx.fillStyle = dim; ctx.fillText('该范围暂无心情数据', L, baseY + plotH / 2); return top + h; }
+    const n = data.length, xx = i => L + (n === 1 ? w / 2 : w * i / (n - 1));
+    const series = [{ key: 'mood', color: accent }, { key: 'energy', color: '#818cf8' }, { key: 'tension', color: '#f472b6' }];
+    series.forEach(se => {
+      if (!data.some(d => d[se.key] != null)) return;
+      ctx.strokeStyle = se.color; ctx.lineWidth = 1.6; ctx.beginPath();
+      let started = false;
+      data.forEach((d, i) => { const v = d[se.key]; if (v == null) return; const px = xx(i), py = yy(v); if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py); });
+      ctx.stroke();
+    });
+    ctx.fillStyle = dim; ctx.font = '9px sans-serif';
+    [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i).forEach(i => { ctx.fillText(String(data[i].date).slice(5), xx(i) - 12, top + h - 6); });
+    return top + h + 8;
+  }
+  // 绘制 PDF 内的每日明细，返回新的 y 光标
+  function drawReportDaily(ctx, slice, L, R, top, dim, ink, accent, line) {
+    ctx.fillStyle = accent; ctx.font = 'bold 14px sans-serif'; ctx.fillText('每日明细', L, top);
+    top += 9; ctx.strokeStyle = line; ctx.beginPath(); ctx.moveTo(L, top); ctx.lineTo(R, top); ctx.stroke(); top += 18;
+    const byDay = {}; slice.forEach(r => { (byDay[r.date] = byDay[r.date] || []).push(r); });
+    const dates = Object.keys(byDay).sort();
+    const w = R - L;
+    if (!dates.length) { ctx.fillStyle = dim; ctx.fillText('该范围暂无记录', L, top); return top + 16; }
+    dates.forEach(d => {
+      const recsDay = byDay[d];
+      const dt = new Date(d + 'T00:00:00');
+      const wd = ['日', '一', '二', '三', '四', '五', '六'][dt.getDay()];
+      ctx.fillStyle = ink; ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(d.slice(5) + ' ' + wd + ' · ' + recsDay.length + ' 条', L, top);
+      top += 18;
+      recsDay.forEach(r => {
+        ctx.fillStyle = moodColor(r.mood || 3); ctx.beginPath(); ctx.arc(L + 4, top - 4, 4, 0, 7); ctx.fill();
+        ctx.fillStyle = ink; ctx.font = '11px sans-serif';
+        const line1 = '心情' + (r.mood || '-') + '/5' + (r.time ? '  ' + r.time : '') + (r.scene ? '  · ' + r.scene : '');
+        ctx.fillText(line1, L + 14, top); top += 16;
+        if ((r.tags || []).length) { ctx.fillStyle = dim; ctx.font = '10px sans-serif'; wrapText(ctx, '#' + (r.tags || []).join(' #'), w - 14, '10px sans-serif').forEach(ln => { ctx.fillText(ln, L + 14, top); top += 14; }); }
+        if (r.note) { ctx.fillStyle = ink; ctx.font = '10px sans-serif'; wrapText(ctx, r.note, w - 14, '10px sans-serif').forEach(ln => { ctx.fillText(ln, L + 14, top); top += 14; }); }
+        if (r.cause) { ctx.fillStyle = dim; ctx.font = '10px sans-serif'; wrapText(ctx, '原因：' + r.cause, w - 14, '10px sans-serif').forEach(ln => { ctx.fillText(ln, L + 14, top); top += 14; }); }
+        top += 8;
+      });
+      top += 6;
+    });
+    return top;
+  }
+  function paintReport() {
+    const p = reportRangeParams();
+    const slice = reportSlice(p.range, p.start, p.end);
+    const includeDaily = $('#repDaily') ? $('#repDaily').checked : true;
+    renderReportStats(slice);
+    const aiText = (($('#reportBody') && $('#reportBody').textContent) || '').trim();
+    const s = 2, W = 595, MU = 30000;
+    const ink = '#1f2937', dim = '#6b7280', accent = '#10b981', card = '#f3f4f6', line = '#e5e7eb';
+    const big = document.createElement('canvas'); big.width = W * s; big.height = MU;
+    const x = big.getContext('2d'); x.scale(s, s); x.textBaseline = 'alphabetic';
+    const L = 42, R = W - 42;
+    let y = 46;
+    x.fillStyle = accent; x.fillRect(L, y - 18, 6, 22);
+    x.fillStyle = ink; x.font = 'bold 22px sans-serif'; x.fillText('情绪回顾报告', L + 16, y);
+    x.fillStyle = dim; x.font = '12px sans-serif';
+    x.fillText(p.label + ' · 生成于 ' + new Date().toLocaleString('zh-CN'), L + 16, y + 18);
+    y += 46;
+    const cards = Array.from(document.querySelectorAll('#reportStats .rs'))
+      .map(el => ({ k: el.querySelector('.k') ? el.querySelector('.k').textContent : '', v: el.querySelector('.v') ? el.querySelector('.v').textContent : '', sub: el.querySelector('.sub') ? el.querySelector('.sub').textContent : '' }))
+      .filter(c => c.k || c.v);
+    if (cards.length) {
+      const cols = 3, gap = 12, cw = (R - L - gap * (cols - 1)) / cols, ch = 58;
+      cards.forEach((c2, i) => {
+        const cx = L + (i % cols) * (cw + gap), cy = y + Math.floor(i / cols) * (ch + gap);
+        x.fillStyle = card; roundRect(x, cx, cy, cw, ch, 8); x.fill();
+        x.fillStyle = dim; x.font = '11px sans-serif'; x.fillText(c2.k, cx + 12, cy + 20);
+        x.fillStyle = ink; x.font = 'bold 18px sans-serif'; x.fillText(c2.v, cx + 12, cy + 42);
+        if (c2.sub) { x.fillStyle = dim; x.font = '10px sans-serif'; x.fillText(c2.sub, cx + 12, cy + 54); }
+      });
+      y += Math.ceil(cards.length / cols) * (ch + gap) + 18;
+    }
+    y = drawReportTrend(x, slice, L, R, y, dim, ink, accent, line);
+    // AI 总结
+    x.fillStyle = accent; x.font = 'bold 14px sans-serif'; x.fillText('AI 总结', L, y);
+    y += 9; x.strokeStyle = line; x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke(); y += 16;
+    const aiLines = aiText ? wrapText(x, aiText, R - L, '13px sans-serif') : ['（还没有生成 AI 总结，回到弹窗点「生成 AI 总结」后再导出即可）'];
+    x.fillStyle = ink; x.font = '13px sans-serif';
+    aiLines.forEach(ln => { x.fillText(ln, L, y); y += 20; });
+    y += 18;
+    // 高频标签
+    const tc = {}; slice.forEach(r => (r.tags || []).forEach(t => { tc[t] = (tc[t] || 0) + 1; }));
+    const topTags = Object.entries(tc).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    if (topTags.length) {
+      x.fillStyle = accent; x.font = 'bold 14px sans-serif'; x.fillText('高频标签', L, y);
+      y += 9; x.strokeStyle = line; x.beginPath(); x.moveTo(L, y); x.lineTo(R, y); x.stroke(); y += 18;
+      let tx = L; x.font = '12px sans-serif';
+      topTags.forEach(([t, c]) => {
+        const tw = x.measureText(t + ' ' + c).width + 18;
+        if (tx + tw > R) { tx = L; y += 30; }
+        x.fillStyle = card; roundRect(x, tx, y - 16, tw, 22, 11); x.fill();
+        x.fillStyle = ink; x.fillText(t + ' ' + c, tx + 9, y);
+        tx += tw + 8;
+      });
+      y += 34;
+    }
+    if (includeDaily) y = drawReportDaily(x, slice, L, R, y, dim, ink, accent, line);
+    x.fillStyle = dim; x.font = '11px sans-serif'; x.fillText('情绪地图 · Mood Atlas', L, y);
+    y += 20;
+    const Hh = Math.max(y, 200);
+    const out = document.createElement('canvas'); out.width = W * s; out.height = Hh * s;
+    const ox = out.getContext('2d'); ox.fillStyle = '#fff'; ox.fillRect(0, 0, out.width, out.height);
+    ox.drawImage(big, 0, 0, W * s, Hh * s, 0, 0, W * s, Hh * s);
+    return out;
+  }
+  // 多页 PDF：images 为每页的 JPEG 字节数组（Uint8Array），所有页尺寸一致 (cw x ch)
+  function buildPdf(w, h, images, cw, ch) {
+    const enc = new TextEncoder();
+    const chunks = []; const offs = {}; let pos = 0;
+    const add = str => { const b = enc.encode(str); chunks.push(b); pos += b.length; };
+    const addB = b => { chunks.push(b); pos += b.length; };
+    const n = images.length;
+    const totalObjs = 2 + n * 3;
+    add('%PDF-1.4\n');
+    offs[1] = pos; add('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+    const kids = []; for (let i = 0; i < n; i++) kids.push((3 + i * 3) + ' 0 R');
+    offs[2] = pos; add('2 0 obj\n<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + n + ' >>\nendobj\n');
+    for (let i = 0; i < n; i++) {
+      const pId = 3 + i * 3, cId = 4 + i * 3, imId = 5 + i * 3;
+      offs[pId] = pos; add(pId + ' 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + w + ' ' + h + '] /Resources << /XObject << /Im' + i + ' ' + imId + ' 0 R >> >> /Contents ' + cId + ' 0 R >>\nendobj\n');
+      const content = 'q ' + w + ' 0 0 ' + h + ' 0 0 cm /Im' + i + ' Do Q\n';
+      offs[cId] = pos; add(cId + ' 0 obj\n<< /Length ' + content.length + ' >>\nstream\n' + content + 'endstream\nendobj\n');
+      offs[imId] = pos; add(imId + ' 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + cw + ' /Height ' + ch + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + images[i].length + ' >>\nstream\n');
+      addB(images[i]); add('\nendstream\nendobj\n');
+    }
+    const xrefStart = pos;
+    let xref = 'xref\n0 ' + (totalObjs + 1) + '\n0000000000 65535 f \n';
+    for (let i = 1; i <= totalObjs; i++) xref += String(offs[i]).padStart(10, '0') + ' 00000 n \n';
+    add(xref);
+    add('trailer\n<< /Size ' + (totalObjs + 1) + ' /Root 1 0 R >>\nstartxref\n' + xrefStart + '\n%%EOF');
+    let total = 0; chunks.forEach(c => total += c.length);
+    const out = new Uint8Array(total); let o = 0; chunks.forEach(c => { out.set(c, o); o += c.length; });
+    return new Blob([out], { type: 'application/pdf' });
+  }
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+  function exportReportPdf() {
+    const canvas = paintReport();
+    const s = 2, W = 595, H = 842;
+    const pw = W * s, ph = H * s; // A4 @2x
+    const pages = [];
+    for (let top = 0; top < canvas.height; top += ph) {
+      const c = document.createElement('canvas'); c.width = pw; c.height = ph;
+      const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, pw, ph);
+      const sh = Math.min(ph, canvas.height - top);
+      cx.drawImage(canvas, 0, top, pw, sh, 0, 0, pw, sh);
+      pages.push(c);
+    }
+    const images = pages.map(c => {
+      const jpeg = c.toDataURL('image/jpeg', 0.9);
+      const bin = atob(jpeg.split(',')[1]);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return bytes;
+    });
+    const blob = buildPdf(W, H, images, pw, ph);
+    const p = reportRangeParams();
+    const safe = (p.label || 'report').replace(/[\\/:*?"<>|]/g, '_');
+    downloadBlob(blob, '情绪回顾_' + safe + '_' + isoLocal(new Date()) + '.pdf');
   }
   function renderAll() {
     renderHero(); renderStats(); renderTrend(); renderHeat(); renderTags(); renderSleep(); renderScatter(); renderPeaks(); buildQA();
@@ -4373,19 +5185,55 @@ window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
       document.querySelectorAll('.mood-chip').forEach(x => x.classList.toggle('active', +x.dataset.m === state.histMood));
       refreshLists();
     }));
-    const gr = $('#genReport'); if (gr) gr.addEventListener('click', () => genReport($('#repRange') ? $('#repRange').value : 'all'));
+    const gr = $('#genReport'); if (gr) gr.addEventListener('click', () => genReport());
     const rc = $('#reportClose'); if (rc) rc.addEventListener('click', () => { $('#reportModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
+    // 自己 / 共同 切换：趋势、热力图、标签等所有带 data-self-toggle 的控件共用同一状态
+    document.querySelectorAll('[data-self-toggle] button').forEach(b => {
+      b.addEventListener('click', () => setViewSelf(b.dataset.v));
+    });
     const rb = $('#remindGo'); if (rb) rb.addEventListener('click', () => { $('#recModal').classList.add('show'); $('#scrim').classList.add('show'); });
     const rmL = $('#remindLater'); if (rmL) rmL.addEventListener('click', () => { const b = $('#remindBar'); if (b) b.style.display = 'none'; });
     const ro = $('#remindOn'); if (ro) { ro.checked = localStorage.getItem('mood.remind') !== 'off'; ro.addEventListener('change', () => { localStorage.setItem('mood.remind', ro.checked ? 'on' : 'off'); renderRemind(); }); }
     // 回顾 + 问数据 新功能绑定
     on('#reviewBtn', 'click', () => openReview('month'));
-    on('#repRange', 'change', () => { const r = $('#repRange'); if (r) genReport(r.value); });
+    on('#repRange', 'change', syncReportRangeUI);
+    on('#repStart', 'change', syncReportRangeUI);
+    on('#repEnd', 'change', syncReportRangeUI);
     on('#reportPdf', 'click', exportReportPdf);
+    on('#heroPdf', 'click', exportReportPdf);
+    on('#aiRecordSave', 'click', () => {
+      const rp = $('#aiRecordPrompt');
+      const txt = '和 AI 聊到的：\n' + (rp ? (rp.dataset.user || '') : '') + '\n\n（AI 回应：' + (rp ? (rp.dataset.ai || '') : '') + '）';
+      openNewRecordWithNote(txt);
+      if (rp) rp.style.display = 'none';
+    });
+    on('#aiRecordSkip', 'click', () => { const rp = $('#aiRecordPrompt'); if (rp) rp.style.display = 'none'; });
     on('#askDataBtn', 'click', () => { const m = $('#askModal'); if (m) m.classList.add('show'); const sc = $('#scrim'); if (sc) sc.classList.add('show'); });
     on('#askClose', 'click', () => { const m = $('#askModal'); if (m) m.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); });
     on('#askSend', 'click', askData);
     on('#askInput', 'keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); askData(); } });
+    // 时间轴日期跳转
+    on('#tlDateJump', 'change', () => {
+      const dp = $('#tlDateJump'); if (!dp || !dp.value) return;
+      const target = dp.value; // YYYY-MM-DD
+      const groups = document.querySelectorAll('#viewTlList .tl-date-group');
+      let found = false;
+      groups.forEach(g => {
+        const label = g.querySelector('.tl-date-label');
+        if (label && label.textContent.trim() === target) {
+          g.classList.remove('collapsed'); // 展开该天
+          g.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // 高亮一下
+          g.querySelector('.tl-date-head').style.background = 'var(--accent-soft)';
+          setTimeout(() => { const h = g.querySelector('.tl-date-head'); if (h) h.style.background = ''; }, 1500);
+          found = true;
+        }
+      });
+      if (!found) {
+        // 该日期没有记录，清空选择器提示用户
+        dp.value = '';
+      }
+    });
     on('#scrim', 'click', () => {
       ['#reportModal', '#askModal'].forEach(s => { const m = $(s); if (m && m.classList.contains('show')) { m.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); } });
     });
