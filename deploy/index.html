@@ -965,6 +965,10 @@ body {
 .mood-chip:hover { border-color: var(--accent); color: var(--ink); }
 .mood-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+/* 首页快捷「回顾」入口 */
+.quick-row { display: flex; justify-content: center; margin: 2px 0 6px; }
+.quick-row .btn { width: 100%; max-width: 600px; font-size: 15px; padding: 13px; box-shadow: 0 6px 18px rgba(124, 92, 255, .25); }
+
 /* AI 总结报告弹窗 */
 .report-range { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0 14px; }
 .report-range label { font-size: 13px; color: var(--ink-soft); }
@@ -1343,6 +1347,11 @@ body {
         <div class="hero-ai" id="heroAi"></div>
       </div>
     </section>
+
+    <!-- 快捷：回顾（首页入口，一步进回顾弹窗） -->
+    <div class="quick-row reveal">
+      <button class="btn primary" id="reviewBtn" type="button">回顾 · 看这段时间自己的情绪总结</button>
+    </div>
 
     <!-- 概览（无形胶囊） -->
     <section class="glance reveal" id="stats"></section>
@@ -1763,8 +1772,8 @@ body {
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
-window.__GEN_DATE__ = "2026-08-08 17:52";
-window.__BUILD__ = "v25 · 2026-08-08 17:52";</script>
+window.__GEN_DATE__ = "2026-08-08 18:05";
+window.__BUILD__ = "v25 · 2026-08-08 18:05";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -4256,6 +4265,21 @@ window.__BUILD__ = "v25 · 2026-08-08 17:52";</script>
       open();
     }
   }
+  // 首页「回顾」入口：直接打开弹窗并渲染纯前端统计（不强制 AI），有 Key 再点「生成 AI 总结」
+  function openReview(range) {
+    range = range || 'month';
+    const sel = $('#repRange'); if (sel) sel.value = range;
+    const end = new Date(), start = new Date(end);
+    if (range === 'week') start.setDate(start.getDate() - 6);
+    else if (range === 'month') start.setDate(start.getDate() - 29);
+    else if (range === 'year') start.setDate(start.getDate() - 364);
+    const s = start.toISOString().slice(0, 10), e = end.toISOString().slice(0, 10);
+    const slice = recs.filter(r => r.date >= s && r.date <= e);
+    renderReportStats(slice);
+    const m = $('#reportModal'), sc = $('#scrim');
+    if (m) m.classList.add('show');
+    if (sc) sc.classList.add('show');
+  }
   // 回顾：纯前端自动统计（记录数/均值/最好最差日/高频标签/平均睡眠），把图变成一眼能看的结论
   function renderReportStats(slice) {
     const el = $('#reportStats'); if (!el) return;
@@ -4346,6 +4370,7 @@ window.__BUILD__ = "v25 · 2026-08-08 17:52";</script>
     const rmL = $('#remindLater'); if (rmL) rmL.addEventListener('click', () => { const b = $('#remindBar'); if (b) b.style.display = 'none'; });
     const ro = $('#remindOn'); if (ro) { ro.checked = localStorage.getItem('mood.remind') !== 'off'; ro.addEventListener('change', () => { localStorage.setItem('mood.remind', ro.checked ? 'on' : 'off'); renderRemind(); }); }
     // 回顾 + 问数据 新功能绑定
+    on('#reviewBtn', 'click', () => openReview('month'));
     on('#repRange', 'change', () => { const r = $('#repRange'); if (r) genReport(r.value); });
     on('#reportPdf', 'click', exportReportPdf);
     on('#askDataBtn', 'click', () => { const m = $('#askModal'); if (m) m.classList.add('show'); const sc = $('#scrim'); if (sc) sc.classList.add('show'); });
