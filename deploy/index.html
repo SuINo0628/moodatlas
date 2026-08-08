@@ -1551,6 +1551,14 @@ body {
   <div class="msaved" id="recSaved"></div>
 </div>
 
+<!-- 某日多条记录的选择弹窗 -->
+<div class="modal" id="dayPickModal">
+  <span class="mclose" id="dayPickClose">×</span>
+  <div class="mtag">这一天</div>
+  <h3 id="dayPickTitle">这一天有多条记录，点开看详情</h3>
+  <div class="daypick-list" id="dayPickList"></div>
+</div>
+
 <!-- 设置：DeepSeek / 云同步与备份 -->
 <div class="modal" id="setModal">
   <span class="mclose" id="setClose">×</span>
@@ -3818,7 +3826,7 @@ window.__BUILD__ = "v25 · 2026-08-08 16:43";</script>
       $('#recModal').classList.add('show'); $('#scrim').classList.add('show');
     });
     $('#recClose').addEventListener('click', () => { $('#recModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
-    $('#dayPickClose').addEventListener('click', () => { $('#dayPickModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
+    on('#dayPickClose', 'click', () => { const m = $('#dayPickModal'); if (m) m.classList.remove('show'); $('#scrim').classList.remove('show'); });
     document.querySelectorAll('#recMood button').forEach(b => b.addEventListener('click', () => {
       document.querySelectorAll('#recMood button').forEach(x => x.classList.remove('active'));
       b.classList.add('active'); $('#recMood').dataset.val = b.dataset.m;
