@@ -259,11 +259,14 @@ body {
 }
 .gh-guide a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
 .gh-guide a:hover { border-bottom-color: var(--accent); }
-.set-block > input[type="text"], .set-block > input[type="password"], .set-block > select {
+.set-block input[type="text"], .set-block input[type="password"], .set-block select {
   width: 100%; font-family: var(--font-mono); font-size: 13px; color: var(--ink);
   background: var(--glass-2); border: 1px solid var(--glass-brd); padding: 10px 12px; border-radius: 10px;
+  transition: border-color .2s, box-shadow .2s;
 }
-.set-block > input:focus, .set-block > select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.set-block input[type="text"]:focus, .set-block input[type="password"]:focus, .set-block select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+/* 带眼睛的密码框（DeepSeek 钥匙 / GitHub 令牌）：右边留眼睛空间，其余与上面完全一致，保证所有设置输入框外观统一 */
+.set-block .pwd-wrap input { padding-right: 2.6em; }
 
 /* 开关（设置面板内 .switch） */
 .switch { display: inline-flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-soft); cursor: pointer; user-select: none; }
@@ -1772,8 +1775,8 @@ body {
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
-window.__GEN_DATE__ = "2026-08-08 18:05";
-window.__BUILD__ = "v25 · 2026-08-08 18:05";</script>
+window.__GEN_DATE__ = "2026-08-08 18:21";
+window.__BUILD__ = "v25 · 2026-08-08 18:21";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -4009,17 +4012,23 @@ window.__BUILD__ = "v25 · 2026-08-08 18:05";</script>
     function saveGhSettings() {
       const p = ghSuffix();
       const token = $('#ghToken').value.trim();
+      // 一并把 DeepSeek 钥匙 / 模型 / 路由落盘：这个按钮名为「保存设置」，理应保存全部设置，
+      // 而不是只存 GitHub 部分（之前钥匙只靠输入时实时存，用户点了保存却没存到钥匙，造成“保存后又变回旧值”的错觉）
+      const dsk = $('#dsKey'); if (dsk) localStorage.setItem('mood.dsKey', dsk.value.trim());
+      const dsm = $('#dsModel'); if (dsm) localStorage.setItem('mood.dsModel', dsm.value);
+      const dsr = $('#dsRoute'); if (dsr) localStorage.setItem('mood.dsRoute', dsr.value);
       localStorage.setItem('mood.ghUser' + p, $('#ghUser').value.trim());
       localStorage.setItem('mood.ghRepo' + p, $('#ghRepo').value.trim() || (ghProfile() === 'shared' ? 'mood-atlas-shared' : 'mood-atlas-sync'));
       localStorage.setItem('mood.ghToken' + p, token);
       localStorage.setItem('mood.ghEnabled' + p, $('#ghEnable').checked ? '1' : '0');
       localStorage.setItem('mood.ghAuto' + p, $('#ghAuto').checked ? '1' : '0');
       localStorage.setItem('mood.ghNick' + p, $('#ghNick').value.trim());
+      if (typeof updateDsKeyHint === 'function') updateDsKeyHint();
       if (typeof updateGhTokenHint === 'function') updateGhTokenHint();
       if (typeof renderSetVer === 'function') renderSetVer();
       const r = validateGhToken(token);
-      if (r.ok) ghTestAlert(true, '已保存', 'GitHub 同步设置已保存。可以点「测试连接」验证，或记一条触发自动同步。');
-      else ghTestAlert(false, '已保存（令牌待验证）', '设置已保存，但令牌格式看起来不太对：' + r.msg + ' 请检查后再点「测试连接」确认。');
+      if (r.ok) ghTestAlert(true, '已保存', '设置已保存（含 DeepSeek Key 与 GitHub 同步）。可以点「测试连接」验证，或记一条触发自动同步。');
+      else ghTestAlert(false, '已保存（令牌待验证）', '设置已保存，但 GitHub 令牌格式看起来不太对：' + r.msg + ' 请检查后再点「测试连接」确认。');
     }
     $('#setSave').addEventListener('click', saveGhSettings);
     // GitHub 测试连接：成功 / 失败都弹窗（独立浮层，叠加在设置面板之上），同时保留行内状态文字
