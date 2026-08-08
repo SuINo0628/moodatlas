@@ -224,6 +224,8 @@ body {
 .set-block { margin-top: 6px; }
 .set-block label { display: block; font-size: 12.5px; color: var(--ink-soft); margin: 14px 0 7px; }
 .set-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.set-save-row { margin-top: 14px; }
+.set-save-row .btn { width: 100%; justify-content: center; padding: 12px 14px; font-size: 14px; font-weight: 600; }
 .set-row input[type="password"], .set-row select { flex: 1; min-width: 160px; }
 .set-row input, .set-row select { font-family: var(--font-mono); font-size: 13px; color: var(--ink); background: var(--glass-2); border: 1px solid var(--glass-brd); padding: 10px 12px; border-radius: 10px; }
 
@@ -1641,6 +1643,9 @@ body {
       <button class="btn primary" id="ghSync">立即同步</button>
     </div>
       <div class="msaved" id="ghMsg"></div>
+      <div class="set-row set-save-row">
+        <button class="btn primary" id="setSave">保存设置</button>
+      </div>
       <div class="set-inline">
         <label class="switch"><input type="checkbox" id="remindOn" checked> 每日进站提醒（没记录时提示你记一笔）</label>
       </div>
@@ -1758,8 +1763,8 @@ body {
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
-window.__GEN_DATE__ = "2026-08-08 17:45";
-window.__BUILD__ = "v25 · 2026-08-08 17:45";</script>
+window.__GEN_DATE__ = "2026-08-08 17:52";
+window.__BUILD__ = "v25 · 2026-08-08 17:52";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -3991,6 +3996,23 @@ window.__BUILD__ = "v25 · 2026-08-08 17:45";</script>
     $('#ghEnable').addEventListener('change', e => localStorage.setItem('mood.ghEnabled' + ghSuffix(), e.target.checked ? '1' : '0'));
     $('#ghAuto').addEventListener('change', e => localStorage.setItem('mood.ghAuto' + ghSuffix(), e.target.checked ? '1' : '0'));
     $('#ghNick').addEventListener('input', e => localStorage.setItem('mood.ghNick' + ghSuffix(), e.target.value.trim()));
+    // 明确的「保存设置」按钮：把四个字段整体强制覆盖写回，保证改错/误贴的密钥被彻底替换，并弹「已保存」确认
+    function saveGhSettings() {
+      const p = ghSuffix();
+      const token = $('#ghToken').value.trim();
+      localStorage.setItem('mood.ghUser' + p, $('#ghUser').value.trim());
+      localStorage.setItem('mood.ghRepo' + p, $('#ghRepo').value.trim() || (ghProfile() === 'shared' ? 'mood-atlas-shared' : 'mood-atlas-sync'));
+      localStorage.setItem('mood.ghToken' + p, token);
+      localStorage.setItem('mood.ghEnabled' + p, $('#ghEnable').checked ? '1' : '0');
+      localStorage.setItem('mood.ghAuto' + p, $('#ghAuto').checked ? '1' : '0');
+      localStorage.setItem('mood.ghNick' + p, $('#ghNick').value.trim());
+      if (typeof updateGhTokenHint === 'function') updateGhTokenHint();
+      if (typeof renderSetVer === 'function') renderSetVer();
+      const r = validateGhToken(token);
+      if (r.ok) ghTestAlert(true, '已保存', 'GitHub 同步设置已保存。可以点「测试连接」验证，或记一条触发自动同步。');
+      else ghTestAlert(false, '已保存（令牌待验证）', '设置已保存，但令牌格式看起来不太对：' + r.msg + ' 请检查后再点「测试连接」确认。');
+    }
+    $('#setSave').addEventListener('click', saveGhSettings);
     // GitHub 测试连接：成功 / 失败都弹窗（独立浮层，叠加在设置面板之上），同时保留行内状态文字
     function ghTestAlert(ok, title, body) {
       const m = $('#ghTestModal'), s = $('#ghTestScrim');
