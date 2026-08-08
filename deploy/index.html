@@ -1594,8 +1594,8 @@ body {
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
-window.__GEN_DATE__ = "2026-08-08 02:43";
-window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
+window.__GEN_DATE__ = "2026-08-08 03:01";
+window.__BUILD__ = "v25 · 2026-08-08 03:01";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -1613,8 +1613,9 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
   }
   const _seeded = loadData();
   const DATA = _seeded || window.__DATA__ || { records: [] };
-  // 给旧记录 / 导入数据补稳定 id，编辑与删除靠它定位
-  (DATA.records || []).forEach(r => { if (!r.id) r.id = genId(); });
+  // 给旧记录 / 导入数据补稳定 id：用内容指纹做 id，保证同一笔旧记录在不同设备上算出的是同一个 id，
+  // 否则各自随机 id 会让「跨设备合并 / 删除」对老数据失效（同一条被当成两条、墓碑对不上）。
+  (DATA.records || []).forEach(r => { if (!r.id) r.id = 'fp_' + recFingerprint(r); });
   if (!DATA.nextQuestions) DATA.nextQuestions = [];
   if (!Array.isArray(DATA.deleted)) DATA.deleted = []; // 墓碑：记录被删的 id/指纹，用于跨设备传播删除
   if (!Array.isArray(DATA.revived)) DATA.revived = []; // 复活标记：从回收站恢复过的 id，压过更早的墓碑
@@ -1680,11 +1681,33 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
   }
   function b64enc(s) { return btoa(unescape(encodeURIComponent(s))); }
   function b64dec(s) { return decodeURIComponent(escape(atob(s.replace(/\s/g, '')))); }
+  // 把 GitHub 返回的非 2xx 统一包成带「是否限流」标记的错误，方便上层决定重试还是放弃
+  async function ghHttpErr(res, what) {
+    let body = '';
+    try { const b = await res.json(); if (b && b.message) body = b.message; } catch (_) {}
+    const status = res.status;
+    const statusText = res.statusText || '';
+    const remaining = res.headers && res.headers.get ? res.headers.get('X-RateLimit-Remaining') : null;
+    const retryAfter = res.headers && res.headers.get ? res.headers.get('Retry-After') : null;
+    // GitHub 限流也用 403 返回（和"令牌没权限"是同一个状态码），必须靠响应体/剩余配额区分，
+    // 否则会把"只是被限流"误判成"令牌坏了"，既不重试又吓用户。
+    const rateLimited = status === 429 ||
+      (status === 403 && (remaining === '0' || /rate limit|secondary rate|abuse/i.test(body + ' ' + statusText)));
+    const e = new Error((what || '操作') + '失败 HTTP ' + status + (body ? ' — ' + body : (statusText ? ' — ' + statusText : '')));
+    e.status = status; e.rateLimited = !!rateLimited;
+    e.retryAfter = retryAfter ? parseInt(retryAfter, 10) : null;
+    return e;
+  }
   async function ghPull(file) {
     const c = ghConf();
-    const res = await fetch(ghApiUrl(c, file), { headers: ghHeaders() });
+    let res;
+    try { res = await fetch(ghApiUrl(c, file), { headers: ghHeaders() }); }
+    catch (netErr) {
+      const e = new Error('网络连不上 GitHub（' + ((netErr && netErr.message) || netErr) + '），稍后会自动重试');
+      e.status = 0; e.net = true; throw e;
+    }
     if (res.status === 404) return null;
-    if (!res.ok) { const e = new Error('拉取失败 HTTP ' + res.status); e.status = res.status; throw e; }
+    if (!res.ok) throw await ghHttpErr(res, '拉取');
     const j = await res.json();
     let bad = false;
     let data; try { data = JSON.parse(b64dec(j.content)); } catch (e) { bad = true; data = { records: [], nextQuestions: [] }; }
@@ -1746,13 +1769,7 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
     const body = { message: 'mood sync ' + new Date().toISOString().slice(0, 19).replace('T', ' '), content: b64enc(JSON.stringify(payload)) };
     if (sha) body.sha = sha;
     const res = await fetch(ghApiUrl(c, file), { method: 'PUT', headers: Object.assign(ghHeaders(), { 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
-    if (!res.ok) {
-      let detail = '';
-      try { const b = await res.json(); if (b && b.message) detail = ' — ' + b.message; } catch (_) {}
-      const e = new Error('推送失败 HTTP ' + res.status + detail);
-      e.status = res.status;
-      throw e;
-    }
+    if (!res.ok) throw await ghHttpErr(res, '推送');
     const j = await res.json();
     return j.content.sha;
   }
@@ -1848,19 +1865,36 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
       if (!c.token) { if (msgEl) msgEl.textContent = '请填写 GitHub 访问令牌 PAT'; updateConn(); return; }
       if (!c.repo) { if (msgEl) msgEl.textContent = '请填写仓库名'; updateConn(); return; }
       try {
+        // 明显离线就别去打 GitHub 了：排个自动重试，等网络回来再补，不闪红色错误
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+          const m = '当前离线，联网后会自动同步，本地已保存';
+          if (msgEl) msgEl.textContent = '· ' + m;
+          setSyncState('error', m); scheduleRetry(); return;
+        }
         if (msgEl) msgEl.textContent = '同步中…';
         setSyncState('syncing');
         let remote = null;
         try { remote = await ghPull(); }
         catch (e) {
-          if (e.status === 401 || e.status === 403) {
-            const m = '令牌无效或没权限（检查 PAT 是否勾了 Contents 读写、是否过期、是否选中了这个仓库）';
+          // 401：令牌本身坏了（过期/吊销/写错），重试也没用，提示用户去换
+          if (e.status === 401) {
+            const m = '令牌无效或已过期（请在 GitHub 重新生成带 Contents 读写的 PAT，并更新到设置里）';
+            if (msgEl) msgEl.textContent = '✗ ' + m; setSyncState('error', m); return;
+          }
+          // 403 / 429 可能是「限流」也可能是「真没权限」——两者要分开处理：
+          // 限流（X-RateLimit-Remaining:0 或响应里带 rate limit / secondary rate）是暂时的，排个队自动重试即可；
+          // 真没权限（PAT 没勾 Contents、选错仓库/账号）才需要用户去改设置，重试没用。
+          if (e.status === 403 || e.status === 429) {
+            if (e.rateLimited) {
+              const m = 'GitHub 限流了（同步太频繁），已排到' + (e.retryAfter ? (' ' + e.retryAfter + ' 秒后') : '稍后') + '自动重试，本地数据不会丢';
+              if (msgEl) msgEl.textContent = '· ' + m; setSyncState('error', m); scheduleRetry(e.retryAfter); return;
+            }
+            const m = '令牌没有这个仓库的权限（检查 PAT 是否勾了 Contents 读写、是否选对了仓库/账号）';
             if (msgEl) msgEl.textContent = '✗ ' + m; setSyncState('error', m); return;
           }
           if (e.status !== 404) {
-            // 拉取失败又说不清云端现在是什么样（网络抖动 / GitHub 5xx）：
-            // 这时候绝不能拿本地数据不带 sha 去覆盖，那会把云端别的设备写的记录整个抹掉。
-            // 直接中止本次同步，本地数据已存在 localStorage，联网后会自动补推。
+            // 网络抖动 / GitHub 5xx / 离线：绝不能拿本地数据不带 sha 去覆盖云端，直接中止本次同步，
+            // 本地数据已存在 localStorage，联网后会自动补推（scheduleRetry 也会兜底）。
             const m = '暂时连不上 GitHub（' + (e.message || ('HTTP ' + e.status)) + '），这次没动云端数据，稍后会自动重试';
             if (msgEl) msgEl.textContent = '✗ ' + m;
             setSyncState('error', m); scheduleRetry(); return;
@@ -1873,6 +1907,8 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
         const allDel = mergeMarksKeepFp(DATA.deleted, (remote && remote.data.deleted) || []);
         // 复活标记：从回收站恢复过的记录，要能压过更早的墓碑，否则一同步又被删掉
         const allRev = mergeMarks(DATA.revived, (remote && remote.data.revived) || []);
+        // 主文件的 purged（彻底删除标记）也要合并保留，否则下次推送会把它从云端文件里悄悄抹掉
+        DATA.purged = mergeMarks(DATA.purged || [], (remote && remote.data.purged) || []);
         const revAt = {};
         allRev.forEach(function (t) { revAt[t.id] = t.at || 0; });
         const liveDel = allDel.filter(function (t) { return !(revAt[t.id] != null && revAt[t.id] >= (t.at || 0)); });
@@ -1880,8 +1916,9 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
         liveDel.forEach(function (t) { if (t.id) delId[t.id] = 1; if (t.fp) delFp[t.fp] = 1; });
         const recs2 = merged.records.filter(function (r) {
           if (!r) return false;
-          if (r.id) return !delId[r.id];           // 有 id 就只认 id，避免内容雷同的新记录被老墓碑误杀
-          return !delFp[recFingerprint(r)];         // 没 id 的老数据才退回按内容指纹判断
+          if (r.id && delId[r.id]) return false;      // 墓碑按 id 命中 → 删
+          if (delFp[recFingerprint(r)]) return false; // 按内容指纹兜底：跨设备 id 不一致的旧记录也能被正确删除
+          return true;
         });
         DATA.records = recs2;
         DATA.nextQuestions = merged.nextQuestions;
@@ -1890,7 +1927,7 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
         saveData();
         await ghPush({
           records: DATA.records, nextQuestions: DATA.nextQuestions,
-          deleted: DATA.deleted, revived: DATA.revived,
+          deleted: DATA.deleted, revived: DATA.revived, purged: DATA.purged,
           updatedAt: new Date().toISOString()
         }, remote ? remote.sha : null);
         refreshRecs(); // 云端拉回来的记录要立刻进 UI 用的数组，否则要刷新页面才看得见
@@ -1926,9 +1963,12 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
   function mergeMarksKeepFp(a, b) {
     const m = {}, out = [];
     (a || []).concat(b || []).forEach(function (t) {
-      if (!t || !t.id) return;
+      if (!t) return;
       if (t.at && Date.now() - t.at > 180 * 86400000) return;
-      if (!m[t.id] || (t.at || 0) > (m[t.id].at || 0)) m[t.id] = t;
+      // 有 id 按 id 合；没 id 的老数据按内容指纹(fp)合——否则老墓碑会被丢掉，导致已删的旧记录"复活"
+      const key = t.id ? ('id:' + t.id) : ('fp:' + (t.fp || recFingerprint(t)));
+      const cur = m[key];
+      if (!cur || (t.at || 0) > (cur.at || 0)) m[key] = t;
     });
     Object.keys(m).forEach(function (k) { out.push(m[k]); });
     return out;
@@ -1940,13 +1980,16 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
   }
   // 同步失败后自动补一次：网络抖动不该让数据一直卡在本地
   let _retryTimer = null;
-  function scheduleRetry() {
+  function scheduleRetry(retryAfter) {
     if (_retryTimer) return;
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return; // 离线时不空转，等 'online' 事件触发真正的同步
+    let ms = 45000;
+    if (retryAfter && retryAfter > 0 && retryAfter < 3600) ms = retryAfter * 1000 + 500;
     _retryTimer = setTimeout(function () {
       _retryTimer = null;
       const c = ghConf();
-      if (c.enabled && c.token && c.user && c.repo && syncState.status === 'error') ghSync(null, false);
-    }, 45000);
+      if (c.enabled && c.token && c.user && c.repo && syncState.status === 'error' && (typeof navigator === 'undefined' || navigator.onLine !== false)) ghSync(null, false);
+    }, ms);
   }
   // 共享空间里有多少条是别人写的（用于状态提示和图例）
   function countOtherAuthors() {
@@ -3493,8 +3536,8 @@ window.__BUILD__ = "v25 · 2026-08-08 02:43";</script>
     refreshRecs();
     const c = ghConf();
     if (c.enabled && c.token && c.user && c.repo) {
-      await ghSync(null, false);     // 先让记录回到主文件
-      await syncTrash();             // 再把它从云端回收站摘掉
+      await syncTrash();             // 先把"已离开回收站"的标记推上去：别的设备立刻不再显示它，避免主文件恢复后还残留在对方回收站
+      await ghSync(null, false);     // 再把它放回主文件
     }
   }
   async function purgeFromTrash(id) {
