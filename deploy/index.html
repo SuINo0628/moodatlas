@@ -973,6 +973,26 @@ body {
   max-height: 56vh; overflow-y: auto; padding: 16px; border-radius: 14px;
   background: var(--bg-1); border: 1px solid var(--glass-brd);
 }
+/* 回顾：自动统计块（纯前端算，不等 AI） */
+.report-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; margin: 10px 0 16px; }
+.report-stats .rs { background: var(--glass); border: 1px solid var(--brd); border-radius: 12px; padding: 12px 14px; }
+.report-stats .rs .k { font-size: 11px; color: var(--ink-dim); letter-spacing: .08em; text-transform: uppercase; margin: 0 0 6px; }
+.report-stats .rs .v { font-size: 20px; font-weight: 600; color: var(--ink); line-height: 1.2; }
+.report-stats .rs .v small { font-size: 12px; font-weight: 400; color: var(--ink-dim); margin-left: 3px; }
+.report-stats .rs .sub { font-size: 11.5px; color: var(--ink-dim); margin-top: 5px; line-height: 1.4; }
+.report-actions { margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end; }
+/* 打印回顾 PDF：只显示临时打印区 */
+@media print {
+  body * { visibility: hidden; }
+  #printArea, #printArea * { visibility: visible; }
+  #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 24px 28px; color: #14181f; background: #fff; }
+  #printArea h1 { font-size: 21px; margin: 0 0 4px; color: #14181f; }
+  #printArea .pv-date { color: #6b7280; font-size: 13px; margin: 0 0 16px; }
+  #printArea .pv-stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 18px; }
+  #printArea .pv-stats div { background: #f4f4f5; border-radius: 8px; padding: 9px 13px; font-size: 13px; color: #374151; }
+  #printArea .pv-body { white-space: pre-wrap; line-height: 1.8; font-size: 14px; color: #1f2937; }
+  #printArea * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 
 /* 危险/幽灵按钮 */
 .btn.danger { color: #fb7185; border-color: rgba(251,113,133,.45); background: rgba(251,113,133,.08); }
@@ -1392,7 +1412,7 @@ body {
 
     <!-- AI 对话（DeepSeek 直连） -->
     <section class="ai-box reveal">
-      <h2 style="font-size:14px;color:var(--ink-soft);letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px">AI 对话 · 用 DeepSeek 聊情绪</h2>
+      <h2 style="font-size:14px;color:var(--ink-soft);letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span>AI 对话 · 用 DeepSeek 聊情绪</span><button class="btn sm ghost" id="askDataBtn" type="button">问数据</button></h2>
       <div class="ai-chat" id="aiChat"></div>
       <div class="ai-row">
         <div class="ai-input-wrap">
@@ -1689,11 +1709,32 @@ body {
     <select id="repRange">
       <option value="week">近 7 天</option>
       <option value="month">近 30 天</option>
+      <option value="year">近 1 年</option>
       <option value="all">全部</option>
     </select>
     <span class="report-hint">切范围后点上方「生成 AI 总结」重新生成</span>
   </div>
+  <div class="report-stats" id="reportStats"></div>
   <div class="report-body" id="reportBody"></div>
+  <div class="report-actions">
+    <button class="btn sm ghost" id="reportPdf" type="button">导出 PDF</button>
+  </div>
+</div>
+
+<!-- 问数据：用自然语言查询自己的历史记录 -->
+<div class="modal" id="askModal">
+  <span class="mclose" id="askClose">×</span>
+  <div class="mtag">问数据</div>
+  <h3>问问你的情绪数据</h3>
+  <p class="rec-tip" style="font-weight:400;color:var(--ink-soft);margin:-4px 0 14px">用大白话说，比如「上月我最低谷那周到底怎么了？」「最近什么场景最容易让我焦虑？」</p>
+  <div class="ai-chat" id="askChat"></div>
+  <div class="ai-row">
+    <div class="ai-input-wrap">
+      <textarea id="askInput" placeholder="问一句关于你情绪记录的问题…（Ctrl/Cmd+Enter 发送）"></textarea>
+      <button class="btn primary" id="askSend" aria-label="发送">问</button>
+    </div>
+  </div>
+  <div class="assist-saved" id="askStatus"></div>
 </div>
 
 <!-- 时间轴：按时间串联所有记录，重要事件高亮 -->
@@ -1717,8 +1758,8 @@ body {
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
-window.__GEN_DATE__ = "2026-08-08 17:31";
-window.__BUILD__ = "v25 · 2026-08-08 17:31";</script>
+window.__GEN_DATE__ = "2026-08-08 17:45";
+window.__BUILD__ = "v25 · 2026-08-08 17:45";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -4174,12 +4215,14 @@ window.__BUILD__ = "v25 · 2026-08-08 17:31";</script>
     const end = new Date(); const start = new Date(end);
     if (range === 'week') start.setDate(start.getDate() - 6);
     else if (range === 'month') start.setDate(start.getDate() - 29);
+    else if (range === 'year') start.setDate(start.getDate() - 364);
     const s = start.toISOString().slice(0, 10), e = end.toISOString().slice(0, 10);
     const slice = recs.filter(r => r.date >= s && r.date <= e);
-    if (!slice.length) { if (box) box.textContent = '这段时间还没有记录，先记几笔再来生成总结吧。'; open(); return; }
+    if (!slice.length) { renderReportStats([]); if (box) box.textContent = '这段时间还没有记录，先记几笔再来生成总结吧。'; open(); return; }
+    renderReportStats(slice);   // 纯前端统计，立即显示，不用等 AI
     const text = slice.map(r => [r.date + ' 心情' + r.mood, r.scene ? '场景:' + r.scene : '', (r.tags || []).length ? '标签:' + r.tags.join('/') : '', r.note ? '备注:' + r.note : '', r.cause ? '原因:' + r.cause : ''].filter(Boolean).join(' · ')).join('\n');
     const sys = '你是温柔而专业的情绪陪伴与分析师。基于用户提供的情绪记录，给出一段结构化总结：1) 这段时间整体情绪基调；2) 反复出现的场景或触发因素；3) 一两个值得注意的模式；4) 一句温和的提醒或建议。语言平实、不诊断、不恐吓。';
-    const usr = '时间范围：' + (range === 'week' ? '近 7 天' : range === 'month' ? '近 30 天' : '全部') + '，共 ' + slice.length + ' 条记录：\n' + text;
+    const usr = '时间范围：' + (range === 'week' ? '近 7 天' : range === 'month' ? '近 30 天' : range === 'year' ? '近 1 年' : '全部') + '，共 ' + slice.length + ' 条记录：\n' + text;
     const btn = $('#genReport'); if (btn) { btn.disabled = true; btn.textContent = '生成中…'; }
     try {
       const r = await callDeepSeek(sys, usr, { task: 'summary' });
@@ -4190,6 +4233,69 @@ window.__BUILD__ = "v25 · 2026-08-08 17:31";</script>
       if (btn) { btn.disabled = false; btn.textContent = '生成 AI 总结'; }
       open();
     }
+  }
+  // 回顾：纯前端自动统计（记录数/均值/最好最差日/高频标签/平均睡眠），把图变成一眼能看的结论
+  function renderReportStats(slice) {
+    const el = $('#reportStats'); if (!el) return;
+    if (!slice || !slice.length) { el.innerHTML = ''; return; }
+    const n = slice.length;
+    const avg = slice.reduce((a, r) => a + (+r.mood || 3), 0) / n;
+    const byDay = {};
+    slice.forEach(r => { const d = r.date; if (!byDay[d]) byDay[d] = { s: 0, n: 0 }; byDay[d].s += (+r.mood || 3); byDay[d].n++; });
+    let best = null, worst = null;
+    Object.keys(byDay).forEach(d => { const a = byDay[d].s / byDay[d].n; if (!best || a > best.a) best = { d, a }; if (!worst || a < worst.a) worst = { d, a }; });
+    const tagCount = {};
+    slice.forEach(r => (r.tags || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; }));
+    const topTags = Object.keys(tagCount).sort((a, b) => tagCount[b] - tagCount[a]);
+    const sleeps = slice.map(r => +r.sleep).filter(v => v > 0);
+    const avgSleep = sleeps.length ? (sleeps.reduce((a, b) => a + b, 0) / sleeps.length) : 0;
+    const card = (k, v, sub) => '<div class="rs"><div class="k">' + k + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="sub">' + sub + '</div>' : '') + '</div>';
+    el.innerHTML =
+      card('记录数', n + ' 笔') +
+      card('平均心情', fmt(avg) + '<small>/5</small>', moodBand(avg)) +
+      card('最好一天', best ? best.d.slice(5) : '—', best ? '心情 ' + fmt(best.a) : '') +
+      card('最低一天', worst ? worst.d.slice(5) : '—', worst ? '心情 ' + fmt(worst.a) : '') +
+      card('高频标签', topTags.length ? topTags.slice(0, 3).join('、') : '—', topTags.length > 3 ? '等 ' + topTags.length + ' 个' : '') +
+      (avgSleep ? card('平均睡眠', fmt(avgSleep) + '<small>h</small>') : '');
+  }
+  // 问数据：把近 180 条记录作为上下文，让 DeepSeek 基于历史回答自然语言问题
+  async function askData() {
+    const inp = $('#askInput'), sv = $('#askStatus'), box = $('#askChat');
+    const txt = inp.value.trim(); if (!txt) return;
+    if (!dsKey()) {
+      appendBubble(box, 'ai', '还没配置 DeepSeek API Key，我暂时没法查你的数据～\n点右上角 ⚙ 设置，把 Key 填进去就能问啦。');
+      if (sv) sv.textContent = '请先在「⚙ 设置」里填入 DeepSeek API Key';
+      return;
+    }
+    appendBubble(box, 'user', txt); inp.value = '';
+    if (sv) sv.textContent = '';
+    const ctx = recs.slice(-180).map(r => [r.date + ' 心情' + r.mood, r.scene ? '场景:' + r.scene : '', (r.tags || []).length ? '标签:' + r.tags.join('/') : '', r.note ? '备注:' + r.note : '', r.cause ? '原因:' + r.cause : ''].filter(Boolean).join(' · ')).join('\n');
+    const sys = '你是一个基于用户历史情绪记录的数据分析助手。用户会用自然语言提问（例如「上月我最低谷那周怎么了」「什么场景最让我焦虑」）。请基于下面提供的历史记录，用中文、具体、有依据地回答，可引用具体日期和记录内容，不要编造不存在的数据。如果记录不足以回答，就如实说样本不够。';
+    const user = '我的历史情绪记录（最近 180 条）：\n' + (ctx || '（暂无记录）') + '\n\n我的问题：' + txt;
+    const loading = appendBubble(box, 'ai', '查数据中…');
+    try {
+      const res = await callDeepSeek(sys, user, { task: 'summary' });
+      loading.textContent = res.text;
+    } catch (e) {
+      loading.textContent = '查询失败：' + (e && e.message ? e.message : e);
+    }
+  }
+  // 导出回顾为 PDF（纯前端：构造临时打印区 + 浏览器打印，不引入任何外部依赖，保持离线可用）
+  function exportReportPdf() {
+    const stats = $('#reportStats'), body = $('#reportBody');
+    const range = $('#repRange') ? $('#repRange').value : 'all';
+    const rangeLabel = { week: '近 7 天', month: '近 30 天', year: '近 1 年', all: '全部' }[range] || range;
+    const area = document.createElement('div'); area.id = 'printArea';
+    let html = '<h1>情绪回顾 · ' + rangeLabel + '</h1><div class="pv-date">生成于 ' + new Date().toLocaleString('zh-CN') + '</div>';
+    if (stats && stats.innerHTML.trim()) {
+      const clean = stats.innerHTML.replace(/ class="(rs|k|v|sub)"/g, '');
+      html += '<div class="pv-stats">' + clean + '</div>';
+    }
+    if (body && body.textContent.trim()) html += '<div class="pv-body">' + body.textContent.replace(/</g, '&lt;') + '</div>';
+    area.innerHTML = html;
+    document.body.appendChild(area);
+    window.print();
+    setTimeout(function () { if (area.parentNode) area.parentNode.removeChild(area); }, 600);
   }
   function renderAll() {
     renderHero(); renderStats(); renderTrend(); renderHeat(); renderTags(); renderSleep(); renderScatter(); renderPeaks(); buildQA();
@@ -4217,6 +4323,16 @@ window.__BUILD__ = "v25 · 2026-08-08 17:31";</script>
     const rb = $('#remindGo'); if (rb) rb.addEventListener('click', () => { $('#recModal').classList.add('show'); $('#scrim').classList.add('show'); });
     const rmL = $('#remindLater'); if (rmL) rmL.addEventListener('click', () => { const b = $('#remindBar'); if (b) b.style.display = 'none'; });
     const ro = $('#remindOn'); if (ro) { ro.checked = localStorage.getItem('mood.remind') !== 'off'; ro.addEventListener('change', () => { localStorage.setItem('mood.remind', ro.checked ? 'on' : 'off'); renderRemind(); }); }
+    // 回顾 + 问数据 新功能绑定
+    on('#repRange', 'change', () => { const r = $('#repRange'); if (r) genReport(r.value); });
+    on('#reportPdf', 'click', exportReportPdf);
+    on('#askDataBtn', 'click', () => { const m = $('#askModal'); if (m) m.classList.add('show'); const sc = $('#scrim'); if (sc) sc.classList.add('show'); });
+    on('#askClose', 'click', () => { const m = $('#askModal'); if (m) m.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); });
+    on('#askSend', 'click', askData);
+    on('#askInput', 'keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); askData(); } });
+    on('#scrim', 'click', () => {
+      ['#reportModal', '#askModal'].forEach(s => { const m = $(s); if (m && m.classList.contains('show')) { m.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); } });
+    });
   }
 
   /* ---------- 运行时自检：按钮能不能点 / 会不会飘 / 有没有被挡住 ----------
