@@ -242,6 +242,10 @@ body {
 .set-save-row .btn { width: 100%; justify-content: center; padding: 12px 14px; font-size: 14px; font-weight: 600; }
 .set-row input[type="password"], .set-row select { flex: 1; min-width: 160px; }
 .set-row input, .set-row select { font-family: var(--font-mono); font-size: 13px; color: var(--ink); background: var(--glass-2); border: 1px solid var(--glass-brd); padding: 10px 12px; border-radius: 10px; }
+.set-row.nowrap { flex-wrap: nowrap; }
+.set-row.nowrap input[type="password"] { min-width: 0; }
+.set-row.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.set-row.grid2 .btn { width: 100%; justify-content: center; }
 
 /* ---------- 密码框：显示/隐藏眼睛 + Key 格式提示 ---------- */
 .pwd-wrap { position: relative; display: flex; align-items: center; flex: 1; min-width: 0; }
@@ -470,8 +474,8 @@ body {
 
 /* ---------- 模态框（提问作答） ---------- */
 .scrim {
-  position: fixed; inset: 0; z-index: 90; background: rgba(4, 7, 14, 0.6);
-  backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  position: fixed; inset: 0; z-index: 90; background: rgba(4, 7, 14, 0.7);
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity 0.3s;
 }
 .scrim.show { opacity: 1; pointer-events: auto; }
 .modal {
@@ -721,6 +725,9 @@ body {
 
   .set-row { flex-direction: column; align-items: stretch; }
   .set-row input, .set-row select { min-width: 0; width: 100%; }
+  .set-row.nowrap { flex-direction: row; flex-wrap: nowrap; align-items: center; }
+  .set-row.nowrap input[type="password"] { width: auto; flex: 1; }
+  .set-row.grid2 { grid-template-columns: 1fr 1fr; }
   .rec-row { }
   .rec-field { min-width: 0; width: 100%; }
   .rec-field input, .rec-field textarea { width: 100%; }
@@ -789,6 +796,7 @@ body {
 }
 .fab.fab-rec:hover { box-shadow: 0 16px 36px -8px var(--accent-glow), 0 0 0 8px var(--accent-soft); }
 .fab.fab-rec:active { transform: scale(.9); }
+.fab.fab-rec.dragging { transition: none; cursor: grabbing; box-shadow: 0 18px 40px -8px var(--accent-glow), 0 0 0 10px var(--accent-soft); }
 @media (max-width: 900px) {
   /* 手机端 FAB 抬到固定底部导航之上，避免遮挡 */
   .fab.fab-rec { bottom: calc(82px + env(safe-area-inset-bottom)); }
@@ -1317,7 +1325,8 @@ body {
 .tagcloud .chip.on { color: var(--on-accent); background: var(--accent); border-color: var(--accent); font-weight: 600; }
 .tagcloud .chip.on .n { color: var(--on-accent); }
 .tagcloud .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.tag-hint { font-size: 11.5px; color: var(--ink-soft); line-height: 1.6; margin-top: 12px; }
+#tagPanel .collapsible { padding-top: 18px; }
+.tag-hint { font-size: 11.5px; color: var(--ink-soft); line-height: 1.6; margin-top: 14px; }
 
 /* ---------- 标签关系图 ---------- */
 .tg-card {
@@ -2219,10 +2228,10 @@ body {
   <h3>同步 · DeepSeek · 数据</h3>
   <div class="set-block">
     <label>DeepSeek API Key（仅存本浏览器，不上传任何服务器）</label>
-    <div class="set-row">
+    <div class="set-row nowrap">
       <div class="pwd-wrap">
         <input type="password" id="dsKey" placeholder="sk-..." autocomplete="off" spellcheck="false">
-        <button type="button" class="eye-btn" id="dsKeyEye" title="显示 Key" aria-label="显示或隐藏 Key">👁</button>
+        <button type="button" class="eye-btn" id="dsKeyEye" title="隐藏 Key" aria-label="显示或隐藏 Key">显示</button>
       </div>
       <button class="btn" id="dsTest">测试</button>
     </div>
@@ -2268,14 +2277,19 @@ body {
       <button type="button" class="eye-btn" id="ghTokenEye" title="显示令牌" aria-label="显示或隐藏令牌">👁</button>
     </div>
     <div class="key-hint" id="ghTokenHint"></div>
-    <div class="set-row-nick" id="ghNickWrap" style="display:none">
-      <label>共享空间昵称（会出现在你共享的记录上，方便一起用的人辨认）</label>
-      <input type="text" id="ghNick" placeholder="如 小苏 / 阿May">
-    </div>
-    <div class="set-row">
-      <button class="btn" id="ghTest">测试连接</button>
-      <button class="btn primary" id="ghSync">立即同步</button>
-    </div>
+      <div class="set-row-nick" id="ghNickWrap" style="display:none">
+        <label>共享空间昵称（会出现在你共享的记录上，方便一起用的人辨认）</label>
+        <input type="text" id="ghNick" placeholder="如 小苏 / 阿May">
+      </div>
+      <div class="set-row-nick" id="ghMyFileWrap" style="display:none">
+        <label>我的同步文件（防冲突用：你只往这个文件写，朋友只往他那份写，从此不再 409 冲突）</label>
+        <input type="text" id="ghMyFile" placeholder="如 情绪记录_你.json（和朋友填不一样的名字）">
+        <p class="set-hint">留空＝沿用旧模式（所有人写同一个 情绪记录.json，仍可能冲突）。要彻底不冲突，你和你朋友各填一个不同的文件名，然后双方都点一次「立即同步」即可。</p>
+      </div>
+      <div class="set-row nowrap">
+        <button class="btn" id="ghTest">测试连接</button>
+        <button class="btn primary" id="ghSync">立即同步</button>
+      </div>
       <div class="msaved" id="ghMsg"></div>
       <div class="set-row set-save-row">
         <button class="btn primary" id="setSave">保存设置</button>
@@ -2287,7 +2301,7 @@ body {
   <div class="set-divider"></div>
   <div class="set-block">
     <label>数据备份（可选 · 导出 / 导入 JSON 副本）</label>
-    <div class="set-row">
+    <div class="set-row grid2">
       <button class="btn" id="setExport">导出本地副本（JSON）</button>
       <button class="btn" id="setExportCsv">导出表格（CSV）</button>
       <button class="btn" id="setImportBtn">导入</button>
@@ -2426,10 +2440,10 @@ body {
   <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
 </button>
 
-<script>window.__DATA__ = {"version":1,"records":[],"nextQuestions":[]};
+<script>window.__DATA__ = {"version":1,"records":[],"nextQuestions":[{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}]};
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
-window.__NEXT_Q__ = [];
+window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
 window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
 <script>/* ============================================================
@@ -2494,7 +2508,12 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
 
   /* ---------- GitHub 云同步（前端直连 api.github.com，手机/电脑共用一份数据） ---------- */
   const GH_FILE = '情绪记录.json';
-  const GH_TRASH = '情绪记录_回收站.json';
+  // 回收站也按人隔离：每个人只读写「自己的回收站文件」（由「我的同步文件」派生），
+  // 和朋友互不串，也避免两人同时删东西时这个文件 409。兼容模式（没填）退化为旧的 情绪记录_回收站.json。
+  function ghTrashFile() {
+    const base = (ghMyFile() || GH_FILE).replace(/\.json$/i, '');
+    return base + '_回收站.json';
+  }
   function ghProfile() { return localStorage.getItem('mood.ghProfile') || 'personal'; }
   function ghSuffix() { return ghProfile() === 'shared' ? '2' : ''; }
   function ghConf() {
@@ -2509,6 +2528,9 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     };
   }
   function ghNick() { return (localStorage.getItem('mood.ghNick' + ghSuffix()) || '').trim(); }
+  // 文件级隔离：每个人只往「自己的同步文件」写，朋友只写他那份，两人不再抢同一个文件 → 根除 409 冲突。
+  // 留空＝兼容旧模式（所有人写同一个 情绪记录.json，仍可能冲突）。
+  function ghMyFile() { return (localStorage.getItem('mood.ghMyFile' + ghSuffix()) || '').trim(); }
   function loadGh() {
     const p = ghSuffix();
     $('#ghUser').value = localStorage.getItem('mood.ghUser' + p) || '';
@@ -2518,7 +2540,9 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     $('#ghEnable').checked = localStorage.getItem('mood.ghEnabled' + p) === '1';
     $('#ghAuto').checked = localStorage.getItem('mood.ghAuto' + p) === '1';
     $('#ghNick').value = ghNick();
+    $('#ghMyFile').value = ghMyFile();
     $('#ghNickWrap').style.display = ghProfile() === 'shared' ? 'block' : 'none';
+    $('#ghMyFileWrap').style.display = ghProfile() === 'shared' ? 'block' : 'none';
     document.querySelectorAll('#ghSeg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.profile === ghProfile()));
     $('#ghHint').textContent = ghProfile() === 'shared'
       ? '共享空间：和朋友共用同一份记录。请给朋友一把「只限共享仓库」的受限令牌，不要分享你的主 PAT。'
@@ -2573,6 +2597,51 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     if (!Array.isArray(data.revived)) data.revived = [];
     if (!Array.isArray(data.purged)) data.purged = [];
     return { data: data, sha: j.sha };
+  }
+  // 列出仓库内所有「情绪记录*.json」（排除回收站独立文件），用于隔离模式下把每个人的文件都拉下来合并
+  async function ghListRepoFiles() {
+    const c = ghConf();
+    const url = 'https://api.github.com/repos/' + encodeURIComponent(c.user) + '/' + encodeURIComponent(c.repo) + '/contents/';
+    let res;
+    try { res = await fetch(url, { headers: ghHeaders() }); }
+    catch (netErr) { const e = new Error('网络连不上 GitHub（' + ((netErr && netErr.message) || netErr) + '），稍后会自动重试'); e.status = 0; e.net = true; throw e; }
+    if (!res.ok) throw await ghHttpErr(res, '列出仓库文件');
+    const arr = await res.json();
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(function (x) { return x && x.name && /^情绪记录.*\.json$/.test(x.name) && !/回收站/.test(x.name); }).map(function (x) { return x.name; });
+  }
+  /* 多文件聚合拉取：隔离模式下，把自己的文件 + 仓库里其他人的文件 + 旧的 情绪记录.json 全部拉下合并；
+     兼容模式（没填「我的同步文件」）则只拉旧的 情绪记录.json，行为和以前完全一致，不回归。
+     推送时只用「自己文件」的 sha，绝不碰别人的文件，因此两人并发写也不会 409。 */
+  async function ghPullAll() {
+    const myFile = ghMyFile();
+    const isolation = !!myFile;
+    let files = [];
+    if (isolation) {
+      let listed = [];
+      try { listed = await ghListRepoFiles(); } catch (e) { listed = []; }
+      files = Array.from(new Set([myFile, GH_FILE].concat(listed)));
+    } else {
+      files = [GH_FILE];
+    }
+    let recs = [], next = [], del = [], rev = [], pur = [];
+    let mySha = null;
+    for (const f of files) {
+      let r;
+      try { r = await ghPull(f); }
+      catch (e) {
+        if (e.status === 404) continue;   // 该文件不存在，跳过
+        throw e;                           // 401/403/429/网络错等连接级错误，向上抛给 ghSync 统一处理
+      }
+      if (!r) continue;
+      if (f === myFile) mySha = r.sha;     // 记「自己文件」的 sha，推送时只用它
+      recs = mergeRecords(recs, r.data.records);
+      next = mergeNext(next, r.data.nextQuestions);
+      del = mergeMarksKeepFp(del, r.data.deleted);
+      rev = mergeMarks(rev, r.data.revived);
+      pur = mergeMarks(pur, r.data.purged);
+    }
+    return { data: { records: recs, nextQuestions: next, deleted: del, revived: rev, purged: pur }, sha: mySha, files: files };
   }
   /* 合并策略修复：原来以 date 作唯一键，两个人在同一天各记一条时会互相覆盖（真实丢数据）。
      现在改为：先按稳定 id 合并，再按「日期+时间+记录人+心情+场景+备注」内容指纹去重，
@@ -2659,7 +2728,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
   async function pullTrash() {
     const c = ghConf();
     if (!c.enabled || !c.token || !c.user || !c.repo) return null;
-    const r = await ghPull(GH_TRASH);
+    const r = await ghPull(ghTrashFile());
     if (r && r.data) {
       DATA.trashPurged = mergeMarks(DATA.trashPurged, r.data.purged);
       DATA.trash = applyPurged(mergeTrashList(r.data.records, DATA.trash), DATA.trashPurged);
@@ -2678,7 +2747,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     try {
       // 拉取必须成功（或确认文件确实不存在 → 404 → null）才能推。
       // 拉取出错就中断，绝不拿本地数据去盲推，否则会把别的设备的回收站整个覆盖掉。
-      const r = await ghPull(GH_TRASH);
+      const r = await ghPull(ghTrashFile());
       let sha = null;
       if (r && r.data) {
         DATA.trashPurged = mergeMarks(DATA.trashPurged, r.data.purged);
@@ -2686,7 +2755,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
         saveData();
         sha = r.sha;
       }
-      await ghPush({ records: DATA.trash || [], purged: DATA.trashPurged || [], updatedAt: new Date().toISOString() }, sha, GH_TRASH);
+      await ghPush({ records: DATA.trash || [], purged: DATA.trashPurged || [], updatedAt: new Date().toISOString() }, sha, ghTrashFile());
     } catch (e) {
       // 409/422 都是「sha 和云端对不上」：重新拉一次拿到新 sha 再推
       if (e && (e.status === 409 || e.status === 422) && !_retried) {
@@ -2749,7 +2818,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
         if (msgEl) msgEl.textContent = '同步中…';
         setSyncState('syncing');
         let remote = null;
-        try { remote = await ghPull(); }
+        try { remote = await ghPullAll(); }
         catch (e) {
           // 401：令牌本身坏了（过期/吊销/写错），重试也没用，提示用户去换
           if (e.status === 401) {
@@ -2811,16 +2880,23 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
           if (doReload) setTimeout(function () { location.reload(); }, 700);
           return;
         }
+        // 隔离核心：每个设备只把自己署名的记录写回「我的同步文件」，朋友的记录始终留在他自己的文件里，
+        // 两人各写各的、互不覆盖，从根上消除 409 冲突。昵称为空时无法判定归属，回退写全量（旧行为）以防丢数据。
+        const _myAuthor = ghNick();
+        const _myRecords = _myAuthor
+          ? DATA.records.filter(function (r) { return (r && r.author || '') === _myAuthor; })
+          : DATA.records;
         await ghPush({
-          records: DATA.records, nextQuestions: DATA.nextQuestions,
+          records: _myRecords, nextQuestions: DATA.nextQuestions,
           deleted: DATA.deleted, revived: DATA.revived, purged: DATA.purged,
           updatedAt: new Date().toISOString()
-        }, remote ? remote.sha : null);
+        }, remote ? remote.sha : null, (ghMyFile() || GH_FILE));
         refreshRecs(); // 云端拉回来的记录要立刻进 UI 用的数组，否则要刷新页面才看得见
         setSyncState('ok');
         bumpSyncCount();
         const others = countOtherAuthors();
-        if (msgEl) msgEl.textContent = '✓ 已同步到 ' + c.user + '/' + c.repo + '，共 ' + DATA.records.length + ' 条'
+        const writeFile = ghMyFile() || GH_FILE;
+        if (msgEl) msgEl.textContent = '✓ 已同步到 ' + c.user + '/' + c.repo + '（写入文件 ' + writeFile + '），共 ' + DATA.records.length + ' 条'
           + (others ? '（其中 ' + others + '条来自一起用的人，可在「历史」里按记录人筛选查看）' : '');
         if (doReload) setTimeout(function () { location.reload(); }, 700);
       } catch (e) {
@@ -3442,6 +3518,37 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
   /* ---------- 回收站：独立整屏页面（不是弹窗） ---------- */
   function trashMsg(t) { const m = $('#trashMsg'); if (m) m.textContent = t || ''; }
   function trashOpened() { const p = $('#trashPage'); return !!(p && p.classList.contains('show')); }
+  let _trashBound = false;
+  function bindTrashActions() {
+    const pall = $('#trashPurgeAll');
+    if (pall) on(pall, 'click', function () {
+      const n = (DATA.trash || []).length;
+      if (!n) { trashMsg('回收站本来就是空的'); return; }
+      appConfirm('清空回收站？这 ' + n + ' 条记录会永远消失，无法恢复。', '清空').then(function (ok) {
+        if (!ok) return;
+        purgeAllTrash().then(function () { renderTrash(); trashMsg('✓ 已清空'); })
+          .catch(function (e) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e && e.message) || e) + '（本机已清空，联网后会自动补上）'); });
+      });
+    });
+    const tl2 = $('#trashList');
+    if (tl2) on(tl2, 'click', function (e) {
+      const btn = e.target.closest('[data-act]'); if (!btn) return;
+      const id = btn.getAttribute('data-id'), act = btn.getAttribute('data-act');
+      btn.disabled = true;
+      if (act === 'restore') {
+        trashMsg('正在恢复…');
+        restoreFromTrash(id).then(function () { renderTrash(); renderAll(); trashMsg('✓ 已恢复到主列表，回看板就能看到'); })
+          .catch(function (e2) { renderTrash(); trashMsg('✗ 恢复失败：' + ((e2 && e2.message) || e2)); });
+      } else if (act === 'purge') {
+        appConfirm('彻底删除后无法恢复，确定吗？', '彻底删除').then(function (ok) {
+          if (!ok) { btn.disabled = false; return; }
+          trashMsg('正在彻底删除…');
+          purgeFromTrash(id).then(function () { renderTrash(); trashMsg('✓ 已彻底删除'); })
+            .catch(function (e2) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e2 && e2.message) || e2)); });
+        });
+      }
+    });
+  }
   function openTrash() {
     const p = $('#trashPage'); if (!p || trashOpened()) return;
     renderTrash();
@@ -3450,6 +3557,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     setBotNav('navTrash');
     trashMsg('');
     try { history.pushState({ moodTrash: 1 }, '', '#trash'); } catch (e) {}
+    if (!_trashBound) { _trashBound = true; bindTrashActions(); }
     // 跨设备：在别的设备删掉的记录，进这个页面时也要能看到
     const c = ghConf();
     if (c.enabled && c.token && c.user && c.repo) {
@@ -3911,8 +4019,6 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     if (tl) tl.addEventListener('click', () => switchView('tl'));
     if (hist) hist.addEventListener('click', () => switchView('hist'));
     if (trash) trash.addEventListener('click', openTrash);
-    const back = $('#trashBack');
-    if (back) back.addEventListener('click', function () { closeTrash(); });
     // 手机上的系统返回键 / 浏览器后退，也能退出回收站
     window.addEventListener('popstate', function () { if (trashOpened()) closeTrash(true); });
     const refresh = $('#trashRefresh');
@@ -3922,34 +4028,6 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
       trashMsg('正在从云端读取…');
       pullTrash().then(function () { renderTrash(); trashMsg('✓ 已和云端对齐，共 ' + (DATA.trash || []).length + ' 条'); })
         .catch(function (e) { trashMsg('✗ 读取失败：' + ((e && e.message) || e)); });
-    });
-    const pall = $('#trashPurgeAll');
-    on(pall, 'click', function () {
-      const n = (DATA.trash || []).length;
-      if (!n) { trashMsg('回收站本来就是空的'); return; }
-      appConfirm('清空回收站？这 ' + n + ' 条记录会永远消失，无法恢复。', '清空').then(function (ok) {
-        if (!ok) return;
-        purgeAllTrash().then(function () { renderTrash(); trashMsg('✓ 已清空'); })
-          .catch(function (e) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e && e.message) || e) + '（本机已清空，联网后会自动补上）'); });
-      });
-    });
-    const tl2 = $('#trashList');
-    on(tl2, 'click', function (e) {
-      const btn = e.target.closest('[data-act]'); if (!btn) return;
-      const id = btn.getAttribute('data-id'), act = btn.getAttribute('data-act');
-      btn.disabled = true;
-      if (act === 'restore') {
-        trashMsg('正在恢复…');
-        restoreFromTrash(id).then(function () { renderTrash(); renderAll(); trashMsg('✓ 已恢复到主列表，回看板就能看到'); })
-          .catch(function (e2) { renderTrash(); trashMsg('✗ 恢复失败：' + ((e2 && e2.message) || e2)); });
-      } else if (act === 'purge') {
-        appConfirm('彻底删除后无法恢复，确定吗？', '彻底删除').then(function (ok) {
-          if (!ok) { btn.disabled = false; return; }
-          trashMsg('正在彻底删除…');
-          purgeFromTrash(id).then(function () { renderTrash(); trashMsg('✓ 已彻底删除'); })
-            .catch(function (e2) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e2 && e2.message) || e2)); });
-        });
-      }
     });
   }
 
@@ -4147,6 +4225,49 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
   // 安全事件绑定：元素不存在时静默跳过，避免单个 null 引用中断整段初始化（曾因 #tlBtn 被删导致连锁失效）
   const on = (sel, ev, fn, opt) => { const n = typeof sel === 'string' ? $(sel) : sel; if (n) n.addEventListener(ev, fn, opt); return n; };
+  let fabMoved = false;
+  function initFabDrag() {
+    const fab = $('#recFab'); if (!fab) return;
+    const KEY = 'mood.fabPos';
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY));
+      if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+        fab.style.right = 'auto'; fab.style.bottom = 'auto';
+        fab.style.left = saved.left + 'px'; fab.style.top = saved.top + 'px';
+      }
+    } catch (e) {}
+    let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false, pid = null;
+    fab.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      pid = e.pointerId; sx = e.clientX; sy = e.clientY;
+      const r = fab.getBoundingClientRect(); ox = sx - r.left; oy = sy - r.top;
+      if (fab.setPointerCapture) { try { fab.setPointerCapture(pid); } catch (e2) {} }
+      fab.style.touchAction = 'none';
+    });
+    fab.addEventListener('pointermove', function (e) {
+      if (pid === null) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!dragging && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) { dragging = true; fab.classList.add('dragging'); }
+      if (!dragging) return;
+      const w = fab.offsetWidth, h = fab.offsetHeight;
+      let l = e.clientX - ox, t = e.clientY - oy;
+      l = Math.max(6, Math.min(l, window.innerWidth - w - 6));
+      t = Math.max(6, Math.min(t, window.innerHeight - h - 6));
+      fab.style.right = 'auto'; fab.style.bottom = 'auto';
+      fab.style.left = l + 'px'; fab.style.top = t + 'px';
+    });
+    const end = function () {
+      if (pid === null) return;
+      if (fab.releasePointerCapture) { try { fab.releasePointerCapture(pid); } catch (e2) {} }
+      pid = null; fab.style.touchAction = '';
+      if (dragging) {
+        dragging = false; fab.classList.remove('dragging'); fabMoved = true;
+        try { localStorage.setItem(KEY, JSON.stringify({ left: fab.offsetLeft, top: fab.offsetTop })); } catch (e2) {}
+      }
+    };
+    fab.addEventListener('pointerup', end);
+    fab.addEventListener('pointercancel', end);
+  }
   // 初始化熔断：任何一步出错只影响它自己，不再连锁瘫痪后续所有交互
   function safeInit(name, fn) { try { fn(); } catch (e) { console.error('[Mood Atlas] 初始化「' + name + '」失败：', e); } }
   const escapeHtml = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -5159,7 +5280,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
   }
   function bindRecordModal() {
     on('#recBtn', 'click', openRecModal);
-    on('#recFab', 'click', openChat);
+    on('#recFab', 'click', () => { if (fabMoved) { fabMoved = false; return; } openChat(); });
     $('#recClose').addEventListener('click', () => { $('#recModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
     on('#dayPickClose', 'click', () => { const m = $('#dayPickModal'); if (m) m.classList.remove('show'); $('#scrim').classList.remove('show'); });
     document.querySelectorAll('#recMood button').forEach(b => b.addEventListener('click', () => {
@@ -5280,7 +5401,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     if (dsEye) dsEye.addEventListener('click', () => {
       const inp = $('#dsKey'); const show = inp.type === 'password';
       inp.type = show ? 'text' : 'password';
-      dsEye.textContent = show ? '🙈' : '👁';
+      dsEye.textContent = show ? '隐藏' : '显示';
       dsEye.title = show ? '隐藏 Key' : '显示 Key';
     });
     // GitHub 令牌框的眼睛（复用同一套逻辑）
@@ -5288,7 +5409,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     if (ghEye) ghEye.addEventListener('click', () => {
       const inp = $('#ghToken'); const show = inp.type === 'password';
       inp.type = show ? 'text' : 'password';
-      ghEye.textContent = show ? '🙈' : '👁';
+      ghEye.textContent = show ? '隐藏' : '显示';
       ghEye.title = show ? '隐藏令牌' : '显示令牌';
     });
     $('#setExport').addEventListener('click', exportData);
@@ -5352,6 +5473,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
       localStorage.setItem('mood.ghEnabled' + p, $('#ghEnable').checked ? '1' : '0');
       localStorage.setItem('mood.ghAuto' + p, $('#ghAuto').checked ? '1' : '0');
       localStorage.setItem('mood.ghNick' + p, $('#ghNick').value.trim());
+      localStorage.setItem('mood.ghMyFile' + p, $('#ghMyFile').value.trim());
       localStorage.setItem('mood.aiRecord', $('#aiRecordAuto').checked ? 'on' : 'off');
       if (typeof updateDsKeyHint === 'function') updateDsKeyHint();
       if (typeof updateGhTokenHint === 'function') updateGhTokenHint();
@@ -6106,6 +6228,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
 
   safeInit('bindModal', bindModal);
   safeInit('bindRecordModal', bindRecordModal);
+  safeInit('initFabDrag', initFabDrag);
   safeInit('bindInteractions', bindInteractions);
   safeInit('bindExtractModal', bindExtractModal);
   safeInit('bindBotNav', bindBotNav);
@@ -6119,11 +6242,10 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
 <!-- 回收站：独立整屏页面（不是弹窗） -->
 <div class="page" id="trashPage">
   <div class="page-top">
-    <button class="page-back" id="trashBack" type="button">← 返回</button>
     <div class="page-title">回收站<small>共 <span id="trashCount">0</span> 条 · 独立存放，不进主列表</small></div>
   </div>
   <div class="page-body">
-    <p class="page-lead">这里收着被你删掉的情绪记录。它们存在云端一个单独的文件里（情绪记录_回收站.json），不会出现在看板、时间轴和历史里。想起来了可以「恢复」，确定不要了就「彻底删除」。</p>
+    <p class="page-lead">这里收着被你删掉的情绪记录。它们存在云端一个和你主记录对应的回收站文件里，不会出现在看板、时间轴和历史里。想起来了可以「恢复」，确定不要了就「彻底删除」。</p>
     <div class="page-tools">
       <button class="btn sm" id="trashRefresh" type="button">从云端刷新</button>
       <button class="btn sm danger" id="trashPurgeAll" type="button">清空回收站</button>
