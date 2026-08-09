@@ -154,10 +154,7 @@ body {
   66% { transform: translate(-5vw, -3vh) scale(0.94); }
 }
 
-.grain {
-  position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
+/* 背景不叠加颗粒 / 波浪线纹理 */
 
 /* ---------- 容器 ---------- */
 .wrap { position: relative; z-index: 2; max-width: 1320px; margin: 0 auto; padding: 34px 30px 90px; }
@@ -740,11 +737,50 @@ body {
 }
 .bnav-btn:active { transform: scale(0.94); }
 
+/* 悬浮「记一笔」FAB：手机端常驻右下角，桌面端用顶部按钮即可，避免重复 */
+.fab { display: none; }
+@media (max-width: 900px) {
+  .fab.fab-rec {
+    display: flex; align-items: center; justify-content: center;
+    position: fixed; z-index: 90;
+    right: calc(16px + env(safe-area-inset-right));
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2, var(--accent)));
+    color: #05222a; border: none; cursor: pointer; touch-action: manipulation;
+    box-shadow: 0 12px 30px -8px var(--accent-glow), 0 0 0 6px var(--accent-soft);
+    transition: transform .15s ease, box-shadow .2s ease;
+  }
+  .fab.fab-rec:hover { box-shadow: 0 16px 36px -8px var(--accent-glow), 0 0 0 8px var(--accent-soft); }
+  .fab.fab-rec:active { transform: scale(.9); }
+  /* 手机端顶部「记一笔」交给 FAB，避免两个入口 */
+  #recBtn { display: none; }
+}
+
 /* 页面底部给固定导航留空 */
 .wrap { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
 @media (max-width: 900px) {
-  .wrap { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+  .wrap { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 }
+
+/* ---------- 回顾：平均心情/睡眠 可点开详情 ---------- */
+.rs { position: relative; }
+.rs.clickable { cursor: pointer; transition: background .15s, transform .12s; }
+.rs.clickable:hover { background: var(--accent-soft); }
+.rs.clickable:active { transform: scale(.98); }
+.rs-go { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-dim); font-size: 18px; }
+.stat-detail .sd-body { margin-top: 4px; }
+.sd-avg { font-size: 14px; color: var(--ink); margin-bottom: 14px; }
+.sd-avg b { color: var(--accent); font-size: 18px; }
+.sd-bars { display: flex; flex-direction: column; gap: 9px; }
+.sd-bar { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--ink-soft); }
+.sd-bar-k { width: 38px; text-align: right; color: var(--ink-dim); flex: none; }
+.sd-bar-track { flex: 1; height: 10px; border-radius: 999px; background: var(--bg-1); overflow: hidden; }
+.sd-bar-track i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2, var(--accent))); }
+.sd-bar-n { width: 28px; text-align: left; color: var(--ink); flex: none; }
+.sd-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 16px; font-size: 12.5px; color: var(--ink-dim); }
+.sd-tags i { font-style: normal; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-glow); padding: 2px 9px; border-radius: 999px; }
+.sd-empty { color: var(--ink-dim); font-size: 13px; padding: 20px 0; text-align: center; }
 
 /* ---------- 独立页面视图（整屏切换，不是弹窗） ---------- */
 .page {
@@ -1087,6 +1123,19 @@ body {
 .trend-toggle button { border: none; background: transparent; color: var(--ink-dim); font-family: var(--font-display); font-size: 12px; padding: 4px 12px; border-radius: 999px; cursor: pointer; transition: all .18s; }
 .trend-toggle button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 [data-theme="light"] .trend-toggle button.on { color: var(--on-accent); }
+/* 情绪地形（原地图页图表，已迁入看板「情绪地形」） */
+.map-wrap { position: relative; width: 100%; border: 1px solid var(--line, rgba(255,255,255,.09)); border-radius: 14px; overflow: hidden; background: var(--bg-soft, rgba(255,255,255,.03)); margin: 4px 0 0; }
+.map-svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.map-pt { cursor: pointer; transition: r .12s; }
+.map-pt:hover { r: 6; }
+.map-pin { cursor: pointer; }
+.map-tip { position: absolute; pointer-events: none; background: var(--bg, #0b1020); border: 1px solid var(--line, rgba(255,255,255,.12)); border-radius: 10px; padding: 8px 10px; font-size: 12px; min-width: 150px; max-width: 210px; box-shadow: 0 8px 24px rgba(0,0,0,.3); z-index: 6; }
+.mt-date { color: var(--ink-dim, #64748b); font-size: 11px; }
+.mt-mood { font-weight: 600; font-size: 13px; margin: 2px 0; }
+.mt-sc { font-size: 12px; } .mt-note { color: var(--ink-dim, #64748b); font-size: 11px; margin-top: 4px; line-height: 1.4; }
+.map-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; color: var(--ink-dim, #64748b); font-size: 12px; align-items: center; }
+.ml-i { display: inline-flex; align-items: center; gap: 6px; }
+.map-legend .ml-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 /* 打印回顾 PDF：只显示临时打印区 */
 @media print {
   body * { visibility: hidden; }
@@ -1193,6 +1242,9 @@ body {
 .insight-grid { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 16px; margin-top: 6px; }
 .insight-card { background: var(--bg-1); border: 1px solid var(--glass-brd); border-radius: 14px; padding: 14px; min-width: 0; }
 .insight-card h3 { margin: 0 0 10px; font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+/* 时间轴「情绪洞察」：去掉矩形卡片框，直接内联，更轻盈 */
+.insight-panel.inline-mode .insight-card { background: transparent; border: none; border-radius: 0; padding: 0; }
+.insight-panel.inline-mode .insight-grid { gap: 14px 18px; }
 .src-list, .corr-list { display: flex; flex-direction: column; gap: 9px; }
 .src-row, .corr-row { display: grid; grid-template-columns: 1fr 108px; grid-template-areas: "name meta" "track track"; gap: 4px 8px; align-items: center; }
 .src-name, .corr-name { grid-area: name; font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1210,6 +1262,11 @@ body {
 #insightAi { margin-top: 12px; }
 .insight-ai-out { margin-top: 10px; font-size: 13px; line-height: 1.7; color: var(--ink); white-space: pre-wrap; background: var(--bg-1); border: 1px solid var(--glass-brd); border-radius: 10px; padding: 10px 12px; }
 @media (max-width: 760px) { .insight-grid { grid-template-columns: 1fr; } }
+
+/* 手机端不提供导出 PDF（PC / 回顾页保留），避免窄屏下按钮拥挤 */
+@media (max-width: 760px) {
+  #reportPdf, #heroPdf { display: none !important; }
+}
 
 /* ---------- 高频标签：现在是真按钮 ---------- */
 .tagcloud .chip {
@@ -1472,13 +1529,139 @@ body {
 .tb-scope { display: inline-block; margin-left: 8px; font-size: 10.5px; color: var(--ink-dim); opacity: .8;
   border: 1px solid var(--glass-brd); border-radius: 999px; padding: 2px 8px; letter-spacing: .2px; }
 @media (max-width: 600px) { .tb-scope { margin-left: 0; margin-top: 6px; display: block; width: fit-content; } }
+
+/* ---------- 通用应用内确认弹窗 ---------- */
+.app-confirm { z-index: 9999; display: none; align-items: center; justify-content: center; }
+.app-confirm.show { display: flex; }
+.app-confirm .ac-box {
+  width: min(420px, calc(100% - 40px)); background: var(--bg-1, #11161f);
+  border: 1px solid var(--glass-brd, rgba(255,255,255,.12)); border-radius: 16px;
+  padding: 22px 22px 18px; box-shadow: 0 24px 60px rgba(0,0,0,.45);
+  animation: acPop .16s ease-out;
+}
+@keyframes acPop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+.app-confirm .ac-msg { font-size: 15px; line-height: 1.65; color: var(--ink, #e7eef6); margin-bottom: 18px; }
+.app-confirm .ac-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.app-confirm .ac-actions .btn { min-height: 38px; min-width: 88px; }
+@media (max-width: 420px) { .app-confirm .ac-actions { flex-direction: column-reverse; } .app-confirm .ac-actions .btn { width: 100%; } }
+
+/* ============ 情绪地图 · 本轮优化样式 ============ */
+
+/* 标签关系图：标题层级 + 整理按钮 + 平移缩放 */
+.tg-title-wrap { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tg-title-wrap h2 { margin: 0; }
+.tg-sub { font-size: 11.5px; color: var(--ink-dim); font-weight: 400; line-height: 1.45; }
+.panel-head-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.tg-svg { cursor: grab; touch-action: none; }
+.tg-svg.grabbing { cursor: grabbing; }
+.tg-zoom { transition: transform .04s linear; }
+
+/* 标签筛选按钮 + 底部弹层（替代原生 select） */
+.hist-tagfilter { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px;
+  background: var(--bg-1); border: 1px solid var(--glass-brd); color: var(--ink); font-size: 13px;
+  font-family: var(--font-display); cursor: pointer; transition: all .18s; }
+.hist-tagfilter:hover { border-color: var(--accent); }
+.hist-tagfilter.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.hist-tagfilter .caret { font-size: 10px; opacity: .7; }
+.sheet { left: 50%; top: auto; bottom: 0; transform: translate(-50%, 100%);
+  width: min(560px, 100%); max-height: 82vh; border-radius: 18px 18px 0 0; padding: 0;
+  box-shadow: 0 -18px 60px rgba(0,0,0,.45); }
+.sheet.show { transform: translate(-50%, 0); }
+.sheet-card { width: 100%; display: flex; flex-direction: column; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between;
+  padding: 15px 18px; border-bottom: 1px solid var(--glass-brd); font-size: 14px; font-weight: 600; }
+.sheet-x { width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--bg-2);
+  color: var(--ink-soft); font-size: 20px; cursor: pointer; transition: all .15s; }
+.sheet-x:hover { color: var(--ink); background: var(--glass-2); }
+.sheet-body { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px 20px; max-height: 62vh; overflow-y: auto; }
+.sheet-item { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 13px 16px; border-radius: 14px; border: 1px solid var(--glass-brd); background: var(--bg-1);
+  color: var(--ink); font-size: 15px; font-family: var(--font-display); cursor: pointer; transition: all .15s; text-align: left; }
+.sheet-item:hover { border-color: var(--accent); background: var(--glass-2); }
+.sheet-item.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+.sheet-cnt { font-family: var(--font-mono); font-size: 12px; opacity: .8; }
+
+/* 睡眠周期切换 */
+.seg-mini { display: inline-flex; background: var(--bg-1); border: 1px solid var(--glass-brd);
+  border-radius: 999px; padding: 2px; gap: 2px; }
+.seg-mini button { border: none; background: transparent; color: var(--ink-dim); font-size: 11.5px;
+  padding: 4px 10px; border-radius: 999px; cursor: pointer; transition: all .18s; }
+.seg-mini button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.sleep-custom { display: flex; align-items: center; gap: 8px; justify-content: center; margin: 6px 0 2px;
+  font-size: 12px; color: var(--ink-soft); }
+.sleep-custom .sleep-date { background: var(--bg-1); border: 1px solid var(--glass-brd); color: var(--ink);
+  border-radius: 10px; padding: 6px 8px; font-size: 12px; }
+
+/* 时间轴作者图例美化（头像色块 + 昵称 + 条数，做成胶囊） */
+.lg-title { font-size: 11.5px; color: var(--ink-dim); letter-spacing: .4px; margin-right: 4px; }
+.lg-item { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px 5px 9px; border-radius: 999px;
+  border: 1px solid var(--glass-brd); background: var(--bg-1); color: var(--ink-soft); font-size: 12.5px; cursor: pointer; transition: all .18s; }
+.lg-item i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.lg-item b { font-family: var(--font-mono); font-size: 11px; color: var(--ink-dim); font-weight: 500; }
+.lg-item:hover { color: var(--ink); border-color: var(--accent); background: var(--glass-2); }
+.lg-item.on { color: var(--ink); border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.lg-note { font-size: 11.5px; color: var(--ink-dim); line-height: 1.6; }
+
+/* 平稳光球：加柔光与脉冲，更精致 */
+.orb-ring { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+.orb-core { filter: drop-shadow(0 0 18px var(--accent-glow)); }
+.orb-wrap::after { content: ""; position: absolute; left: 50%; top: 50%; width: 150px; height: 150px;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); opacity: .22; pointer-events: none;
+  animation: orbPulse 4s ease-in-out infinite; }
+@keyframes orbPulse { 0%, 100% { transform: translate(-50%, -50%) scale(.85); opacity: .16; } 50% { transform: translate(-50%, -50%) scale(1.12); opacity: .3; } }
+
+/* 历史页顶部留白收敛 */
+.view-head { margin: 4px 0 12px; }
+.view-head h2 { font-size: 15px; }
+
+/* 高峰面板里的自己/我们切换与标题栏对齐 */
+.peaks .trend-toggle { margin-top: -2px; }
+
+/* 设置：层次更分明（标题大、说明小、按钮统一） */
+.set-block h3, .modal h3 { font-size: 17px; }
+.set-block label { font-size: 13px; color: var(--ink); font-weight: 600; }
+.set-hint { font-size: 11.5px; color: var(--ink-dim); line-height: 1.55; margin: 5px 2px 2px; }
+.set-row .btn, .set-row-nick .btn, .set-save-row .btn, .set-inline .btn { min-height: 38px; }
+.set-row { gap: 10px; }
+.set-inline { gap: 14px; flex-wrap: wrap; }
+
+/* 高频标签：手机端更易点 */
+@media (max-width: 760px) {
+  .tagcloud { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+  .tagcloud .chip { padding: 10px 8px; }
+  .chip .n { font-size: 13px; }
+  .tg-node .tg-name { font-size: 15px; }
+  .tg-node .tg-cnt { font-size: 11px; }
+  /* 手机端去掉顶部「全部/按年/按月/按日」时间筛选，让概览（平稳等）更靠前 */
+  #timeBar { display: none; }
+}
+/* 情绪地形手机端更清晰：主线加粗、数据点描边加粗、坐标字号放大 */
+@media (max-width: 760px) {
+  #trend .map-line { stroke-width: 2.8; }
+  #trend .map-pt { stroke-width: 1.8; }
+  #trend .map-svg text { font-size: 12px; }
+}
+
+/* 电脑端：更丰富的入场与悬停动效 */
+@media (min-width: 981px) {
+  .panel { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s; }
+  .panel:hover { transform: translateY(-3px); box-shadow: 0 18px 50px -20px var(--accent-glow); }
+  .peak { transition: transform .3s, box-shadow .3s; }
+  .peak:hover { transform: translateY(-3px); box-shadow: 0 14px 36px -18px var(--accent-glow); }
+  .qa-item { transition: transform .3s, box-shadow .3s; }
+  .qa-item:hover { transform: translateY(-3px) scale(1.004); box-shadow: 0 16px 40px -20px var(--accent-glow); }
+  .hist-item, .tl-item { transition: transform .25s, background .25s; }
+  .hist-item:hover, .tl-item:hover { transform: translateX(4px); background: var(--glass-2); }
+  .chip { transition: transform .2s, border-color .2s, background .2s, box-shadow .2s; }
+  .chip:hover { transform: translateY(-2px); }
+}
 </style>
 </head>
 <body>
 <canvas id="bg"></canvas>
 <div class="glow" id="glow"></div>
 <div class="aurora"><span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="a4"></span></div>
-<div class="grain"></div>
 <div class="tip" id="tip"></div>
 
 <header class="topbar wrap" style="padding-bottom:0">
@@ -1539,16 +1722,19 @@ body {
     <section class="glance reveal" id="stats"></section>
     <div class="divider reveal"></div>
 
-    <!-- 趋势 -->
+    <!-- 情绪地形 -->
     <section class="panel reveal">
-      <h2><span class="ic"></span>心情趋势 · 近 30 天
+      <h2><span class="ic"></span>情绪地形 · 近 30 天
         <span class="trend-toggle" id="trendToggle" data-self-toggle>
           <button type="button" data-v="all" class="on">我们</button>
           <button type="button" data-v="self">自己</button>
         </span>
       </h2>
-      <div id="trend"></div>
-      <div class="legend" id="trendLegend"></div>
+      <div class="map-wrap" id="trendWrap">
+        <div id="trend"></div>
+        <div class="map-tip" id="mapTip" hidden></div>
+      </div>
+      <div class="map-legend legend" id="trendLegend"></div>
     </section>
 
     <div class="row2">
@@ -1595,7 +1781,18 @@ body {
 
     <div class="row3">
       <section class="panel reveal">
-        <h2><span class="ic"></span>睡眠 · 日均</h2>
+        <div class="panel-head">
+          <h2><span class="ic"></span>睡眠</h2>
+          <span class="seg-mini" id="sleepPeriod">
+            <button type="button" data-v="day" class="on">日均</button>
+            <button type="button" data-v="month">月均</button>
+            <button type="button" data-v="year">年均</button>
+            <button type="button" data-v="custom">自定义</button>
+          </span>
+        </div>
+        <div class="sleep-custom" id="sleepCustom" style="display:none">
+          <input type="date" id="sleepStart" class="sleep-date" aria-label="开始日期"> <span class="sleep-sep">至</span> <input type="date" id="sleepEnd" class="sleep-date" aria-label="结束日期">
+        </div>
         <div class="sleep-wrap" id="sleep"></div>
       </section>
       <section class="panel reveal">
@@ -1603,7 +1800,12 @@ body {
         <div id="scatter"></div>
       </section>
       <section class="panel reveal">
-        <h2><span class="ic"></span>高峰与低谷</h2>
+        <h2><span class="ic"></span>高峰与低谷
+          <span class="trend-toggle" data-self-toggle>
+            <button type="button" data-v="all" class="on">我们</button>
+            <button type="button" data-v="self">自己</button>
+          </span>
+        </h2>
         <div class="peaks" id="peaks"></div>
       </section>
     </div>
@@ -1688,7 +1890,7 @@ body {
     </div>
     <div class="hist-toolbar">
       <input type="search" id="histSearch" class="hist-search" placeholder="搜索场景 / 备注 / 标签 / 原因…">
-      <select id="histTagFilter" class="hist-tagfilter"><option value="">全部标签</option></select>
+      <button type="button" class="hist-tagfilter" id="histTagFilterBtn"><span id="histTagFilterLabel">全部标签</span><span class="caret">▾</span></button>
       <div class="mood-chips">
         <span class="mood-chip" data-m="1">1</span>
         <span class="mood-chip" data-m="2">2</span>
@@ -1701,8 +1903,14 @@ body {
     <!-- 标签关系图（Obsidian 风格节点网络）：点节点即筛选 -->
     <section class="tg-card" id="tagGraphCard">
       <div class="panel-head">
-        <h2><span class="ic"></span>标签关系图 · 点一个点看这类记录</h2>
-        <button class="collapse-btn" id="tgToggle" type="button" aria-expanded="true">收起</button>
+        <div class="tg-title-wrap">
+          <h2><span class="ic"></span>标签关系图</h2>
+          <span class="tg-sub">点一个节点，看这一类下的全部记录 · 拖空白处平移 · 滚轮 / 双指缩放</span>
+        </div>
+        <div class="panel-head-actions">
+          <button class="btn sm ghost" id="tgArrange" type="button">整理标签</button>
+          <button class="collapse-btn" id="tgToggle" type="button" aria-expanded="true">收起</button>
+        </div>
       </div>
       <div class="collapsible" id="tgBody">
         <div class="tg-legend" id="authorLegend"></div>
@@ -1716,6 +1924,14 @@ body {
 
     <div class="hist-list" id="viewHistList"></div>
   </section>
+
+  <!-- 标签筛选底部弹层（替代原生 select，UI 与 App 一致，移动端友好） -->
+  <div class="modal sheet" id="tagSheet">
+    <div class="sheet-card">
+      <div class="sheet-head"><span>筛选标签</span><button class="sheet-x" id="tagSheetX" type="button" aria-label="关闭">×</button></div>
+      <div class="sheet-body" id="tagSheetBody"></div>
+    </div>
+  </div>
 
   <footer class="foot">
     <div id="genDate"></div>
@@ -1851,6 +2067,9 @@ body {
       <option value="deepseek-v4-flash">deepseek-v4-flash（默认·快·省）</option>
       <option value="deepseek-v4-pro">deepseek-v4-pro（深推理·慢·贵）</option>
     </select>
+    <div class="set-inline">
+      <label class="switch"><input type="checkbox" id="aiRecordAuto" checked> AI 聊完自动询问是否记一笔</label>
+    </div>
   </div>
   <div class="set-divider"></div>
   <div class="set-block">
@@ -1980,6 +2199,17 @@ body {
   <div class="report-body" id="reportBody"></div>
 </div>
 
+<!-- 平均心情 / 平均睡眠 详情（手机端替代导出 PDF） -->
+<div class="modal stat-detail" id="statDetail">
+  <span class="mclose sd-x">×</span>
+  <div class="mtag">统计详情</div>
+  <h3 class="sd-title">平均心情详情</h3>
+  <div class="report-head" style="margin-bottom:10px">
+    <button class="btn sm" type="button" id="statBack">返回</button>
+  </div>
+  <div class="sd-body"></div>
+</div>
+
 <!-- 问数据：用自然语言查询自己的历史记录 -->
 <div class="modal" id="askModal">
   <span class="mclose" id="askClose">×</span>
@@ -2005,20 +2235,23 @@ body {
   <div class="tl-list" id="tlList"></div>
 </div>
 
-<!-- 手机端底部导航：四个视图切换（看板 / 时间轴 / 历史 / 回收站） -->
+<!-- 底部导航：四个视图切换（看板 / 时间轴 / 历史 / 回收站）。记一笔改为右下角悬浮 FAB，更醒目且不挤。 -->
 <div class="botnav" id="botnav">
   <button class="bnav-btn active" id="navDash"><span>看板</span></button>
   <button class="bnav-btn" id="navTl"><span>时间轴</span></button>
   <button class="bnav-btn" id="navHist"><span>历史</span></button>
   <button class="bnav-btn" id="navTrash"><span>回收站</span></button>
 </div>
+<button class="fab fab-rec" id="recFab" type="button" aria-label="记一笔" title="记一笔">
+  <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+</button>
 
 <script>window.__DATA__ = {"version":1,"records":[],"nextQuestions":[]};
 window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，写两句。";
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [];
-window.__GEN_DATE__ = "2026-08-09 04:06";
-window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
+window.__GEN_DATE__ = "2026-08-09 15:54";
+window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -2044,6 +2277,9 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
   if (!Array.isArray(DATA.revived)) DATA.revived = []; // 复活标记：从回收站恢复过的 id，压过更早的墓碑
   if (!Array.isArray(DATA.trash)) DATA.trash = []; // 回收站：被软删除的记录，可恢复或彻底删除
   if (!Array.isArray(DATA.trashPurged)) DATA.trashPurged = []; // 已离开回收站的 id（彻底删除 / 已恢复）
+  // 回收站里的老记录也要补稳定 id（和主记录同一套 fp_ 指纹），否则彻底删除/恢复时
+  // 按 id 找不到会静默 return，表现成"点了没用、记录还在"。
+  (DATA.trash || []).forEach(r => { if (!r.id) r.id = 'fp_' + recFingerprint(r); });
   const TODAY_Q = DATA.todayQuestion || window.__TODAY_Q__ || '今天过得怎么样？挑感受最明显的一件事，写两句。';
   const Q_PROMPTS = window.__Q_PROMPTS__ || [];
   const NEXT_Q = DATA.nextQuestions;
@@ -2633,14 +2869,14 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     try {
       const res = await callDeepSeek(sys, user, { task: 'chat' });
       loading.textContent = res.text;
-      if (sv) sv.textContent = '（' + res.model + (res.thinking === 'enabled' ? ' · 思考' : '') + '）';
       aiOfferRecord();
     }
     catch (e) { loading.textContent = '✗ ' + (e && e.message ? e.message : e); }
   }
-  // AI 聊完后询问是否记录这次聊到的情绪
+  // AI 聊完后询问是否记录这次聊到的情绪（受「自动询问」开关控制）
   function aiOfferRecord() {
     const rp = $('#aiRecordPrompt'); if (!rp) return;
+    if (localStorage.getItem('mood.aiRecord') === 'off') { rp.style.display = 'none'; return; }
     const ub = document.querySelectorAll('#aiChat .bubble.user');
     const ab = document.querySelectorAll('#aiChat .bubble.ai');
     if (!ub.length) { rp.style.display = 'none'; return; }
@@ -2895,7 +3131,10 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     const tag = state.histTag || '';
     const mood = state.histMood || 0;
     const who = state.histAuthor || '';
+    const seen = {};
     return recs.slice().reverse().filter(r => {
+      const id = r.id || (r.date + '|' + (r.time || '') + '|' + (r.note || '').slice(0, 12));
+      if (seen[id]) return false; seen[id] = 1; // 按 id 去重，避免同一笔记录出现在两处
       if (mood && +r.mood !== +mood) return false;
       if (who && (((r.author || '').trim() || '未署名') !== who)) return false;
       if (tag && !(r.tags || []).includes(tag)) return false;
@@ -2908,13 +3147,7 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
   }
   function buildHistory(target) {
     const list = target || $('#histList'); if (!list) return;
-    const tf = $('#histTagFilter');
-    if (tf) {
-      const all = {}; recs.forEach(r => (r.tags || []).forEach(t => all[t] = 1));
-      const cur = tf.value;
-      tf.innerHTML = '<option value="">全部标签</option>' + Object.keys(all).map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
-      if (cur) tf.value = cur;
-    }
+    syncTagFilterBtn();
     const sorted = histFiltered();
     const cnt = $('#histCount'); if (cnt) cnt.textContent = sorted.length;
     const vcnt = $('#viewHistCount'); if (vcnt) vcnt.textContent = sorted.length;
@@ -3136,7 +3369,7 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
       return;
     }
     const me = ghNick();
-    box.innerHTML = '<span class="lg-title">谁是谁</span>'
+    box.innerHTML = '<span class="lg-title">记录作者</span>'
       + names.map(function (a) {
         return '<button class="lg-item' + (state.histAuthor === a ? ' on' : '') + '" type="button" data-author="' + escapeHtml(a) + '"'
           + ' title="只看 ' + escapeHtml(a) + ' 的记录（再点一次取消）">'
@@ -3157,6 +3390,10 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
      · 可以拖动节点摆位置，位置会记住，不会每次刷新乱跳
      · 个人空间按心情上色；共享空间按「主要记录人」上色，配合上面的图例   */
   let _tgLayout = { key: '', pts: null };
+  let tgView = { x: 0, y: 0, k: 1 }; // 标签关系图的平移/缩放（背景拖拽 + 滚轮/双指）
+  function applyTgView(svg) {
+    const g = $('#tgZoom', svg); if (g) g.setAttribute('transform', 'translate(' + tgView.x.toFixed(2) + ',' + tgView.y.toFixed(2) + ') scale(' + tgView.k.toFixed(3) + ')');
+  }
   function renderTagGraph() {
     const svg = $('#tagGraph'); if (!svg) return;
     const W = 720, H = 420;
@@ -3275,7 +3512,8 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
       + '<text class="tg-name" y="' + (pts[i].r + 13).toFixed(1) + '" text-anchor="middle">' + escapeHtml(t) + '</text>'
       + '<title>' + escapeHtml(t) + ' · ' + cnt[t] + ' 条记录（点击只看这些）</title></g>';
     });
-    svg.innerHTML = s;
+    svg.innerHTML = '<g class="tg-zoom" id="tgZoom">' + s + '</g>';
+    applyTgView(svg);
     if (act) {
       const on = [];
       if (state.histAuthor) on.push('记录人 ' + state.histAuthor);
@@ -3285,6 +3523,7 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
       act.textContent = on.length ? ('当前筛选：' + on.join(' · ')) : '';
     }
     bindTagGraph(svg, nodes, pts, W, H);
+    bindTagGraphPan(svg);
   }
 
   // 节点交互：点击=筛选、拖动=摆位置（区分点击/拖动，避免"点了没反应"或"想点却拖走了"）
@@ -3293,8 +3532,11 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
       const i = +g.dataset.i;
       let sx = 0, sy = 0, moved = false, dragging = false;
       const toLocal = function (e) {
-        const b = svg.getBoundingClientRect();
-        return { x: (e.clientX - b.left) / b.width * W, y: (e.clientY - b.top) / b.height * H };
+        const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+        const ctm = svg.getScreenCTM(); if (!ctm) return { x: 0, y: 0 };
+        const vb = pt.matrixTransform(ctm.inverse()); // 屏幕 → 视图坐标
+        // 再减去平移、除以缩放，得到节点所在的「本地坐标」（拖拽数学与缩放无关）
+        return { x: (vb.x - tgView.x) / tgView.k, y: (vb.y - tgView.y) / tgView.k };
       };
       g.addEventListener('pointerdown', function (e) {
         dragging = true; moved = false;
@@ -3326,20 +3568,77 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     });
   }
 
+  // 背景平移 + 滚轮/双指缩放：让标签关系图在手机上也能自由探索，不再被挤在中间一小块
+  function bindTagGraphPan(svg) {
+    if (svg.dataset.pan) return; svg.dataset.pan = '1';
+    const getLoc = function (e) {
+      const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+      const ctm = svg.getScreenCTM(); if (!ctm) return null;
+      return pt.matrixTransform(ctm.inverse());
+    };
+    const pointers = new Map(); let pinchPrev = 0, panLast = null;
+    const zoomAt = function (loc, nk) {
+      nk = Math.max(0.4, Math.min(4, nk));
+      const plx = (loc.x - tgView.x) / tgView.k, ply = (loc.y - tgView.y) / tgView.k;
+      tgView.x = loc.x - nk * plx; tgView.y = loc.y - nk * ply; tgView.k = nk; applyTgView(svg);
+    };
+    svg.addEventListener('pointerdown', function (e) {
+      pointers.set(e.pointerId, e);
+      if (pointers.size === 2) { const a = Array.prototype.slice.call(pointers.values()); const l0 = getLoc(a[0]), l1 = getLoc(a[1]); if (l0 && l1) pinchPrev = Math.hypot(l0.x - l1.x, l0.y - l1.y); panLast = null; return; }
+      if (e.target.closest('.tg-node')) { panLast = null; return; } // 节点拖拽交给 bindTagGraph
+      panLast = getLoc(e); svg.classList.add('grabbing');
+    });
+    svg.addEventListener('pointermove', function (e) {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, e);
+      if (pointers.size >= 2) {
+        const a = Array.prototype.slice.call(pointers.values()); const l0 = getLoc(a[0]), l1 = getLoc(a[1]);
+        if (!l0 || !l1) return;
+        const d = Math.hypot(l0.x - l1.x, l0.y - l1.y);
+        if (pinchPrev) zoomAt({ x: (l0.x + l1.x) / 2, y: (l0.y + l1.y) / 2 }, tgView.k * (d / pinchPrev));
+        pinchPrev = d; return;
+      }
+      if (!panLast || e.target.closest('.tg-node')) return;
+      const loc = getLoc(e); if (!loc) return;
+      tgView.x += (loc.x - panLast.x); tgView.y += (loc.y - panLast.y); panLast = loc; applyTgView(svg);
+    });
+    const end = function (e) { pointers.delete(e.pointerId); if (pointers.size < 2) pinchPrev = 0; if (pointers.size === 0) { panLast = null; svg.classList.remove('grabbing'); } };
+    svg.addEventListener('pointerup', end);
+    svg.addEventListener('pointercancel', end);
+    svg.addEventListener('dblclick', function (e) { if (e.target.closest('.tg-node')) return; tgView = { x: 0, y: 0, k: 1 }; applyTgView(svg); });
+    svg.addEventListener('wheel', function (e) { e.preventDefault(); const loc = getLoc(e); if (loc) zoomAt(loc, tgView.k * (e.deltaY < 0 ? 1.12 : 1 / 1.12)); }, { passive: false });
+  }
+
   // 选中/取消某个标签（图上点、云上点、下拉框选，最终都走这一条路，状态永远一致）
   function selectTag(name) {
     state.histTag = (state.histTag === name) ? '' : name;
-    const tf = $('#histTagFilter');
     refreshLists();
-    if (tf) tf.value = state.histTag;
   }
   // 从「高频标签」跳到历史并筛选
   function jumpToTag(name) {
     state.histTag = name;
     switchView('hist');
     refreshLists();
-    const tf = $('#histTagFilter'); if (tf) tf.value = name;
   }
+  // 标签筛选按钮（替代原生 select）：同步文案 + 高亮
+  function syncTagFilterBtn() {
+    const b = $('#histTagFilterBtn'), l = $('#histTagFilterLabel');
+    if (b) b.classList.toggle('on', !!state.histTag);
+    if (l) l.textContent = state.histTag || '全部标签';
+  }
+  // 标签筛选底部弹层
+  function openTagSheet() {
+    const body = $('#tagSheetBody'); const sheet = $('#tagSheet'); if (!body || !sheet) return;
+    const all = {}; recs.forEach(r => (r.tags || []).forEach(t => { if (t) all[t] = (all[t] || 0) + 1; }));
+    const tags = Object.keys(all).sort((a, b) => all[b] - all[a] || a.localeCompare(b, 'zh-CN'));
+    let html = '<button type="button" class="sheet-item' + (state.histTag ? '' : ' on') + '" data-tag="">全部标签</button>';
+    html += tags.map(t => '<button type="button" class="sheet-item' + (state.histTag === t ? ' on' : '') + '" data-tag="' + escapeHtml(t) + '">'
+      + escapeHtml(t) + '<span class="sheet-cnt">' + all[t] + '</span></button>').join('');
+    body.innerHTML = html;
+    $$('.sheet-item', body).forEach(b => b.addEventListener('click', () => { state.histTag = b.dataset.tag || ''; closeSheet(); refreshLists(); }));
+    sheet.classList.add('show'); $('#scrim').classList.add('show');
+  }
+  function closeSheet() { const s = $('#tagSheet'); if (s) s.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); }
 
   // 统一刷新所有列表容器（模态框版 + 全页视图版）。
   // 之前 buildHistory() 不传参只更新隐藏的 #histList，导致「历史」视图里搜索/筛选看着毫无反应。
@@ -3380,15 +3679,17 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
         .catch(function (e) { trashMsg('✗ 读取失败：' + ((e && e.message) || e)); });
     });
     const pall = $('#trashPurgeAll');
-    if (pall) pall.addEventListener('click', function () {
+    on(pall, 'click', function () {
       const n = (DATA.trash || []).length;
       if (!n) { trashMsg('回收站本来就是空的'); return; }
-      if (!confirm('清空回收站？这 ' + n + ' 条记录会永远消失，无法恢复。')) return;
-      purgeAllTrash().then(function () { renderTrash(); trashMsg('✓ 已清空'); })
-        .catch(function (e) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e && e.message) || e) + '（本机已清空，联网后会自动补上）'); });
+      appConfirm('清空回收站？这 ' + n + ' 条记录会永远消失，无法恢复。', '清空').then(function (ok) {
+        if (!ok) return;
+        purgeAllTrash().then(function () { renderTrash(); trashMsg('✓ 已清空'); })
+          .catch(function (e) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e && e.message) || e) + '（本机已清空，联网后会自动补上）'); });
+      });
     });
     const tl2 = $('#trashList');
-    if (tl2) tl2.addEventListener('click', function (e) {
+    on(tl2, 'click', function (e) {
       const btn = e.target.closest('[data-act]'); if (!btn) return;
       const id = btn.getAttribute('data-id'), act = btn.getAttribute('data-act');
       btn.disabled = true;
@@ -3397,10 +3698,12 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
         restoreFromTrash(id).then(function () { renderTrash(); renderAll(); trashMsg('✓ 已恢复到主列表，回看板就能看到'); })
           .catch(function (e2) { renderTrash(); trashMsg('✗ 恢复失败：' + ((e2 && e2.message) || e2)); });
       } else if (act === 'purge') {
-        if (!confirm('彻底删除后无法恢复，确定吗？')) { btn.disabled = false; return; }
-        trashMsg('正在彻底删除…');
-        purgeFromTrash(id).then(function () { renderTrash(); trashMsg('✓ 已彻底删除'); })
-          .catch(function (e2) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e2 && e2.message) || e2)); });
+        appConfirm('彻底删除后无法恢复，确定吗？', '彻底删除').then(function (ok) {
+          if (!ok) { btn.disabled = false; return; }
+          trashMsg('正在彻底删除…');
+          purgeFromTrash(id).then(function () { renderTrash(); trashMsg('✓ 已彻底删除'); })
+            .catch(function (e2) { renderTrash(); trashMsg('✗ 云端未能同步：' + ((e2 && e2.message) || e2)); });
+        });
       }
     });
   }
@@ -3604,6 +3907,32 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
   const escapeHtml = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = (n, d = 1) => Number(n).toFixed(d);
   const avg = (arr, k) => arr.length ? arr.reduce((s, x) => s + (x[k] || 0), 0) / arr.length : 0;
+
+  // 应用内确认弹窗（替代原生 confirm，避免移动端/PWA 被抑制且外观不统一）
+  function appConfirm(message, okText) {
+    return new Promise(function (resolve) {
+      const ov = $('#appConfirm'); if (!ov) { resolve(window.confirm(message)); return; }
+      const msgEl = ov.querySelector('.ac-msg');
+      const okEl = ov.querySelector('.ac-ok');
+      const cancelEl = ov.querySelector('.ac-cancel');
+      if (msgEl) msgEl.textContent = message || '';
+      if (okEl) okEl.textContent = okText || '确定';
+      ov.classList.add('show');
+      function close(v) {
+        ov.classList.remove('show');
+        if (okEl) okEl.removeEventListener('click', onOk);
+        if (cancelEl) cancelEl.removeEventListener('click', onCancel);
+        if (ov) ov.removeEventListener('click', onBack);
+        resolve(v);
+      }
+      function onOk() { close(true); }
+      function onCancel() { close(false); }
+      function onBack(e) { if (e.target === ov) close(false); }
+      if (okEl) okEl.addEventListener('click', onOk);
+      if (cancelEl) cancelEl.addEventListener('click', onCancel);
+      if (ov) ov.addEventListener('click', onBack);
+    });
+  }
   function animateValue(node, end, dur = 1100, dec = 1) {
     const start = 0, t0 = performance.now();
     function step(t) {
@@ -3724,6 +4053,7 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
   // 情绪洞察：来源分析（标签 / 场景）+ 跨维度相关性，统一接入 dashRecs() 的 自己/共同 过滤
   function renderInsights() {
     const box = $('#insightPanel'); if (!box) return;
+    box.classList.add('inline-mode'); // 时间轴里去掉卡片矩形背景，改为内联样式
     const v = dashRecs();
     // 来源：按标签分组
     const tagMap = {};
@@ -3923,105 +4253,75 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
   }
 
   function renderTrend() {
-    const data = dashRecs().slice(-30);
-    const n = data.length;
-    const W = 760, H = 340, pad = 40, topPad = 20;
-    const x = i => pad + (W - 2 * pad) * (n === 1 ? 0.5 : i / (n - 1));
-    const y = v => H - pad - (H - 2 * pad - topPad) * ((v - 1) / 4);
-    if (!n) { $('#trend').innerHTML = '<div class="empty" style="padding:30px">该范围暂无数据</div>'; $('#trendLegend').innerHTML = ''; return; }
-    curView = data;
-    // 全部维度：检查每个维度是否有真实数据（不全为 null/undefined/默认值）
-    const allSeries = [
-      { key: 'mood', color: 'var(--accent)', fill: true, label: '心情', grad: 'tg' },
-      { key: 'energy', color: 'var(--energy)', fill: true, label: '精力', grad: 'tgE' },
-      { key: 'tension', color: 'var(--tension)', fill: true, label: '紧绷', grad: 'tgT' }
-    ];
-    // 只保留有真实数据的系列（至少一条记录填了该字段）
-    const series = allSeries.filter(s => data.some(d => d[s.key] != null && d[s.key] !== undefined));
-    // 睡眠单独处理（量程不同 0-10h，用底部柱状条表示）
-    const hasSleep = data.some(d => d.sleep != null && d.sleep > 0);
-    const path = key => data.map((d, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ' ' + y(d[key] || 3).toFixed(1)).join(' ');
-    let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
-    // Y 轴网格线 + 刻度
-    for (let g = 1; g <= 5; g++) {
-      const yy = y(g);
-      svg += `<line x1="${pad}" y1="${yy}" x2="${W - pad}" y2="${yy}" stroke="var(--line)" stroke-width="1"/>`;
-      svg += `<text x="${pad - 8}" y="${yy + 4}" fill="var(--ink-dim)" font-size="10" text-anchor="end" font-family="JetBrains Mono, monospace">${g}</text>`;
+    const wrap = $('#trend'); if (!wrap) return;
+    const tip = $('#mapTip');
+    let recs = dashRecs().slice(-30);
+    // 时间升序，与「起点 → 此刻」语义一致
+    recs.sort(function (a, b) { return (String(a.date) + String(a.time || '')) < (String(b.date) + String(b.time || '')) ? -1 : 1; });
+    curView = recs;
+    const n = recs.length;
+    if (n < 2) { wrap.innerHTML = '<div class="empty">这片地形还空着，先落下第一处坐标。</div>'; const lg = $('#trendLegend'); if (lg) lg.innerHTML = ''; syncSelfToggles(); return; }
+    const W = 1000, H = 560, padL = 52, padR = 28, padT = 26, padB = 44;
+    const X = i => padL + (n === 1 ? 0 : i * (W - padL - padR) / (n - 1));
+    const Y = m => padT + (1 - (Math.max(1, Math.min(5, m)) - 1) / 4) * (H - padT - padB);
+    const pts = recs.map((r, i) => ({ x: X(i), y: Y(r.mood || 3), r }));
+    let g = '';
+    for (let m = 1; m <= 5; m++) { const yy = Y(m); g += '<line x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '" stroke="var(--ink-faint,#64748b)" stroke-width="1" stroke-dasharray="3 5" opacity=".35"/>'; g += '<text x="' + (padL - 8) + '" y="' + (yy + 4) + '" text-anchor="end" fill="var(--ink-dim,#64748b)" font-size="11">' + m + '</text>'; }
+    const tcount = Math.min(7, n);
+    for (let t = 0; t < tcount; t++) { const i = Math.round(t * (n - 1) / (tcount - 1)); const p = pts[i]; g += '<text x="' + p.x + '" y="' + (H - padB + 18) + '" text-anchor="middle" fill="var(--ink-dim,#64748b)" font-size="11">' + String(recs[i].date).slice(5) + '</text>'; }
+    let area = 'M' + pts[0].x + ' ' + (H - padB);
+    pts.forEach(p => area += ' L' + p.x + ' ' + p.y);
+    area += ' L' + pts[n - 1].x + ' ' + (H - padB) + ' Z';
+    let line = 'M' + pts[0].x + ' ' + pts[0].y;
+    for (let i = 1; i < n; i++) line += ' L' + pts[i].x + ' ' + pts[i].y;
+    let dots = '';
+    pts.forEach((p, idx) => {
+      const r = p.r, col = moodColor(r.mood || 3);
+      dots += '<circle class="map-pt" data-i="' + idx + '" cx="' + p.x + '" cy="' + p.y + '" r="' + (r.important ? 5.5 : 3.5) + '" fill="' + col + '" stroke="var(--bg,#0b1020)" stroke-width="1.2"/>';
+      if (r.important) { const lbl = escapeHtml(String(r.scene || '重要事件').slice(0, 8)); const below = p.y < 52; const ty = below ? 16 : -14; dots += '<g class="map-pin" data-i="' + idx + '" transform="translate(' + p.x + ',' + (p.y - 9) + ')"><path d="M0 0 L-4 -10 L0 -7 L4 -10 Z" fill="' + col + '"/><text x="0" y="' + ty + '" text-anchor="middle" font-size="10" fill="var(--ink-dim,#64748b)">' + lbl + '</text></g>'; }
+    });
+    const start = pts[0], end = pts[n - 1];
+    const markers = '<circle cx="' + start.x + '" cy="' + start.y + '" r="8" fill="none" stroke="var(--accent,#5eead4)" stroke-width="1.5"/>'
+      + '<text x="' + start.x + '" y="' + (start.y + 22) + '" text-anchor="middle" fill="var(--ink-dim,#64748b)" font-size="10">起点</text>'
+      + '<circle cx="' + end.x + '" cy="' + end.y + '" r="8" fill="none" stroke="var(--accent,#5eead4)" stroke-width="1.5"/>'
+      + '<text x="' + end.x + '" y="' + (end.y + 22) + '" text-anchor="middle" fill="var(--ink-dim,#64748b)" font-size="10">此刻</text>';
+    const comp = '<g transform="translate(' + (W - 40) + ',40)"><circle r="16" fill="none" stroke="var(--ink-faint,#64748b)" stroke-width="1"/><path d="M0 -12 L4 0 L0 12 L-4 0 Z" fill="var(--accent,#5eead4)" opacity=".85"/><text x="0" y="-20" text-anchor="middle" fill="var(--ink-dim,#64748b)" font-size="9">N</text></g>';
+    const svg = '<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" class="map-svg">'
+      + '<defs><linearGradient id="mapFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent,#5eead4)" stop-opacity=".22"/><stop offset="1" stop-color="var(--accent,#5eead4)" stop-opacity="0"/></linearGradient>'
+      + '<pattern id="mapGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="var(--ink-faint,#64748b)" stroke-width=".5" opacity=".4"/></pattern></defs>'
+      + '<rect x="0" y="0" width="1000" height="560" fill="url(#mapGrid)"/>'
+      + g
+      + '<path d="' + area + '" fill="url(#mapFill)" stroke="none"/>'
+      + '<path class="map-line" d="' + line + '" fill="none" stroke="var(--accent,#5eead4)" stroke-width="1.6" stroke-linejoin="round" opacity=".9"/>'
+      + markers + dots + comp
+      + '</svg>';
+    wrap.innerHTML = svg;
+    const lg = $('#trendLegend');
+    if (lg) lg.innerHTML = '<span class="ml-i"><i class="ml-dot" style="background:var(--mood-low)"></i>低落</span>'
+      + '<span class="ml-i"><i class="ml-dot" style="background:var(--mood-mid)"></i>平稳</span>'
+      + '<span class="ml-i"><i class="ml-dot" style="background:var(--mood-high)"></i>高涨</span>'
+      + '<span class="ml-i"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1 L4 11 L7 8 L10 11 Z" fill="var(--accent)"/></svg>重要事件</span>'
+      + '<span class="ml-i">○ 起点 → 此刻</span>';
+    wrap.querySelectorAll('.map-pt,.map-pin').forEach(el => {
+      const i = +el.getAttribute('data-i'); const r = recs[i]; const p = pts[i];
+      el.addEventListener('mouseenter', e => showTip(r, p, e));
+      el.addEventListener('mousemove', e => moveTip(e));
+      el.addEventListener('mouseleave', () => { if (tip) tip.hidden = true; });
+      el.addEventListener('click', () => { if (typeof openRecordDetail === 'function') openRecordDetail(r.id); });
+    });
+    function showTip(r, p, e) {
+      if (!tip) return; const d = String(r.date); const mood = r.mood != null ? r.mood : '-'; const sc = r.scene || '—'; const note = String(r.note || r.cause || '');
+      tip.innerHTML = '<div class="mt-date">' + d + '</div><div class="mt-mood" style="color:' + moodColor(r.mood || 3) + '">心情 ' + mood + '/5</div>'
+        + '<div class="mt-sc">' + escapeHtml(sc) + '</div>' + (note ? '<div class="mt-note">' + escapeHtml(note.slice(0, 60)) + '</div>' : '');
+      tip.hidden = false; moveTip(e);
     }
-    // x 轴基线（绘图区底部，睡眠柱与日期标签都基于它）
-    const baseY = H - 22;
-    svg += `<line x1="${pad}" y1="${baseY}" x2="${W - pad}" y2="${baseY}" stroke="var(--line)" stroke-width="1"/>`;
-    // 睡眠柱状（量程 0-10h，画在基线上方）
-    if (hasSleep) {
-      const maxBarH = 26;
-      data.forEach((d, i) => {
-        if (d.sleep != null && d.sleep > 0) {
-          const bh = Math.max(2, (Math.min(d.sleep, 10) / 10) * maxBarH);
-          const bx = x(i);
-          svg += `<rect x="${bx - 5}" y="${baseY - bh}" width="10" height="${bh}" rx="2" fill="var(--sleep)" opacity="0.22">
-            <title>${d.date || ''} · 睡眠 ${d.sleep}h</title></rect>`;
-        }
-      });
+    function moveTip(e) {
+      if (!tip) return; const rw = wrap.getBoundingClientRect();
+      let xx = e.clientX - rw.left + 12, yy = e.clientY - rw.top + 12;
+      if (xx + 180 > rw.width) xx = xx - 200; if (yy + 90 > rw.height) yy = yy - 100;
+      tip.style.left = xx + 'px'; tip.style.top = yy + 'px';
     }
-    // 每个有数据的系列都画渐变面积填充（心情/精力/紧绷各自颜色），先画填充再画线
-    const gradColors = { mood: 'var(--accent)', energy: 'var(--energy)', tension: 'var(--tension)' };
-    let defs = '';
-    series.forEach(s => {
-      if (!s.grad) return;
-      const c = gradColors[s.key] || s.color;
-      defs += `<linearGradient id="${s.grad}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${c}" stop-opacity="0.28"/><stop offset="100%" stop-color="${c}" stop-opacity="0"/></linearGradient>`;
-    });
-    if (defs) svg += `<defs>${defs}</defs>`;
-    // 填充按其视觉权重从低到高叠：紧绷 → 精力 → 心情（心情最显眼在最上）
-    ['tension', 'energy', 'mood'].forEach(k => {
-      const s = series.find(x => x.key === k);
-      if (!s || !s.grad) return;
-      const areaD = path(k) + ` L ${x(n - 1).toFixed(1)} ${baseY} L ${x(0).toFixed(1)} ${baseY} Z`;
-      svg += `<path d="${areaD}" fill="url(#${s.grad})"/>`;
-    });
-    // 每条线
-    series.forEach(s => {
-      svg += `<path class="draw" d="${path(s.key)}" fill="none" stroke="${s.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
-    });
-    // 每个数据点 —— 所有有数据的系列都画点，用不同大小/样式区分
-    data.forEach((d, i) => {
-      const cx = x(i);
-      series.forEach(s => {
-        const val = d[s.key];
-        if (val != null && val !== undefined) {
-          const cy = y(val);
-          const isMood = s.key === 'mood';
-          const r = isMood ? 3.6 : 2.8;
-          svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${s.color}" opacity="0.9">
-            <title>${d.date || ''} · ${s.label} ${val}</title></circle>`;
-        }
-      });
-      // 交互热区
-      svg += `<rect x="${cx - 10}" y="${topPad}" width="20" height="${baseY - topPad}" fill="transparent" data-i="${i}" class="hit"/>`;
-    });
-    // x 轴日期标签（最多约 6 个刻度，避免重叠）
-    const step = Math.max(1, Math.ceil(n / 6));
-    const ticks = [];
-    for (let i = 0; i < n; i += step) ticks.push(i);
-    if (ticks[ticks.length - 1] !== n - 1) ticks.push(n - 1);
-    ticks.forEach(i => {
-      const cx = x(i);
-      const dd = (data[i].date || '').slice(5);
-      svg += `<text x="${cx}" y="${H - 5}" fill="var(--ink-dim)" font-size="9" text-anchor="middle" font-family="JetBrains Mono, monospace">${dd}</text>`;
-    });
-    svg += `</svg>`;
-    $('#trend').innerHTML = svg;
-    // 图例：只显示有数据的系列 + 睡眠
-    let legendHtml = series.map(s => `<span><i style="background:${s.color}"></i>${s.label}</span>`).join('');
-    if (hasSleep) legendHtml += `<span><i style="background:var(--sleep);opacity:0.5"></i>睡眠</span>`;
-    $('#trendLegend').innerHTML = legendHtml;
-    // 单人时隐藏所有「自己/共同」切换（自己 == 共同的，切换无意义）
     syncSelfToggles();
-    // 线条动画
-    $('#trend').querySelectorAll('.draw').forEach(p => {
-      const L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L;
-      requestAnimationFrame(() => requestAnimationFrame(() => p.classList.add('in')));
-    });
   }
 
   function renderHeat() {
@@ -4091,20 +4391,34 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
   }
 
   function renderSleep() {
-    const v = dashRecs();
-    const val = avg(v, 'sleep'); const target = 8; const pct = Math.min(1, val / target);
+    const box = $('#sleep'); if (!box) return;
+    let v = recs, label = '日均', target = 8;
+    const now = new Date();
+    if (state.sleepPeriod === 'month') { const cut = new Date(now); cut.setDate(cut.getDate() - 30); v = recs.filter(r => new Date(r.date) >= cut); label = '月均'; }
+    else if (state.sleepPeriod === 'year') { const cut = new Date(now); cut.setFullYear(cut.getFullYear() - 1); v = recs.filter(r => new Date(r.date) >= cut); label = '年均'; }
+    else if (state.sleepPeriod === 'custom' && state.sleepRange.start) {
+      const s = state.sleepRange.start, e = state.sleepRange.end || s;
+      v = recs.filter(r => r.date >= s && r.date <= e); label = '区间';
+    }
+    const val = avg(v, 'sleep'); const pct = Math.min(1, val / target);
     const R = 52, C = 2 * Math.PI * R;
     const col = val >= 7 ? 'var(--accent)' : val >= 6 ? 'var(--warn)' : 'var(--bad)';
-    $('#sleep').innerHTML = `
+    box.innerHTML = `
       <svg viewBox="0 0 140 140" style="width:100%;max-width:170px">
         <circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--line)" stroke-width="12"/>
         <circle class="draw" cx="70" cy="70" r="${R}" fill="none" stroke="${col}" stroke-width="12"
           stroke-linecap="round" transform="rotate(-90 70 70)" style="stroke-dasharray:${C};stroke-dashoffset:${C}"/>
         <text x="70" y="66" text-anchor="middle" fill="var(--ink)" font-size="26" font-family="JetBrains Mono, monospace" font-weight="700">${fmt(val)}</text>
-        <text x="70" y="88" text-anchor="middle" fill="var(--ink-dim)" font-size="11">小时 / 日均</text>
+        <text x="70" y="88" text-anchor="middle" fill="var(--ink-dim)" font-size="11">小时 / ${label}</text>
       </svg>`;
-    const arc = $('#sleep').querySelector('.draw');
-    requestAnimationFrame(() => requestAnimationFrame(() => { arc.style.strokeDashoffset = C * (1 - pct); }));
+    const arc = box.querySelector('.draw');
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (arc) arc.style.strokeDashoffset = C * (1 - pct); }));
+  }
+  function setSleepPeriod(p) {
+    state.sleepPeriod = p;
+    const wrap = $('#sleepPeriod'); if (wrap) wrap.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === p));
+    const cr = $('#sleepCustom'); if (cr) cr.style.display = (p === 'custom') ? '' : 'none';
+    renderSleep();
   }
 
   function renderScatter() {
@@ -4390,8 +4704,20 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
       await ghSync(null, false).catch(function () {});
     }
   }
+  // 在回收站里定位记录：先按 id 精确匹配，匹配不到（老数据 id 缺失/错位）再按内容指纹兜底，避免静默删不掉
+  function findTrashIndex(id) {
+    const arr = DATA.trash || [];
+    let i = arr.findIndex(r => r && r.id === id);
+    if (i >= 0) return i;
+    if (id && String(id).indexOf('fp_') === 0) {
+      const fp = String(id).slice(3);
+      i = arr.findIndex(r => r && recFingerprint(r) === fp);
+      if (i >= 0) return i;
+    }
+    return arr.findIndex(r => r && ('fp_' + recFingerprint(r)) === id);
+  }
   async function restoreFromTrash(id) {
-    const i = (DATA.trash || []).findIndex(r => r.id === id);
+    const i = findTrashIndex(id);
     if (i < 0) return;
     const r = Object.assign({}, DATA.trash[i]);
     delete r.delAt;
@@ -4410,7 +4736,7 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     }
   }
   async function purgeFromTrash(id) {
-    const i = (DATA.trash || []).findIndex(r => r.id === id);
+    const i = findTrashIndex(id);
     if (i < 0) return;
     DATA.trash.splice(i, 1);
     // 记一笔"已彻底删除"，否则下次和云端一合并，这条又被拉回回收站，看起来像删不掉
@@ -4469,22 +4795,24 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     const t = $('#dayPickTitle'); if (t) t.textContent = (dateLabel || '这一天') + ' 有 ' + ids.length + ' 条记录，点开看详情';
     $('#dayPickModal').classList.add('show'); $('#scrim').classList.add('show');
   }
+  function openRecModal() {
+    state.editingId = null;
+    const md = $('#recModal');
+    const tag = md && md.querySelector('.mtag'); if (tag) tag.textContent = '记一笔';
+    const h3 = md && md.querySelector('h3'); if (h3) h3.textContent = '今天的状态，随手记下';
+    const sv = $('#recSave'); if (sv) sv.textContent = '落到地图';
+    const del = $('#recDelete'); if (del) del.style.display = 'none';
+    $('#recDate').value = new Date().toISOString().slice(0, 10);
+    $('#recTime').value = new Date().toTimeString().slice(0, 8);
+    const tip = $('#recTip'); if (tip) { tip.style.display = 'none'; tip.classList.remove('show'); }
+    const fr = $('#recFree'); if (fr) fr.value = '';
+    const imp = $('#recImportant'); if (imp) imp.checked = false;
+    const sg = $('#recSuggest'); if (sg) { sg.style.display = 'none'; sg.innerHTML = ''; }
+    $('#recModal').classList.add('show'); $('#scrim').classList.add('show');
+  }
   function bindRecordModal() {
-    $('#recBtn').addEventListener('click', () => {
-      state.editingId = null;
-      const md = $('#recModal');
-      const tag = md && md.querySelector('.mtag'); if (tag) tag.textContent = '记一笔';
-      const h3 = md && md.querySelector('h3'); if (h3) h3.textContent = '今天的状态，随手记下';
-      const sv = $('#recSave'); if (sv) sv.textContent = '落到地图';
-      const del = $('#recDelete'); if (del) del.style.display = 'none';
-      $('#recDate').value = new Date().toISOString().slice(0, 10);
-      $('#recTime').value = new Date().toTimeString().slice(0, 8);
-      const tip = $('#recTip'); if (tip) { tip.style.display = 'none'; tip.classList.remove('show'); }
-      const fr = $('#recFree'); if (fr) fr.value = '';
-      const imp = $('#recImportant'); if (imp) imp.checked = false;
-      const sg = $('#recSuggest'); if (sg) { sg.style.display = 'none'; sg.innerHTML = ''; }
-      $('#recModal').classList.add('show'); $('#scrim').classList.add('show');
-    });
+    on('#recBtn', 'click', openRecModal);
+    on('#recFab', 'click', openRecModal);
     $('#recClose').addEventListener('click', () => { $('#recModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
     on('#dayPickClose', 'click', () => { const m = $('#dayPickModal'); if (m) m.classList.remove('show'); $('#scrim').classList.remove('show'); });
     document.querySelectorAll('#recMood button').forEach(b => b.addEventListener('click', () => {
@@ -4518,13 +4846,13 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     const delBtn = $('#recDelete');
     if (delBtn) delBtn.addEventListener('click', async () => {
       if (!state.editingId) return;
-      if (confirm('移入回收站？之后可在「回收站」里恢复，或彻底删除。')) {
-        await deleteRecord(state.editingId);
-        const md = $('#recModal'); if (md) md.classList.remove('show');
-        $('#scrim').classList.remove('show');
-        renderAll();
-        location.reload();
-      }
+      const ok = await appConfirm('移入回收站？之后可在「回收站」里恢复，或彻底删除。', '移入回收站');
+      if (!ok) return;
+      await deleteRecord(state.editingId);
+      const md = $('#recModal'); if (md) md.classList.remove('show');
+      $('#scrim').classList.remove('show');
+      renderAll();
+      location.reload();
     });
   }
 
@@ -4625,6 +4953,7 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
       localStorage.setItem('mood.ghEnabled' + p, $('#ghEnable').checked ? '1' : '0');
       localStorage.setItem('mood.ghAuto' + p, $('#ghAuto').checked ? '1' : '0');
       localStorage.setItem('mood.ghNick' + p, $('#ghNick').value.trim());
+      localStorage.setItem('mood.aiRecord', $('#aiRecordAuto').checked ? 'on' : 'off');
       if (typeof updateDsKeyHint === 'function') updateDsKeyHint();
       if (typeof updateGhTokenHint === 'function') updateGhTokenHint();
       if (typeof renderSetVer === 'function') renderSetVer();
@@ -4761,7 +5090,6 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     on('#tgReset', 'click', () => {
       state.histTag = ''; state.histAuthor = ''; state.histMood = 0; state.histQ = '';
       const hs = $('#histSearch'); if (hs) hs.value = '';
-      const tf = $('#histTagFilter'); if (tf) tf.value = '';
       $$('.mood-chip').forEach(x => x.classList.remove('active'));
       refreshLists();
     });
@@ -4894,8 +5222,10 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     if (sc) sc.classList.add('show');
   }
   // 回顾：纯前端自动统计（记录数/均值/最好最差日/高频标签/平均睡眠），把图变成一眼能看的结论
+  let lastReportSlice = [];
   function renderReportStats(slice) {
     const el = $('#reportStats'); if (!el) return;
+    lastReportSlice = slice || [];
     if (!slice || !slice.length) { el.innerHTML = ''; return; }
     const n = slice.length;
     const avg = slice.reduce((a, r) => a + (+r.mood || 3), 0) / n;
@@ -4908,14 +5238,43 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     const topTags = Object.keys(tagCount).sort((a, b) => tagCount[b] - tagCount[a]);
     const sleeps = slice.map(r => +r.sleep).filter(v => v > 0);
     const avgSleep = sleeps.length ? (sleeps.reduce((a, b) => a + b, 0) / sleeps.length) : 0;
-    const card = (k, v, sub) => '<div class="rs"><div class="k">' + k + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="sub">' + sub + '</div>' : '') + '</div>';
+    const card = (k, v, sub, stat) => '<div class="rs' + (stat ? ' clickable' : '') + '"' + (stat ? ' data-stat="' + stat + '"' : '') + '><div class="k">' + k + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="sub">' + sub + '</div>' : '') + (stat ? '<span class="rs-go">›</span>' : '') + '</div>';
     el.innerHTML =
       card('记录数', n + ' 笔') +
-      card('平均心情', fmt(avg) + '<small>/5</small>', moodBand(avg)) +
+      card('平均心情', fmt(avg) + '<small>/5</small>', moodBand(avg), 'mood') +
       card('最好一天', best ? best.d.slice(5) : '—', best ? '心情 ' + fmt(best.a) : '') +
       card('最低一天', worst ? worst.d.slice(5) : '—', worst ? '心情 ' + fmt(worst.a) : '') +
       card('高频标签', topTags.length ? topTags.slice(0, 3).join('、') : '—', topTags.length > 3 ? '等 ' + topTags.length + ' 个' : '') +
-      (avgSleep ? card('平均睡眠', fmt(avgSleep) + '<small>h</small>') : '');
+      (avgSleep ? card('平均睡眠', fmt(avgSleep) + '<small>h</small>', '', 'sleep') : '');
+  }
+  // 平均心情 / 平均睡眠 点开详情（手机端替代导出 PDF）
+  function openStatDetail(type) {
+    const slice = lastReportSlice; const box = $('#statDetail'); if (!box) return;
+    const title = box.querySelector('.sd-title'); const body = box.querySelector('.sd-body');
+    if (title) title.textContent = type === 'sleep' ? '平均睡眠详情' : '平均心情详情';
+    const rows = slice.map(r => ({ d: r.date, v: type === 'sleep' ? (+r.sleep || null) : (+r.mood || 3), tags: r.tags || [] })).filter(r => r.v != null && !isNaN(r.v));
+    if (!rows.length) { if (body) body.innerHTML = '<div class="sd-empty">这段时间没有可统计的数据。</div>'; }
+    else {
+      const lo = type === 'sleep' ? 0 : 1, hi = type === 'sleep' ? 10 : 5;
+      const avgV = rows.reduce((s, r) => s + r.v, 0) / rows.length;
+      const buckets = {}; rows.forEach(r => { const b = Math.round(r.v); buckets[b] = (buckets[b] || 0) + 1; });
+      let bars = '';
+      for (let v = lo; v <= hi; v += (type === 'sleep' ? 1 : 1)) {
+        const c = buckets[v] || 0; const pct = rows.length ? Math.round(c / rows.length * 100) : 0;
+        bars += '<div class="sd-bar"><span class="sd-bar-k">' + (type === 'sleep' ? v + 'h' : v + '分') + '</span>'
+          + '<span class="sd-bar-track"><i style="width:' + pct + '%"></i></span>'
+          + '<span class="sd-bar-n">' + c + '</span></div>';
+      }
+      const tagCount = {}; rows.forEach(r => r.tags.forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; }));
+      const top = Object.keys(tagCount).sort((a, b) => tagCount[b] - tagCount[a]).slice(0, 5);
+      if (body) body.innerHTML =
+        '<div class="sd-avg">平均 <b>' + fmt(avgV, type === 'sleep' ? 1 : 1) + (type === 'sleep' ? ' h' : ' / 5') + '</b> · 共 ' + rows.length + ' 条</div>'
+        + '<div class="sd-bars">' + bars + '</div>'
+        + (top.length ? '<div class="sd-tags"><span>高频标签</span>' + top.map(t => '<i>' + escapeHtml(t) + '</i>').join('') + '</div>' : '');
+    }
+    box.classList.add('show'); $('#scrim').classList.add('show');
+    const close = () => { box.classList.remove('show'); $('#scrim').classList.remove('show'); };
+    on(box.querySelector('.sd-x'), 'click', close);
   }
   // 问数据：把近 180 条记录作为上下文，让 DeepSeek 基于历史回答自然语言问题
   async function askData() {
@@ -5177,7 +5536,10 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     const cp = $('#calPrev'); if (cp) cp.addEventListener('click', () => calShift(-1));
     const cn = $('#calNext'); if (cn) cn.addEventListener('click', () => calShift(1));
     const hs = $('#histSearch'); if (hs) hs.addEventListener('input', () => { state.histQ = hs.value; refreshLists(); });
-    const tf = $('#histTagFilter'); if (tf) tf.addEventListener('change', () => { state.histTag = tf.value; refreshLists(); });
+    const tfb = $('#histTagFilterBtn'); if (tfb) tfb.addEventListener('click', openTagSheet);
+    const tsx = $('#tagSheetX'); if (tsx) tsx.addEventListener('click', closeSheet);
+    const tss = $('#tagSheet'); if (tss) tss.addEventListener('click', e => { if (e.target === tss) closeSheet(); });
+    const tga = $('#tgArrange'); if (tga) tga.addEventListener('click', () => { _tgLayout = { key: '', pts: null }; tgView = { x: 0, y: 0, k: 1 }; renderTagGraph(); });
     // 选择器修正：HTML 里的类名是 .mood-chip（旧代码写成 .hmood-chip，导致心情筛选点了没反应）
     document.querySelectorAll('.mood-chip').forEach(c => c.addEventListener('click', () => {
       const v = +c.dataset.m;
@@ -5186,7 +5548,12 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
       refreshLists();
     }));
     const gr = $('#genReport'); if (gr) gr.addEventListener('click', () => genReport());
+    document.querySelectorAll('#sleepPeriod button').forEach(b => b.addEventListener('click', () => setSleepPeriod(b.dataset.v)));
+    const ss = $('#sleepStart'); if (ss) ss.addEventListener('change', () => { state.sleepRange.start = ss.value; renderSleep(); });
+    const se = $('#sleepEnd'); if (se) se.addEventListener('change', () => { state.sleepRange.end = se.value; renderSleep(); });
     const rc = $('#reportClose'); if (rc) rc.addEventListener('click', () => { $('#reportModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
+    on('#reportStats', 'click', e => { const c = e.target.closest('[data-stat]'); if (c) openStatDetail(c.dataset.stat); });
+    const sdB = $('#statBack'); if (sdB) sdB.addEventListener('click', () => { const m = $('#statDetail'); if (m) m.classList.remove('show'); $('#scrim').classList.remove('show'); });
     // 自己 / 共同 切换：趋势、热力图、标签等所有带 data-self-toggle 的控件共用同一状态
     document.querySelectorAll('[data-self-toggle] button').forEach(b => {
       b.addEventListener('click', () => setViewSelf(b.dataset.v));
@@ -5194,6 +5561,7 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     const rb = $('#remindGo'); if (rb) rb.addEventListener('click', () => { $('#recModal').classList.add('show'); $('#scrim').classList.add('show'); });
     const rmL = $('#remindLater'); if (rmL) rmL.addEventListener('click', () => { const b = $('#remindBar'); if (b) b.style.display = 'none'; });
     const ro = $('#remindOn'); if (ro) { ro.checked = localStorage.getItem('mood.remind') !== 'off'; ro.addEventListener('change', () => { localStorage.setItem('mood.remind', ro.checked ? 'on' : 'off'); renderRemind(); }); }
+    const ara = $('#aiRecordAuto'); if (ara) { ara.checked = localStorage.getItem('mood.aiRecord') !== 'off'; ara.addEventListener('change', () => localStorage.setItem('mood.aiRecord', ara.checked ? 'on' : 'off')); }
     // 回顾 + 问数据 新功能绑定
     on('#reviewBtn', 'click', () => openReview('month'));
     on('#repRange', 'change', syncReportRangeUI);
@@ -5235,7 +5603,7 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
       }
     });
     on('#scrim', 'click', () => {
-      ['#reportModal', '#askModal'].forEach(s => { const m = $(s); if (m && m.classList.contains('show')) { m.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); } });
+      ['#reportModal', '#askModal', '#tagSheet'].forEach(s => { const m = $(s); if (m && m.classList.contains('show') && !m.classList.contains('keep')) { m.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); } });
     });
   }
 
@@ -5347,6 +5715,17 @@ window.__BUILD__ = "v25 · 2026-08-09 04:06";</script>
     </div>
     <div class="page-msg" id="trashMsg"></div>
     <div class="trash-list" id="trashList"></div>
+  </div>
+</div>
+
+<!-- 通用应用内确认弹窗（替代原生 confirm） -->
+<div class="modal app-confirm" id="appConfirm">
+  <div class="ac-box">
+    <div class="ac-msg"></div>
+    <div class="ac-actions">
+      <button class="btn sm ac-cancel" type="button" id="acCancel">取消</button>
+      <button class="btn sm danger ac-ok" type="button" id="acOk">确定</button>
+    </div>
   </div>
 </div>
 
