@@ -437,7 +437,7 @@ body {
 
 /* ---------- 提问列表（可点击作答） ---------- */
 .qalist { margin-top: 30px; }
-.qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.qa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 16px; }
 
 .qa-item {
   position: relative; cursor: pointer; overflow: hidden;
@@ -1304,8 +1304,22 @@ body {
 .corr-row.pos .corr-fill { background: linear-gradient(90deg, var(--corr-pos), color-mix(in srgb, var(--corr-pos) 72%, var(--ink))); }
 .corr-row.neg .corr-fill { background: linear-gradient(90deg, var(--corr-neg), color-mix(in srgb, var(--corr-neg) 72%, var(--ink))); }
 .src-empty { font-size: 12.5px; color: var(--ink-dim); padding: 8px 2px; line-height: 1.5; }
-#insightAi { margin-top: 12px; }
-.insight-ai-out { margin-top: 10px; font-size: 13px; line-height: 1.7; color: var(--ink); white-space: pre-wrap; background: var(--bg-1); border: 1px solid var(--glass-brd); border-radius: 10px; padding: 10px 12px; }
+#insightAi { margin-top: 14px; }
+.insight-ai-out { margin-top: 12px; background: var(--bg-1); border: 1px solid var(--glass-brd); border-radius: 12px; overflow: hidden; }
+.insight-ai-out:empty { display: none; }
+.insight-ai-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: 0; background: color-mix(in srgb, var(--accent) 8%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, transparent); }
+.insight-ai-head::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent); }
+.insight-ai-head .iah-meta { margin-left: auto; font-size: 11px; color: var(--ink-dim); font-weight: 400; }
+.insight-ai-body { padding: 14px 16px; font-size: 13.5px; line-height: 1.78; color: var(--ink); }
+.insight-ai-body p { margin: 0 0 10px; }
+.insight-ai-body p:last-child { margin-bottom: 0; }
+.insight-ai-body .ai-quote { display: block; background: color-mix(in srgb, var(--accent) 9%, transparent); border-left: 3px solid var(--accent); padding: 8px 12px; margin: 8px 0; border-radius: 0 8px 8px 0; color: var(--ink); font-style: normal; }
+.insight-ai-loading { display: inline-flex; align-items: center; gap: 5px; padding: 18px 16px; }
+.insight-ai-loading span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.3; animation: insight-pulse 1.4s infinite; }
+.insight-ai-loading span:nth-child(2) { animation-delay: 0.2s; }
+.insight-ai-loading span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes insight-pulse { 0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1); } }
+.insight-ai-err { padding: 14px 16px; font-size: 13px; color: var(--bad); }
 @media (max-width: 760px) { .insight-grid { grid-template-columns: 1fr; } }
 
 /* 手机端不提供导出 PDF（PC / 回顾页保留），避免窄屏下按钮拥挤 */
@@ -1761,15 +1775,25 @@ body {
 </style>
 <style id="featStyle">
   /* 聊情绪 独立弹窗 */
-  .chat-modal { max-width: 560px; width: calc(100% - 32px); flex-direction: column; max-height: 88vh; padding: 0; overflow: hidden; }
-  .chat-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
-  .chat-modal-head > span { font-size: 13px; color: var(--ink-soft); letter-spacing: .6px; text-transform: uppercase; }
+  .chat-modal { max-width: 640px; width: calc(100% - 32px); flex-direction: column; max-height: 88vh; padding: 0; overflow: hidden; }
+  .chat-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+  .chat-modal-head .cm-title { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink); font-weight: 600; letter-spacing: 0; text-transform: none; }
+  .chat-modal-head .cm-title::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); flex: none; }
+  .chat-modal-head .cm-sub { display: block; font-size: 11.5px; color: var(--ink-dim); margin-top: 2px; font-weight: 400; }
+  .chat-modal-head .cm-titles { display: flex; flex-direction: column; gap: 0; line-height: 1.2; }
   .chat-modal-actions { display: flex; align-items: center; gap: 8px; }
-  .chat-modal .ai-chat { flex: 1; min-height: 120px; max-height: 54vh; overflow-y: auto; margin-top: 0; padding: 14px 16px; }
-  .chat-modal .ai-row { padding: 0 16px 12px; }
-  .chat-modal .ai-record-prompt { margin: 0 16px 12px; }
-  .chat-modal .assist-saved { padding: 0 16px 14px; }
-  @media (max-width: 600px) { .chat-modal { width: calc(100% - 24px); max-height: 92vh; } .chat-modal .ai-chat { max-height: 58vh; } }
+  .chat-modal .mclose { position: static; width: 30px; height: 30px; border-radius: 10px; background: transparent; border: 1px solid var(--line); color: var(--ink-soft); font-size: 18px; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+  .chat-modal .mclose:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+  .chat-modal .ai-chat { flex: 1; min-height: 200px; max-height: 54vh; overflow-y: auto; margin-top: 0; padding: 18px 20px; background: color-mix(in srgb, var(--bg-1) 40%, transparent); }
+  .chat-modal .ai-row { padding: 14px 20px 14px; border-top: 1px solid var(--line); background: var(--bg-2); }
+  .chat-modal .ai-record-prompt { margin: 0 20px 14px; }
+  .chat-modal .assist-saved { padding: 0 20px 16px; }
+  .chat-modal .ai-input-wrap { display: flex; align-items: flex-end; gap: 10px; }
+  .chat-modal #aiInput { flex: 1; min-height: 44px; max-height: 120px; resize: none; border-radius: 12px; }
+  .chat-modal #aiSend { flex: none; min-height: 44px; padding: 0 18px; border-radius: 12px; font-size: 13px; position: static; transform: none; right: auto; top: auto; height: auto; }
+  .chat-modal .ai-chat .bubble { font-size: 14px; line-height: 1.65; padding: 12px 16px; border-radius: 14px; max-width: 82%; }
+  .chat-modal .ai-chat .bubble.ai { background: var(--glass-2); border: 1px solid var(--glass-brd); }
+  @media (max-width: 600px) { .chat-modal { width: calc(100% - 20px); max-height: 92vh; } .chat-modal .ai-chat { max-height: 58vh; padding: 14px 14px; } .chat-modal .ai-row, .chat-modal-head, .chat-modal .ai-record-prompt, .chat-modal .assist-saved { padding-left: 14px; padding-right: 14px; } }
   /* 关于你 · 个人画像 */
   .profile-block { margin-bottom: 16px; }
   .profile-head { font-size: 13px; color: var(--ink-soft); letter-spacing: .4px; margin-bottom: 8px; display: flex; align-items: baseline; gap: 8px; }
@@ -1792,8 +1816,9 @@ body {
   .zoom-modal .zm-body { flex: 1; overflow: auto; padding: 12px; display: flex; align-items: center; justify-content: center; }
   .zoom-modal .zm-body svg { max-width: 100%; max-height: 100%; }
   .zoom-modal .zm-foot { padding: 6px 16px; font-size: 12px; color: var(--ink-dim); text-align: center; flex-shrink: 0; }
-  .zoom-modal .zm-close { background: none; border: none; font-size: 22px; color: var(--ink-dim); cursor: pointer; padding: 4px 8px; line-height: 1; }
-  .zoom-modal .zm-close:hover { color: var(--ink); }
+  .zoom-modal .zm-close { background: var(--glass-2); border: 1px solid var(--glass-brd); font-size: 20px; line-height: 1; width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer; padding: 0; transition: background .15s, color .15s, border-color .15s, transform .15s; }
+  .zoom-modal .zm-close:hover { background: var(--accent); color: #04121a; border-color: var(--accent); transform: scale(1.06); }
+  .zoom-modal .zm-close:active { transform: scale(0.94); }
   .zoom-modal .zm-toggle { display: inline-flex; gap: 2px; background: var(--glass-2); border-radius: 999px; padding: 2px; }
   .zoom-modal .zm-toggle button { background: none; border: none; color: var(--ink-dim); font-size: 12px; padding: 4px 12px; border-radius: 999px; cursor: pointer; }
   .zoom-modal .zm-toggle button.on { background: var(--accent); color: #04121a; font-weight: 600; }
@@ -1995,11 +2020,14 @@ body {
 
     <!-- 聊情绪 独立弹窗（DeepSeek 直连） -->
     <div class="modal chat-modal" id="chatModal">
-      <button class="mclose" id="chatClose" type="button" aria-label="关闭">×</button>
       <div class="chat-modal-head">
-        <span>AI 对话 · 用 DeepSeek 聊情绪</span>
+        <div class="cm-titles">
+          <span class="cm-title">AI 对话 · 聊情绪</span>
+          <span class="cm-sub">用 DeepSeek 温柔回应你的记录</span>
+        </div>
         <div class="chat-modal-actions">
           <button class="btn sm ghost" id="askDataBtn" type="button">问数据</button>
+          <button class="mclose" id="chatClose" type="button" aria-label="关闭">×</button>
         </div>
       </div>
       <div class="ai-chat" id="aiChat"></div>
@@ -4066,6 +4094,10 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
     // 2.2 标签关系图放大
     on('#tagGraph', 'click', function (e) { if (_tgSuppressClick) { _tgSuppressClick = false; return; } if (e.target.closest('.tg-node')) return; openTgZoom(); });
     on('#tgZoomClose', 'click', closeTgZoom);
+    // 关闭 zoom 弹窗的几种方式：× 按钮外，点 modal 背景空白或按 ESC 也能关
+    on('.zoom-modal', 'click', function (e) { if (e.target === e.currentTarget) closeTrendZoom(); });
+    on('.zoom-modal', 'click', function (e) { if (e.target === e.currentTarget) closeTgZoom(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' || e.keyCode === 27) { document.querySelectorAll('.zoom-modal.show').forEach(function (m) { m.classList.remove('show'); }); } });
   }
 
   /* ---------- 主题引擎 ---------- */
@@ -4587,7 +4619,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
   async function insightAiSummary() {
     const btn = $('#insightAi'); if (!btn) return;
     const out = $('#insightAiOut');
-    if (!dsKey()) { if (out) out.textContent = '请先在「⚙ 设置」里填入 DeepSeek API Key。'; return; }
+    if (!dsKey()) { if (out) { out.innerHTML = '<div class="insight-ai-err">请先在「⚙ 设置」里填入 DeepSeek API Key。</div>'; } return; }
     const tagTxt = ($('#insightTagSrc').textContent || '').trim();
     const corrTxt = ($('#insightCorr').textContent || '').trim();
     const profTxt = (lastProfile || '').trim();
@@ -4596,16 +4628,38 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
     const intentTxt = intents.length
       ? ('想做却没做：共 ' + intents.length + ' 条，其中还没做的有 ' + undone.length + ' 条（' + undone.slice(0, 6).map(function (s) { return escapeHtml(s); }).join('、') + (undone.length > 6 ? ' 等' : '') + '）')
       : '';
-    if (!tagTxt && !corrTxt && !intentTxt && !profTxt) { if (out) out.textContent = '当前范围数据不足，先多记几笔再来解读。'; return; }
+    if (!tagTxt && !corrTxt && !intentTxt && !profTxt) { if (out) { out.innerHTML = '<div class="insight-ai-err">当前范围数据不足，先多记几笔再来解读。</div>'; } return; }
     const sys = '你是情绪数据分析师。基于下面「关于你」的长期观察、来源分析、维度相关性和「想做却没做」清单，用中文写一段不超过 170 字的解读：哪些来源最滋养 / 最消耗用户，睡眠、精力、紧绷和心情的关系意味着什么，结合长期观察点出用户的情绪规律，并重点点出反复「想做却没做」的事可能如何消耗用户，最后给一句温和的提醒。不要诊断、不要恐吓。';
     const user = '关于你的长期观察：\n' + (profTxt || '（暂无）') + '\n\n来源分析（标签）：\n' + tagTxt + '\n\n维度相关性：\n' + corrTxt + (intentTxt ? ('\n\n未完成的打算：\n' + intentTxt) : '');
     btn.disabled = true; btn.textContent = '解读中…';
-    if (out) out.textContent = '';
+    if (out) { out.innerHTML = '<div class="insight-ai-head">AI 解读 · DeepSeek<span class="iah-meta">生成中…</span></div><div class="insight-ai-loading"><span></span><span></span><span></span></div>'; }
     try {
       const res = await callDeepSeek(sys, user, { task: 'chat' });
-      if (out) out.textContent = res.text;
-    } catch (e) { if (out) out.textContent = '解读失败：' + ((e && e.message) || e); }
+      if (out) out.innerHTML = renderInsightAi(res.text);
+    } catch (e) { if (out) out.innerHTML = '<div class="insight-ai-head">AI 解读 · DeepSeek<span class="iah-meta">失败</span></div><div class="insight-ai-err">解读失败：' + ((e && e.message) || e) + '</div>'; }
     finally { btn.disabled = false; btn.textContent = '让 AI 解读'; }
+  }
+  // 把 AI 解读文本渲染成段落+引号结构（关键句 = 中文引号包裹的部分）
+  function renderInsightAi(raw) {
+    var txt = String(raw || '').trim();
+    if (!txt) return '<div class="insight-ai-err">暂无内容</div>';
+    var now = new Date();
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+    var meta = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+    var body = txt
+      .replace(/\r\n?/g, '\n')
+      .split(/\n\s*\n/)
+      .map(function (p) { return p.trim(); })
+      .filter(Boolean);
+    if (!body.length) body = [txt];
+    var html = body.map(function (p) {
+      var inner = escapeHtml(p)
+        .replace(/&quot;([^&]{1,80})&quot;/g, '<span class="ai-quote">"$1"</span>')
+        .replace(/「([^」]{1,80})」/g, '<span class="ai-quote">「$1」</span>')
+        .replace(/"([^"]{1,80})"/g, '<span class="ai-quote">"$1"</span>');
+      return '<p>' + inner + '</p>';
+    }).join('');
+    return '<div class="insight-ai-head">AI 解读 · DeepSeek<span class="iah-meta">' + meta + '</span></div><div class="insight-ai-body">' + html + '</div>';
   }
   function yearsOf() { return [...new Set(recs.map(r => r.date.slice(0, 4)))].sort(); }
   function buildSel(opts, val) {
