@@ -474,8 +474,8 @@ body {
 
 /* ---------- 模态框（提问作答） ---------- */
 .scrim {
-  position: fixed; inset: 0; z-index: 90; background: rgba(4, 7, 14, 0.7);
-  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  position: fixed; inset: 0; z-index: 90; background: rgba(4, 7, 14, 0.72);
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
 }
 .scrim.show { opacity: 1; pointer-events: auto; }
 .modal {
@@ -1784,6 +1784,30 @@ body {
   #intentPanel .intent-block { margin: 0; }
   .intent-undo { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); border-radius: 999px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
   .intent-undo:hover { color: var(--ink); border-color: var(--accent); }
+  /* 1.2 / 2.2 放大弹窗 */
+  .zoom-modal { position: fixed; inset: 0; z-index: 200; background: var(--bg-2); display: none; flex-direction: column; }
+  .zoom-modal.show { display: flex; }
+  .zoom-modal .zm-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--glass-brd); flex-shrink: 0; }
+  .zoom-modal .zm-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .zoom-modal .zm-body { flex: 1; overflow: auto; padding: 12px; display: flex; align-items: center; justify-content: center; }
+  .zoom-modal .zm-body svg { max-width: 100%; max-height: 100%; }
+  .zoom-modal .zm-foot { padding: 6px 16px; font-size: 12px; color: var(--ink-dim); text-align: center; flex-shrink: 0; }
+  .zoom-modal .zm-close { background: none; border: none; font-size: 22px; color: var(--ink-dim); cursor: pointer; padding: 4px 8px; line-height: 1; }
+  .zoom-modal .zm-close:hover { color: var(--ink); }
+  .zoom-modal .zm-toggle { display: inline-flex; gap: 2px; background: var(--glass-2); border-radius: 999px; padding: 2px; }
+  .zoom-modal .zm-toggle button { background: none; border: none; color: var(--ink-dim); font-size: 12px; padding: 4px 12px; border-radius: 999px; cursor: pointer; }
+  .zoom-modal .zm-toggle button.on { background: var(--accent); color: #04121a; font-weight: 600; }
+  /* 1.3 高频标签标题与标签间距 */
+  #tagPanel .panel-head { margin-bottom: 18px; }
+  /* 3.1 / 3.2 回收站多选 */
+  .trash-check { position: absolute; left: 10px; top: 14px; width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; z-index: 2; display: none; }
+  .trash-list.multi .trash-check { display: inline-block; }
+  .trash-list.multi .tacts { display: none; }
+  .trash-item.has-check { padding-left: 38px; }
+  .trash-item.sel { background: var(--accent-soft); }
+  .trash-batchbar { position: sticky; bottom: 0; left: 0; right: 0; display: none; align-items: center; gap: 8px; padding: 10px 12px; background: var(--glass); border-top: 1px solid var(--glass-brd); z-index: 5; }
+  .trash-batchbar.show { display: flex; }
+  .trash-batchbar .tb-count { flex: 1; font-size: 13px; color: var(--ink-dim); }
 </style>
 </head>
 <body>
@@ -2067,6 +2091,7 @@ body {
           <span class="tg-sub">点一个节点，看这一类下的全部记录 · 拖空白处平移 · 滚轮 / 双指缩放</span>
         </div>
         <div class="panel-head-actions">
+          <button class="btn sm ghost" id="tgLock" type="button">解锁拖动</button>
           <button class="btn sm ghost" id="tgArrange" type="button">整理标签</button>
           <button class="collapse-btn" id="tgToggle" type="button" aria-expanded="true">收起</button>
         </div>
@@ -2308,14 +2333,12 @@ body {
       <button class="btn" id="setClear">清空缓存</button>
     </div>
     <input type="file" id="setImport" accept="application/json,.json" hidden>
-    <label style="margin-top:14px">空间管理（把数据按主题分开，如工作 / 生活）</label>
+    <label style="margin-top:14px">AI 自动分类（根据记录内容自动打标签，无需手动管理）</label>
     <div class="set-row">
-      <select id="spaceSel" class="set-select"></select>
-      <button class="btn" id="spaceNew">新建空间</button>
-      <button class="btn ghost" id="spaceRename">重命名</button>
-      <button class="btn danger ghost" id="spaceDel">删除</button>
+      <button class="btn" id="aiClassifyBtn">立即分类</button>
+      <button class="btn ghost" id="aiClassifyMerge">合并近似标签</button>
     </div>
-    <div class="set-hint" id="spaceHint"></div>
+    <div class="set-hint" id="aiClassifyHint"></div>
   </div>
   <div class="msaved" id="setMsg"></div>
   <div class="set-ver" id="setVer"></div>
@@ -2456,7 +2479,6 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
 
   /* ---------- 本地数据：localStorage 持久化 + 导入导出（本地保存） ---------- */
   const LS_KEY = 'mood.data.v2';
-  const SPACE_KEY = 'mood.spaces.v1';
   function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function loadData() {
     try { const s = localStorage.getItem(LS_KEY); if (s) { const d = JSON.parse(s); if (d && Array.isArray(d.records)) return d; } } catch (e) {}
@@ -2479,18 +2501,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
   const Q_PROMPTS = window.__Q_PROMPTS__ || [];
   const NEXT_Q = DATA.nextQuestions;
   const GEN_DATE = window.__GEN_DATE__ || '';
-  // 多空间：每次保存都把「当前空间」的完整快照写回 SPACE_KEY，保证切换/重载后不丢当前空间的数据
-  function persistCurrentSpace() {
-    let sp; try { sp = JSON.parse(localStorage.getItem(SPACE_KEY)); } catch (e) { sp = null; }
-    if (!sp || !sp.spaces) sp = { active: '默认空间', spaces: {} };
-    sp.spaces[sp.active] = {
-      records: DATA.records, trash: DATA.trash, deleted: DATA.deleted,
-      revived: DATA.revived, trashPurged: DATA.trashPurged,
-      nextQuestions: DATA.nextQuestions, todayQuestion: DATA.todayQuestion
-    };
-    try { localStorage.setItem(SPACE_KEY, JSON.stringify(sp)); } catch (e) {}
-  }
-  function saveData() { try { localStorage.setItem(LS_KEY, JSON.stringify(DATA)); persistCurrentSpace(); } catch (e) {} }
+  function saveData() { try { localStorage.setItem(LS_KEY, JSON.stringify(DATA)); } catch (e) {} }
   const recs = (DATA.records || []).slice().sort((a, b) => a.date < b.date ? -1 : 1);
 
   /* ---------- 本地服务连接探测（决定能否「网页内直接写回文件」） ---------- */
@@ -3031,30 +3042,6 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
     a.download = '情绪记录-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
-  /* ---------- 多空间管理（本地优先，把数据按主题分开，如工作 / 生活） ---------- */
-  function loadSpaces() {
-    try { const s = JSON.parse(localStorage.getItem(SPACE_KEY)); if (s && s.spaces) return s; } catch (e) {}
-    return { active: '默认空间', spaces: { '默认空间': { records: DATA.records, trash: DATA.trash, deleted: DATA.deleted, revived: DATA.revived, trashPurged: DATA.trashPurged } } };
-  }
-  function saveSpaces(sp) { try { localStorage.setItem(SPACE_KEY, JSON.stringify(sp)); } catch (e) {} }
-  function applySpace(name) {
-    const sp = loadSpaces();
-    if (!sp.spaces[name]) return;
-    const cur = sp.spaces[name];
-    DATA.records = Array.isArray(cur.records) ? cur.records : [];
-    DATA.trash = cur.trash || []; DATA.deleted = cur.deleted || [];
-    DATA.revived = cur.revived || []; DATA.trashPurged = cur.trashPurged || [];
-    DATA.nextQuestions = cur.nextQuestions || []; DATA.todayQuestion = cur.todayQuestion || '';
-    recs.length = 0; DATA.records.slice().sort((a, b) => a.date < b.date ? -1 : 1).forEach(x => recs.push(x));
-    sp.active = name; saveSpaces(sp); saveData(); buildQA(); updateConn(); renderAll();
-  }
-  function refreshSpaceSel() {
-    const sp = loadSpaces(); const sel = $('#spaceSel'); if (!sel) return;
-    sel.innerHTML = '';
-    Object.keys(sp.spaces).forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n + (n === sp.active ? '（当前）' : ''); sel.appendChild(o); });
-    sel.value = sp.active;
-  }
-
   /* ---------- DeepSeek（浏览器直连，key 仅存本机，不上传任何服务器） ---------- */
   const DS_URL = 'https://api.deepseek.com/chat/completions';
   function dsKey() { return (localStorage.getItem('mood.dsKey') || '').trim(); }
@@ -3155,7 +3142,8 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
     if (!dsKey()) { if (sv) sv.textContent = '请先在「⚙ 设置」里填入 DeepSeek API Key'; return; }
     btn.disabled = true; if (sv) sv.textContent = 'AI 正在生成追问…';
     const sys = '你是温和的情绪记录陪伴者。基于用户近期的情绪记录，生成 3 条个性化的、开放式的反思追问（中文，每条不超过 30 字），帮助用户更深入理解自己的情绪。只输出 JSON 数组，例如 ["问题一","问题二","问题三"]，不要任何其他文字。';
-    const user = '近期记录：\n' + (recentSummary(14) || '（暂无记录）') + '\n当前日期：' + new Date().toISOString().slice(0, 10);
+    const _profileTxt = (typeof buildProfile === 'function' ? buildProfile().text : '') || '';
+    const user = '近期记录：\n' + (recentSummary(14) || '（暂无记录）') + '\n当前日期：' + new Date().toISOString().slice(0, 10) + (_profileTxt ? '\n\n用户画像：' + _profileTxt : '');
     try {
       const res = await callDeepSeek(sys, user, { task: 'questions' });
       const txt = res.text;
@@ -3334,7 +3322,8 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
       + '  },\n'
       + '  "summary": "一句话复述你对他状态的理解（让他确认是否对）"\n'
       + '}\n'
-      + '注意：这些是"帮用户理清情绪"的可选项，不要强迫他回答。若用户明确不想填某项，就写 null。';
+      + '注意：这些是"帮用户理清情绪"的可选项，不要强迫他回答。若用户明确不想填某项，就写 null。'
+      + (function(){ var tt = topTags(20); return tt.length ? '\n用户已有高频标签：' + tt.join('/') + '。请优先使用这些标签，如不匹配再创建新标签（2-4字）。' : ''; })();
     const r2 = resolveModel('extract');
     const r = await fetch(DS_URL, {
       method: 'POST',
@@ -3376,6 +3365,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
       if (parts.length) aiText += (aiText ? '\n' : '') + '我理解到的：' + parts.join(' · ');
     }
     renderXBubble('ai', aiText.trim());
+    if (obj.fields && Array.isArray(obj.fields.tags)) obj.fields.tags = cleanTags(obj.fields.tags);
     lastExtractFields = obj.fields || null;
     if (obj.ready === false && Array.isArray(obj.questions) && obj.questions.length) {
       extractCtx.push({ role: 'assistant', content: aiText });
@@ -3598,12 +3588,16 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
       list.innerHTML = '<div class="empty" style="padding:56px 20px"><div class="big">回收站是空的</div><div class="sm">删掉的记录会先落到这里。<br>想清楚了再彻底删除，也不迟。</div></div>';
       return;
     }
+    list.classList.toggle('multi', trashMulti);
     list.innerHTML = items.map(function (r) {
       const mc = moodColor(r.mood || 3);
       const tags = (r.tags || []).map(function (t) { return '<span class="ttag">' + escapeHtml(t) + '</span>'; }).join('');
       const note = String(r.note || '');
       const del = r.delAt ? (' · 删于 ' + new Date(r.delAt).toLocaleDateString('zh-CN')) : '';
-      return '<div class="trash-item" data-id="' + escapeHtml(String(r.id || '')) + '">'
+      const rid = escapeHtml(String(r.id || ''));
+      const sel = trashSel.has(r.id);
+      return '<div class="trash-item' + (trashMulti ? ' has-check' : '') + (sel ? ' sel' : '') + '" data-id="' + rid + '">'
+        + (trashMulti ? '<input class="trash-check" type="checkbox" data-chk="' + rid + '"' + (sel ? ' checked' : '') + '>' : '')
         + '<div class="tmood" style="color:' + mc + '">' + (r.mood != null ? r.mood : '-') + '/5</div>'
         + '<div class="tbody">'
         + '<div class="tdate">' + escapeHtml(r.date || '') + (r.time ? (' ' + String(r.time).slice(0, 5)) : '') + (r.author ? (' · ' + escapeHtml(r.author)) : '') + del + '</div>'
@@ -3611,10 +3605,20 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
         + (note ? '<div class="tnote">' + escapeHtml(note.slice(0, 240)) + (note.length > 240 ? '…' : '') + '</div>' : '')
         + (tags ? '<div class="ttags">' + tags + '</div>' : '')
         + '<div class="tacts">'
-        + '<button class="btn sm" type="button" data-act="restore" data-id="' + escapeHtml(String(r.id || '')) + '">恢复</button>'
-        + '<button class="btn sm danger" type="button" data-act="purge" data-id="' + escapeHtml(String(r.id || '')) + '">彻底删除</button>'
+        + '<button class="btn sm" type="button" data-act="restore" data-id="' + rid + '">恢复</button>'
+        + '<button class="btn sm danger" type="button" data-act="purge" data-id="' + rid + '">彻底删除</button>'
         + '</div></div></div>';
     }).join('');
+    if (trashMulti) {
+      list.querySelectorAll('.trash-check').forEach(function (chk) {
+        chk.addEventListener('change', function () {
+          const id = chk.dataset.chk;
+          if (chk.checked) trashSel.add(id); else trashSel.delete(id);
+          chk.closest('.trash-item').classList.toggle('sel', chk.checked);
+          updateBatchBar();
+        });
+      });
+    }
   }
   function buildTrashList() { renderTrash(); } // 兼容旧调用
   const DAY_NAMES = ['周日','周一','周二','周三','周四','周五','周六'];
@@ -3758,6 +3762,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
      · 个人空间按心情上色；共享空间按「主要记录人」上色，配合上面的图例   */
   let _tgLayout = { key: '', pts: null };
   let tgView = { x: 0, y: 0, k: 1 }; // 标签关系图的平移/缩放（背景拖拽 + 滚轮/双指）
+  let tgLocked = true, _tgSuppressClick = false, trashSel = new Set(), trashMulti = false;
   function applyTgView(svg) {
     const g = $('#tgZoom', svg); if (g) g.setAttribute('transform', 'translate(' + tgView.x.toFixed(2) + ',' + tgView.y.toFixed(2) + ') scale(' + tgView.k.toFixed(3) + ')');
   }
@@ -3897,7 +3902,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
   function bindTagGraph(svg, nodes, pts, W, H) {
     $$('.tg-node', svg).forEach(function (g) {
       const i = +g.dataset.i;
-      let sx = 0, sy = 0, moved = false, dragging = false;
+      let sx = 0, sy = 0, moved = false, dragging = false, pendingTap = false;
       const toLocal = function (e) {
         const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
         const ctm = svg.getScreenCTM(); if (!ctm) return { x: 0, y: 0 };
@@ -3906,6 +3911,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
         return { x: (vb.x - tgView.x) / tgView.k, y: (vb.y - tgView.y) / tgView.k };
       };
       g.addEventListener('pointerdown', function (e) {
+        if (tgLocked) { pendingTap = true; return; }
         dragging = true; moved = false;
         const p = toLocal(e); sx = p.x - pts[i].x; sy = p.y - pts[i].y;
         g.setPointerCapture && g.setPointerCapture(e.pointerId);
@@ -3916,7 +3922,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
         const p = toLocal(e);
         const nx = Math.max(pts[i].r + 8, Math.min(W - pts[i].r - 8, p.x - sx));
         const ny = Math.max(pts[i].r + 10, Math.min(H - pts[i].r - 18, p.y - sy));
-        if (Math.abs(nx - pts[i].x) + Math.abs(ny - pts[i].y) > 3) moved = true;
+        if (Math.abs(nx - pts[i].x) + Math.abs(ny - pts[i].y) > 8) moved = true;
         pts[i].x = nx; pts[i].y = ny;
         g.setAttribute('transform', 'translate(' + nx.toFixed(1) + ',' + ny.toFixed(1) + ')');
         $$('.tg-link', svg).forEach(function (l) {
@@ -3925,12 +3931,13 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
         });
       });
       const finish = function () {
+        if (pendingTap) { pendingTap = false; if (!_tgSuppressClick) selectTag(nodes[i]); return; }
         if (!dragging) return;
         dragging = false; g.classList.remove('drag');
         if (!moved) selectTag(nodes[i]);
       };
       g.addEventListener('pointerup', finish);
-      g.addEventListener('pointercancel', function () { dragging = false; g.classList.remove('drag'); });
+      g.addEventListener('pointercancel', function () { pendingTap = false; dragging = false; g.classList.remove('drag'); });
       g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTag(nodes[i]); } });
     });
   }
@@ -3950,6 +3957,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
       tgView.x = loc.x - nk * plx; tgView.y = loc.y - nk * ply; tgView.k = nk; applyTgView(svg);
     };
     svg.addEventListener('pointerdown', function (e) {
+      if (tgLocked) return;
       pointers.set(e.pointerId, e);
       if (pointers.size === 2) { const a = Array.prototype.slice.call(pointers.values()); const l0 = getLoc(a[0]), l1 = getLoc(a[1]); if (l0 && l1) pinchPrev = Math.hypot(l0.x - l1.x, l0.y - l1.y); panLast = null; return; }
       if (e.target.closest('.tg-node')) { panLast = null; return; } // 节点拖拽交给 bindTagGraph
@@ -3967,7 +3975,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
       }
       if (!panLast || e.target.closest('.tg-node')) return;
       const loc = getLoc(e); if (!loc) return;
-      tgView.x += (loc.x - panLast.x); tgView.y += (loc.y - panLast.y); panLast = loc; applyTgView(svg);
+      tgView.x += (loc.x - panLast.x); tgView.y += (loc.y - panLast.y); panLast = loc; applyTgView(svg); _tgSuppressClick = true;
     });
     const end = function (e) { pointers.delete(e.pointerId); if (pointers.size < 2) pinchPrev = 0; if (pointers.size === 0) { panLast = null; svg.classList.remove('grabbing'); } };
     svg.addEventListener('pointerup', end);
@@ -4043,6 +4051,21 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
       pullTrash().then(function () { renderTrash(); trashMsg('✓ 已和云端对齐，共 ' + (DATA.trash || []).length + ' 条'); })
         .catch(function (e) { trashMsg('✗ 读取失败：' + ((e && e.message) || e)); });
     });
+    // 3.1/3.2 回收站批量管理
+    on('#trashBatch', 'click', enterTrashMulti);
+    on('#trashBatchCancel', 'click', exitTrashMulti);
+    on('#trashSelAll', 'click', trashSelAll);
+    on('#trashBatchRestore', 'click', trashBatchRestore);
+    on('#trashBatchPurge', 'click', trashBatchPurge);
+    // 2.1 标签关系图锁定
+    on('#tgLock', 'click', toggleTgLock);
+    // 1.2 情绪地形放大
+    on('#trendWrap', 'click', function (e) { if (_tgSuppressClick) { _tgSuppressClick = false; return; } openTrendZoom(); });
+    on('#trendZoomClose', 'click', closeTrendZoom);
+    (function(){ var tg = $('#trendZoomToggle'); if (tg) tg.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; renderTrendZoom(b.dataset.v); }); })();
+    // 2.2 标签关系图放大
+    on('#tagGraph', 'click', function (e) { if (_tgSuppressClick) { _tgSuppressClick = false; return; } if (e.target.closest('.tg-node')) return; openTgZoom(); });
+    on('#tgZoomClose', 'click', closeTgZoom);
   }
 
   /* ---------- 主题引擎 ---------- */
@@ -5385,7 +5408,7 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
       $('#dsModel').style.opacity = manual ? '1' : '0.5';
       loadGh();
       $('#setModal').classList.add('show'); $('#scrim').classList.add('show');
-      renderSetVer(); refreshSpaceSel();
+      renderSetVer();
     });
     $('#setClose').addEventListener('click', () => { $('#setModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
     $('#dsKey').addEventListener('input', e => {
@@ -5428,37 +5451,9 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
     });
     $('#setExport').addEventListener('click', exportData);
     $('#setExportCsv').addEventListener('click', exportCsv);
-    // 多空间：切换 / 新建 / 重命名 / 删除（本地优先；云同步会跟随当前激活空间）
-    $('#spaceSel').addEventListener('change', e => {
-      const sp = loadSpaces(); if (!sp.spaces[e.target.value]) return;
-      applySpace(e.target.value); refreshSpaceSel();
-      const sh = $('#spaceHint'); if (sh) sh.textContent = '已切换到「' + e.target.value + '」';
-    });
-    $('#spaceNew').addEventListener('click', () => {
-      const name = window.prompt('给新空间起个名字（如：工作 / 生活）', '新空间'); if (!name) return;
-      const n = name.trim(); if (!n) return;
-      const sp = loadSpaces();
-      if (sp.spaces[n]) { const sh = $('#spaceHint'); if (sh) sh.textContent = '已存在同名空间'; return; }
-      sp.spaces[n] = { records: [] }; sp.active = n; saveSpaces(sp);
-      DATA.records = []; DATA.trash = []; DATA.deleted = []; DATA.revived = []; DATA.trashPurged = [];
-      recs.length = 0; saveData(); buildQA(); updateConn(); renderAll();
-      refreshSpaceSel(); const sh = $('#spaceHint'); if (sh) sh.textContent = '已创建并切换到「' + n + '」';
-    });
-    $('#spaceRename').addEventListener('click', () => {
-      const sp = loadSpaces(); const old = sp.active;
-      const name = window.prompt('重命名当前空间', old); if (!name) return;
-      const n = name.trim(); if (!n || n === old) return;
-      if (sp.spaces[n]) { const sh = $('#spaceHint'); if (sh) sh.textContent = '已存在同名空间'; return; }
-      const data = sp.spaces[old]; delete sp.spaces[old]; sp.spaces[n] = data; sp.active = n; saveSpaces(sp);
-      refreshSpaceSel(); const sh = $('#spaceHint'); if (sh) sh.textContent = '已重命名为「' + n + '」';
-    });
-    $('#spaceDel').addEventListener('click', async () => {
-      const sp = loadSpaces(); const cur = sp.active;
-      if (Object.keys(sp.spaces).length <= 1) { const sh = $('#spaceHint'); if (sh) sh.textContent = '至少保留一个空间，不能删除'; return; }
-      const ok = await appConfirm('删除空间「' + cur + '」？其中的记录会一起删除。', '删除空间'); if (!ok) return;
-      delete sp.spaces[cur]; sp.active = Object.keys(sp.spaces)[0]; saveSpaces(sp);
-      applySpace(sp.active); refreshSpaceSel(); const sh = $('#spaceHint'); if (sh) sh.textContent = '已删除「' + cur + '」，切回「' + sp.active + '」';
-    });
+    // AI 自动分类
+    $('#aiClassifyBtn').addEventListener('click', aiClassify);
+    $('#aiClassifyMerge').addEventListener('click', aiClassifyMerge);
     $('#setImportBtn').addEventListener('click', () => $('#setImport').click());
     $('#setImport').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
 
@@ -6246,10 +6241,183 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
   safeInit('bindInteractions', bindInteractions);
   safeInit('bindExtractModal', bindExtractModal);
   safeInit('bindBotNav', bindBotNav);
+  safeInit('migrateSpaces', migrateSpaces);
+  safeInit('initTgLock', initTgLock);
   safeInit('setBotNav', () => setBotNav('dash'));
   safeInit('probeApi', probeApi);
   safeInit('selfCheck', selfCheck);
   if (GEN_DATE) { const g = $('#genDate'); if (g) g.textContent = '生成于 ' + GEN_DATE; }
+  /* ========== 1.10 / 4.3 标签工具 ========== */
+  function normalizeTag(t) { return String(t || '').replace(/[\s\u3000]/g, '').replace(/[，。、！？·,.\!?;:：；""''()（）\[\]【】]/g, '').toLowerCase(); }
+  function editDist(a, b) {
+    a = a || ''; b = b || '';
+    var m = a.length, n = b.length;
+    if (!m) return n; if (!n) return m;
+    var dp = []; var i, j;
+    for (i = 0; i <= m; i++) dp[i] = [i];
+    for (j = 0; j <= n; j++) dp[0][j] = j;
+    for (i = 1; i <= m; i++) for (j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : (Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]) + 1);
+    return dp[m][n];
+  }
+  function fuzzyMatchTag(tag, existing) {
+    var norm = normalizeTag(tag); if (!norm) return tag;
+    for (var i = 0; i < existing.length; i++) {
+      var e = normalizeTag(existing[i]); if (!e) continue;
+      if (e === norm) return existing[i];
+      if (e.indexOf(norm) >= 0 || norm.indexOf(e) >= 0) return existing[i];
+      if (norm.length >= 2 && e.length >= 2 && editDist(norm, e) <= 2) return existing[i];
+    }
+    return tag;
+  }
+  function topTags(n) {
+    var cnt = {};
+    (DATA.records || []).forEach(function (r) { (r.tags || []).forEach(function (t) { var k = normalizeTag(t); if (k) cnt[k] = (cnt[k] || 0) + 1; }); });
+    return Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, n || 20);
+  }
+  function cleanTags(arr) {
+    if (!Array.isArray(arr)) return [];
+    var allTags = [];
+    (DATA.records || []).forEach(function (r) { (r.tags || []).forEach(function (t) { if (t) allTags.push(t); }); });
+    var seen = {}, out = [];
+    arr.forEach(function (t) { var matched = fuzzyMatchTag(t, allTags); var key = normalizeTag(matched); if (key && !seen[key]) { seen[key] = true; out.push(matched); } });
+    return out.slice(0, 5);
+  }
+  /* ========== 1.10 B AI 自动分类 ========== */
+  async function aiClassify() {
+    var hint = $('#aiClassifyHint');
+    if (!dsKey()) { if (hint) hint.textContent = '请先在设置里填入 DeepSeek API Key'; return; }
+    var need = (DATA.records || []).filter(function (r) { return !r.tags || !r.tags.length; });
+    if (!need.length) { if (hint) hint.textContent = '所有记录都已有标签，无需分类'; return; }
+    if (hint) hint.textContent = '正在为 ' + need.length + ' 条记录生成标签…';
+    var tt = topTags(20);
+    var sys = '你是情绪记录助手。根据用户记录的内容，为每条记录生成 2-4 个短标签（2-4字）。'
+      + (tt.length ? '用户已有高频标签：' + tt.join('/') + '。请优先使用这些标签，如不匹配再创建新标签。' : '')
+      + '只输出 JSON：{"results":[{"id":"记录id","tags":["标签1","标签2"]}]}';
+    var items = need.slice(0, 50).map(function (r) {
+      return { id: r.id, scene: r.scene || '', note: (r.note || '').slice(0, 200), body: (r.body || []).join(','), behavior: (r.behavior || []).join(','), cause: r.cause || '' };
+    });
+    try {
+      var res = await callDeepSeek(sys, JSON.stringify(items), { task: 'extract' });
+      var obj = JSON.parse(res.text.replace(/```json|```/g, '').trim());
+      if (!obj || !Array.isArray(obj.results)) { if (hint) hint.textContent = '✗ AI 返回格式不对'; return; }
+      var count = 0;
+      obj.results.forEach(function (item) { var r = (DATA.records || []).find(function (x) { return x.id === item.id; }); if (r && Array.isArray(item.tags)) { r.tags = cleanTags(item.tags); count++; } });
+      saveData(); renderAll();
+      if (hint) hint.textContent = '✓ 已为 ' + count + ' 条记录生成标签';
+    } catch (e) { if (hint) hint.textContent = '✗ 分类失败：' + ((e && e.message) || e); }
+  }
+  async function aiClassifyMerge() {
+    var hint = $('#aiClassifyHint');
+    if (!dsKey()) { if (hint) hint.textContent = '请先在设置里填入 DeepSeek API Key'; return; }
+    var tagMap = {};
+    (DATA.records || []).forEach(function (r) { (r.tags || []).forEach(function (t) { tagMap[t] = (tagMap[t] || 0) + 1; }); });
+    var tags = Object.keys(tagMap);
+    if (tags.length < 2) { if (hint) hint.textContent = '标签太少，无需合并'; return; }
+    if (hint) hint.textContent = '正在识别近似标签…';
+    var sys = '你是标签整理助手。找出语义近似的标签组，归并到同一个标准标签。只输出 JSON：{"groups":[{"canonical":"标准标签","aliases":["别名1","别名2"]}]}';
+    try {
+      var res = await callDeepSeek(sys, JSON.stringify(tags), { task: 'extract' });
+      var obj = JSON.parse(res.text.replace(/```json|```/g, '').trim());
+      if (!obj || !Array.isArray(obj.groups) || !obj.groups.length) { if (hint) hint.textContent = '没有需要合并的近似标签'; return; }
+      var lines = obj.groups.map(function (g) { return g.canonical + ' ← ' + (g.aliases || []).join('、'); });
+      var ok = await appConfirm('以下标签将被合并：\n\n' + lines.join('\n') + '\n\n确认合并？', '合并标签');
+      if (!ok) { if (hint) hint.textContent = '已取消'; return; }
+      obj.groups.forEach(function (g) { var canon = g.canonical; (g.aliases || []).forEach(function (alias) { (DATA.records || []).forEach(function (r) { if (r.tags) r.tags = r.tags.map(function (t) { return t === alias ? canon : t; }); }); }); });
+      saveData(); renderAll();
+      if (hint) hint.textContent = '✓ 已合并 ' + obj.groups.length + ' 组标签';
+    } catch (e) { if (hint) hint.textContent = '✗ 合并失败：' + ((e && e.message) || e); }
+  }
+  /* ========== 1.10 A 数据迁移 ========== */
+  function migrateSpaces() {
+    try {
+      var raw = localStorage.getItem('mood.spaces.v1'); if (!raw) return;
+      var sp = JSON.parse(raw); if (!sp || !sp.spaces) return;
+      var seen = {}; (DATA.records || []).forEach(function (r) { if (r && r.id) seen[r.id] = true; });
+      var merged = 0;
+      Object.keys(sp.spaces).forEach(function (name) {
+        var space = sp.spaces[name];
+        if (space && Array.isArray(space.records)) space.records.forEach(function (r) { if (r && r.id && !seen[r.id]) { DATA.records.push(r); seen[r.id] = true; merged++; } });
+      });
+      localStorage.removeItem('mood.spaces.v1');
+      if (merged > 0) { saveData(); renderAll(); }
+      console.log('[Mood Atlas] 已迁移 ' + merged + ' 条记录（从 mood.spaces.v1 合并到主数据），多空间数据已清除');
+    } catch (e) { console.warn('[Mood Atlas] 迁移多空间数据失败：', e); }
+  }
+  /* ========== 2.1 标签图锁定 ========== */
+  function initTgLock() { var btn = $('#tgLock'); if (!btn) return; btn.textContent = tgLocked ? '解锁拖动' : '锁定拖动'; }
+  function toggleTgLock() {
+    tgLocked = !tgLocked;
+    var btn = $('#tgLock'); if (btn) btn.textContent = tgLocked ? '解锁拖动' : '锁定拖动';
+    _tgSuppressClick = true;
+  }
+  /* ========== 1.2 情绪地形放大 ========== */
+  function openTrendZoom() { var m = $('#trendZoomModal'); if (!m) return; m.classList.add('show'); renderTrendZoom(state.trendSelf ? 'self' : 'all'); }
+  function closeTrendZoom() { var m = $('#trendZoomModal'); if (m) m.classList.remove('show'); }
+  function renderTrendZoom(mode) {
+    var body = $('#trendZoomBody'); if (!body) return;
+    var toggle = $('#trendZoomToggle');
+    if (toggle) toggle.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === mode); });
+    var src = $('#trend svg');
+    if (src) { var clone = src.cloneNode(true); clone.setAttribute('width', '100%'); clone.setAttribute('height', 'auto'); clone.style.maxWidth = '100%'; clone.style.maxHeight = '70vh'; body.innerHTML = ''; body.appendChild(clone); }
+    else body.innerHTML = '<div style="color:var(--ink-dim);padding:40px">暂无情绪地形数据</div>';
+  }
+  /* ========== 2.2 标签关系图放大 ========== */
+  function openTgZoom() {
+    var m = $('#tgZoomModal'); if (!m) return; m.classList.add('show');
+    var body = $('#tgZoomBody'); if (!body) return;
+    var src = $('#tagGraph');
+    if (src) {
+      body.innerHTML = '';
+      var clone = src.cloneNode(true); clone.removeAttribute('id');
+      clone.style.width = '100%'; clone.style.height = 'auto'; clone.style.maxHeight = '70vh';
+      body.appendChild(clone);
+      var zv = { x: 0, y: 0, k: 1 };
+      function apply() { clone.setAttribute('viewBox', zv.x + ' ' + zv.y + ' ' + (720 / zv.k) + ' ' + (420 / zv.k)); }
+      bindTgZoomPan(clone, zv, apply);
+    } else body.innerHTML = '<div style="color:var(--ink-dim);padding:40px">暂无标签关系图数据</div>';
+  }
+  function closeTgZoom() { var m = $('#tgZoomModal'); if (m) m.classList.remove('show'); }
+  function bindTgZoomPan(svg, view, apply) {
+    var panLast = null;
+    function getLoc(e) { var pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; var ctm = svg.getScreenCTM(); if (!ctm) return null; return pt.matrixTransform(ctm.inverse()); }
+    svg.addEventListener('pointerdown', function (e) { panLast = getLoc(e); if (svg.setPointerCapture) { try { svg.setPointerCapture(e.pointerId); } catch (e2) {} } });
+    svg.addEventListener('pointermove', function (e) { if (!panLast || e.target.closest('.tg-node')) return; var loc = getLoc(e); if (!loc) return; view.x += (loc.x - panLast.x); view.y += (loc.y - panLast.y); panLast = loc; apply(); _tgSuppressClick = true; });
+    svg.addEventListener('pointerup', function () { panLast = null; });
+    svg.addEventListener('pointercancel', function () { panLast = null; });
+    svg.addEventListener('wheel', function (e) { e.preventDefault(); var loc = getLoc(e); if (!loc) return; var nk = view.k * (e.deltaY > 0 ? 0.9 : 1.1); nk = Math.max(0.4, Math.min(4, nk)); view.x = loc.x - (loc.x - view.x) * (view.k / nk); view.y = loc.y - (loc.y - view.y) * (view.k / nk); view.k = nk; apply(); }, { passive: false });
+  }
+  /* ========== 3.1/3.2 回收站批量管理 ========== */
+  function updateBatchBar() {
+    var bar = $('#trashBatchBar'); if (!bar) return;
+    var cnt = $('#trashSelCount'); if (cnt) cnt.textContent = trashSel.size;
+    bar.classList.toggle('show', trashMulti);
+    var all = (DATA.trash || []).length;
+    var selAll = $('#trashSelAll'); if (selAll) selAll.textContent = (all > 0 && trashSel.size >= all) ? '取消全选' : '全选';
+  }
+  function enterTrashMulti() { trashMulti = true; trashSel.clear(); renderTrash(); updateBatchBar(); }
+  function exitTrashMulti() { trashMulti = false; trashSel.clear(); renderTrash(); updateBatchBar(); }
+  function trashSelAll() {
+    var all = DATA.trash || [];
+    if (trashSel.size >= all.length) trashSel.clear(); else all.forEach(function (r) { if (r.id) trashSel.add(r.id); });
+    renderTrash(); updateBatchBar();
+  }
+  async function trashBatchRestore() {
+    if (!trashSel.size) { trashMsg('请先选择记录'); return; }
+    var ok = await appConfirm('恢复选中的 ' + trashSel.size + ' 条记录？', '批量恢复'); if (!ok) return;
+    var ids = Array.from(trashSel);
+    ids.forEach(function (id) { var idx = (DATA.trash || []).findIndex(function (r) { return r.id === id; }); if (idx >= 0) { var r = DATA.trash[idx]; if (!r.revived) r.revived = {}; r.revived.restore = true; DATA.records.push(r); DATA.trash.splice(idx, 1); } });
+    saveData(); buildQA(); updateConn(); renderAll(); renderTrash();
+    trashMsg('✓ 已恢复 ' + ids.length + ' 条'); trashSel.clear(); trashMulti = false; updateBatchBar();
+  }
+  async function trashBatchPurge() {
+    if (!trashSel.size) { trashMsg('请先选择记录'); return; }
+    var ok = await appConfirm('彻底删除选中的 ' + trashSel.size + ' 条记录？此操作不可恢复。', '批量删除'); if (!ok) return;
+    var ids = Array.from(trashSel);
+    ids.forEach(function (id) { var idx = (DATA.trash || []).findIndex(function (r) { return r.id === id; }); if (idx >= 0) { var r = DATA.trash[idx]; if (!r.trashPurged) r.trashPurged = {}; r.trashPurged.purge = true; DATA.trash.splice(idx, 1); } });
+    saveData(); renderTrash();
+    trashMsg('✓ 已彻底删除 ' + ids.length + ' 条'); trashSel.clear(); trashMulti = false; updateBatchBar();
+  }
 })();
 </script>
 
@@ -6262,10 +6430,18 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
     <p class="page-lead">这里收着被你删掉的情绪记录。它们存在云端一个和你主记录对应的回收站文件里，不会出现在看板、时间轴和历史里。想起来了可以「恢复」，确定不要了就「彻底删除」。</p>
     <div class="page-tools">
       <button class="btn sm" id="trashRefresh" type="button">从云端刷新</button>
+      <button class="btn sm" id="trashBatch" type="button">批量管理</button>
       <button class="btn sm danger" id="trashPurgeAll" type="button">清空回收站</button>
     </div>
     <div class="page-msg" id="trashMsg"></div>
     <div class="trash-list" id="trashList"></div>
+    <div class="trash-batchbar" id="trashBatchBar">
+      <span class="tb-count">已选 <span id="trashSelCount">0</span> 条</span>
+      <button class="btn sm" id="trashSelAll" type="button">全选</button>
+      <button class="btn sm" id="trashBatchRestore" type="button">批量恢复</button>
+      <button class="btn sm danger" id="trashBatchPurge" type="button">批量删除</button>
+      <button class="btn sm ghost" id="trashBatchCancel" type="button">取消</button>
+    </div>
   </div>
 </div>
 
@@ -6278,6 +6454,29 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
       <button class="btn sm danger ac-ok" type="button" id="acOk">确定</button>
     </div>
   </div>
+</div>
+
+<!-- 1.2 情绪地形放大弹窗 -->
+<div class="zoom-modal" id="trendZoomModal">
+  <div class="zm-head">
+    <span class="zm-title">情绪地形</span>
+    <span class="zm-toggle" id="trendZoomToggle">
+      <button type="button" data-v="all" class="on">我们</button>
+      <button type="button" data-v="self">自己</button>
+    </span>
+    <button type="button" class="zm-close" id="trendZoomClose">×</button>
+  </div>
+  <div class="zm-body" id="trendZoomBody"></div>
+</div>
+
+<!-- 2.2 标签关系图放大弹窗 -->
+<div class="zoom-modal" id="tgZoomModal">
+  <div class="zm-head">
+    <span class="zm-title">标签关系图</span>
+    <button type="button" class="zm-close" id="tgZoomClose">×</button>
+  </div>
+  <div class="zm-body" id="tgZoomBody"></div>
+  <div class="zm-foot">点节点筛选 · 拖空白平移 · 滚轮 / 双指缩放</div>
 </div>
 
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){});});}</script>
