@@ -637,6 +637,43 @@ body {
 .mood-pick button:hover { color: var(--ink); border-color: var(--accent); background: var(--glass-2); }
 .mood-pick button.active { background: var(--accent); color: var(--on-accent); border-color: color-mix(in srgb, var(--on-accent) 16%, transparent); }
 
+/* 触发原因 + 想做但没做 */
+.cause-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.cause-chip {
+  padding: 7px 14px; border-radius: 999px; border: 1px solid var(--glass-brd);
+  background: var(--bg-1); color: var(--ink-soft); font-size: 13px; cursor: pointer;
+  font-family: var(--font-body); transition: all .18s;
+}
+.cause-chip:hover { color: var(--ink); border-color: var(--accent); }
+.cause-chip.active { background: var(--accent); color: var(--on-accent); border-color: color-mix(in srgb, var(--on-accent) 16%, transparent); font-weight: 600; }
+.rec-intent { display: flex; flex-direction: column; gap: 12px; padding: 14px; margin-top: 4px; border: 1px dashed var(--glass-brd); border-radius: var(--r-md); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.weight-pick { display: flex; gap: 8px; margin-top: 2px; }
+.weight-chip {
+  padding: 7px 18px; border-radius: 999px; border: 1px solid var(--glass-brd);
+  background: var(--bg-1); color: var(--ink-soft); font-size: 13px; cursor: pointer; transition: all .18s;
+}
+.weight-chip:hover { color: var(--ink); border-color: var(--accent); }
+.weight-chip.active { background: var(--accent-2, var(--accent)); color: var(--on-accent); border-color: color-mix(in srgb, var(--on-accent) 16%, transparent); font-weight: 600; }
+/* 未完成的打算 列表 */
+.intent-block { margin: 4px 0 18px; }
+.intent-head { display: flex; align-items: baseline; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
+.intent-head small { font-weight: 400; font-size: 12px; color: var(--ink-soft); }
+.intent-list { display: flex; flex-direction: column; gap: 8px; }
+.intent-item { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid var(--glass-brd); border-radius: var(--r-md); background: var(--bg-1); }
+.intent-item.done { opacity: .58; }
+.intent-main { flex: 1; min-width: 0; }
+.intent-txt { font-size: 14px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.intent-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.intent-w { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--glass-brd); color: var(--ink-soft); flex: none; }
+.intent-w.w3 { color: #ffb4a8; border-color: color-mix(in srgb, #ff8a7a 40%, transparent); }
+.intent-w.w2 { color: #ffd79a; border-color: color-mix(in srgb, #ffb95e 40%, transparent); }
+.intent-w.w1 { color: #9be8c0; border-color: color-mix(in srgb, #5dcaa5 40%, transparent); }
+.intent-do { flex: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font-size: 12px; cursor: pointer; transition: all .18s; }
+.intent-do:hover { background: var(--accent); color: var(--on-accent); }
+.intent-item.done .intent-do { display: none; }
+.intent-done-tag { flex: none; font-size: 12px; color: #9be8c0; }
+.intent-empty { font-size: 13px; color: var(--ink-soft); padding: 8px 2px; }
+
 /* ---------- 响应式 ---------- */
 @media (max-width: 980px) {
   .row2, .row3, .qa-grid { grid-template-columns: 1fr; }
@@ -737,24 +774,24 @@ body {
 }
 .bnav-btn:active { transform: scale(0.94); }
 
-/* 悬浮「记一笔」FAB：手机端常驻右下角，桌面端用顶部按钮即可，避免重复 */
+/* 悬浮「聊情绪」FAB：桌面端 / 手机端都常驻右下角；「记一笔」留在顶部按钮，两个入口不重复 */
 .fab { display: none; }
+.fab.fab-rec {
+  display: flex; align-items: center; justify-content: center;
+  position: fixed; z-index: 90;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2, var(--accent)));
+  color: #05222a; border: none; cursor: pointer; touch-action: manipulation;
+  box-shadow: 0 12px 30px -8px var(--accent-glow), 0 0 0 6px var(--accent-soft);
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+.fab.fab-rec:hover { box-shadow: 0 16px 36px -8px var(--accent-glow), 0 0 0 8px var(--accent-soft); }
+.fab.fab-rec:active { transform: scale(.9); }
 @media (max-width: 900px) {
-  .fab.fab-rec {
-    display: flex; align-items: center; justify-content: center;
-    position: fixed; z-index: 90;
-    right: calc(16px + env(safe-area-inset-right));
-    bottom: calc(82px + env(safe-area-inset-bottom));
-    width: 56px; height: 56px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2, var(--accent)));
-    color: #05222a; border: none; cursor: pointer; touch-action: manipulation;
-    box-shadow: 0 12px 30px -8px var(--accent-glow), 0 0 0 6px var(--accent-soft);
-    transition: transform .15s ease, box-shadow .2s ease;
-  }
-  .fab.fab-rec:hover { box-shadow: 0 16px 36px -8px var(--accent-glow), 0 0 0 8px var(--accent-soft); }
-  .fab.fab-rec:active { transform: scale(.9); }
-  /* 手机端顶部「记一笔」交给 FAB，避免两个入口 */
-  #recBtn { display: none; }
+  /* 手机端 FAB 抬到固定底部导航之上，避免遮挡 */
+  .fab.fab-rec { bottom: calc(82px + env(safe-area-inset-bottom)); }
 }
 
 /* 页面底部给固定导航留空 */
@@ -1657,8 +1694,98 @@ body {
   .chip:hover { transform: translateY(-2px); }
 }
 </style>
+<style id="bootStyle">
+/* 启动屏（PWA 添加到桌面后打开的第一个界面）：纯 CSS 动效，首屏即绘制，无额外网络依赖 */
+#boot {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-0); color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity .6s ease, visibility .6s ease;
+}
+#boot.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.boot-inner {
+  display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 24px;
+  animation: bootRise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.boot-orb { position: relative; width: 98px; height: 98px; display: flex; align-items: center; justify-content: center; }
+.boot-core {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #eafff9, var(--accent) 58%, var(--accent-2, var(--accent)) 100%);
+  box-shadow: 0 0 0 6px var(--accent-soft), 0 0 34px 6px var(--accent-glow);
+  animation: orbPulse 2.4s ease-in-out infinite;
+}
+.boot-ring {
+  position: absolute; left: 50%; top: 50%; width: 98px; height: 98px; margin: -49px 0 0 -49px;
+  border-radius: 50%; border: 1.5px solid var(--accent); opacity: 0;
+  animation: ringOut 2.4s ease-out infinite;
+}
+.boot-ring.r2 { animation-delay: 1.2s; }
+.boot-name {
+  font-family: var(--font-display); font-weight: 800; font-size: 30px; letter-spacing: 3px;
+  color: var(--ink); animation: bootFade 1s ease both; animation-delay: .15s;
+}
+.boot-tag {
+  font-family: var(--font-body); font-size: 13.5px; color: var(--ink-soft); letter-spacing: .4px;
+  text-align: center; max-width: 280px; line-height: 1.65;
+  animation: bootFade 1s ease both; animation-delay: .3s;
+}
+.boot-bar { width: 150px; height: 3px; border-radius: 999px; background: var(--bg-2, rgba(255,255,255,.08)); overflow: hidden; }
+.boot-bar-fill {
+  display: block; height: 100%; width: 42%; border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: bootShimmer 1.4s ease-in-out infinite;
+}
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 6px var(--accent-soft), 0 0 30px 4px var(--accent-glow); }
+  50% { transform: scale(1.08); box-shadow: 0 0 0 10px var(--accent-soft), 0 0 46px 10px var(--accent-glow); }
+}
+@keyframes ringOut { 0% { transform: scale(.5); opacity: .5; } 80% { opacity: 0; } 100% { transform: scale(1.3); opacity: 0; } }
+@keyframes bootRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bootFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bootShimmer { 0% { transform: translateX(-120%); } 100% { transform: translateX(360%); } }
+@media (prefers-reduced-motion: reduce) {
+  #boot .boot-inner, .boot-core, .boot-ring, .boot-name, .boot-tag, .boot-bar-fill { animation: none !important; }
+  #boot .boot-inner { opacity: 1; transform: none; }
+  .boot-ring { display: none; }
+}
+</style>
+<style id="featStyle">
+  /* 聊情绪 独立弹窗 */
+  .chat-modal { max-width: 560px; width: calc(100% - 32px); flex-direction: column; max-height: 88vh; padding: 0; overflow: hidden; }
+  .chat-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .chat-modal-head > span { font-size: 13px; color: var(--ink-soft); letter-spacing: .6px; text-transform: uppercase; }
+  .chat-modal-actions { display: flex; align-items: center; gap: 8px; }
+  .chat-modal .ai-chat { flex: 1; min-height: 120px; max-height: 54vh; overflow-y: auto; margin-top: 0; padding: 14px 16px; }
+  .chat-modal .ai-row { padding: 0 16px 12px; }
+  .chat-modal .ai-record-prompt { margin: 0 16px 12px; }
+  .chat-modal .assist-saved { padding: 0 16px 14px; }
+  @media (max-width: 600px) { .chat-modal { width: calc(100% - 24px); max-height: 92vh; } .chat-modal .ai-chat { max-height: 58vh; } }
+  /* 关于你 · 个人画像 */
+  .profile-block { margin-bottom: 16px; }
+  .profile-head { font-size: 13px; color: var(--ink-soft); letter-spacing: .4px; margin-bottom: 8px; display: flex; align-items: baseline; gap: 8px; }
+  .profile-head small { font-weight: 400; opacity: .7; }
+  .profile-ul { margin: 0; padding-left: 18px; }
+  .profile-ul li { margin: 4px 0; color: var(--ink); font-size: 13.5px; line-height: 1.5; }
+  /* 设置：空间管理 */
+  .set-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; align-items: center; }
+  .set-select { background: var(--bg-1); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 140px; }
+  .set-hint { font-size: 12px; color: var(--accent); margin-top: 8px; min-height: 14px; }
+  /* 未完成的打算（看板内） */
+  #intentPanel .intent-block { margin: 0; }
+  .intent-undo { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); border-radius: 999px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+  .intent-undo:hover { color: var(--ink); border-color: var(--accent); }
+</style>
 </head>
 <body>
+<div id="boot" aria-hidden="true">
+  <div class="boot-inner">
+    <div class="boot-orb"><span class="boot-ring"></span><span class="boot-ring r2"></span><span class="boot-core"></span></div>
+    <div class="boot-name">情绪地图</div>
+    <div class="boot-tag">把说不清的不对劲，变成看得见的轨迹</div>
+    <div class="boot-bar"><span class="boot-bar-fill"></span></div>
+  </div>
+</div>
 <canvas id="bg"></canvas>
 <div class="glow" id="glow"></div>
 <div class="aurora"><span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="a4"></span></div>
@@ -1808,6 +1935,12 @@ body {
         </h2>
         <div class="peaks" id="peaks"></div>
       </section>
+      <section class="panel reveal" id="intentPanel">
+        <h2><span class="ic"></span>未完成的打算 <small style="font-weight:400;color:var(--ink-soft)">想做却没做的事，会在这里汇总</small></h2>
+        <div class="intent-block" id="intentBlock">
+          <div id="intentList" class="intent-list"></div>
+        </div>
+      </section>
     </div>
 
     <!-- 提问（可点击作答） -->
@@ -1820,9 +1953,22 @@ body {
       <div class="qa-grid" id="qaList"></div>
     </section>
 
-    <!-- AI 对话（DeepSeek 直连） -->
-    <section class="ai-box reveal">
-      <h2 style="font-size:14px;color:var(--ink-soft);letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span>AI 对话 · 用 DeepSeek 聊情绪</span><button class="btn sm ghost" id="askDataBtn" type="button">问数据</button></h2>
+    <!-- 聊情绪入口卡：点开「+」或这里，弹出独立对话窗 -->
+    <section class="panel reveal" id="chatEntryCard">
+      <h2><span class="ic"></span>聊情绪</h2>
+      <p style="color:var(--ink-soft);font-size:14px;margin:2px 0 12px">卡住、烦躁，或只是想说说话的时候，随时找 AI 聊聊。它会结合你过往的记录温柔回应，聊完还能一键记一笔。</p>
+      <button class="btn primary" id="openChatBtn" type="button">打开聊情绪</button>
+    </section>
+
+    <!-- 聊情绪 独立弹窗（DeepSeek 直连） -->
+    <div class="modal chat-modal" id="chatModal">
+      <button class="mclose" id="chatClose" type="button" aria-label="关闭">×</button>
+      <div class="chat-modal-head">
+        <span>AI 对话 · 用 DeepSeek 聊情绪</span>
+        <div class="chat-modal-actions">
+          <button class="btn sm ghost" id="askDataBtn" type="button">问数据</button>
+        </div>
+      </div>
       <div class="ai-chat" id="aiChat"></div>
       <div class="ai-row">
         <div class="ai-input-wrap">
@@ -1836,7 +1982,7 @@ body {
         <button class="btn sm ghost" id="aiRecordSkip" type="button">不用了</button>
       </div>
       <div class="assist-saved" id="aiChatStatus"></div>
-    </section>
+    </div>
 
   </main>
 
@@ -1861,6 +2007,10 @@ body {
         <button class="collapse-btn" id="insightCollapse" type="button" aria-expanded="true">收起</button>
       </div>
       <div class="insight-body" id="insightBody">
+        <div class="profile-block" id="profileBlock">
+          <div class="profile-head"><span class="ic"></span>关于你 · AI 观察到的 <small>随你记的笔数自动更新</small></div>
+          <div id="profileList" class="profile-list"></div>
+        </div>
         <div class="insight-grid">
           <div class="insight-card">
             <h3>来源分析 · 标签</h3>
@@ -2024,7 +2174,28 @@ body {
       <label class="switch"><input type="checkbox" id="recImportant"> 标记为「重要事件」（会出现在时间轴里高亮）</label>
       <span class="rec-free-hint">可选。只标记你真正想回头看的事，不用每条都标。</span>
     </div>
-    <div class="rec-field"><label>可能的原因（可留空）</label><input type="text" id="recCause" placeholder="之后回头填也行"></div>
+    <div class="rec-field">
+      <label>这次是因为什么？（可选）</label>
+      <div class="cause-pick" id="recCausePick">
+        <button type="button" class="cause-chip" data-cause="intent">想做但没做</button>
+        <button type="button" class="cause-chip" data-cause="social">人际</button>
+        <button type="button" class="cause-chip" data-cause="stress">压力</button>
+        <button type="button" class="cause-chip" data-cause="body">身体</button>
+        <button type="button" class="cause-chip" data-cause="other">其他</button>
+      </div>
+    </div>
+    <div class="rec-intent" id="recIntentBox" style="display:none">
+      <div class="rec-field"><label>你原本想做却没做的是（必填）</label><input type="text" id="recIntent" placeholder="如 去跑步 / 写完周报 / 给妈妈打电话"></div>
+      <div class="rec-field">
+        <label>这件事对你的重要程度</label>
+        <div class="weight-pick" id="recWeightPick">
+          <button type="button" class="weight-chip" data-w="1">轻</button>
+          <button type="button" class="weight-chip" data-w="2">中</button>
+          <button type="button" class="weight-chip" data-w="3">重</button>
+        </div>
+        <span class="rec-free-hint">选「想做但没做」时填写；记完会在「情绪洞察」里汇总成「未完成的打算」。</span>
+      </div>
+    </div>
   </div>
   <div class="mactions">
     <button class="btn danger ghost" id="recDelete" type="button" style="display:none">删除此条</button>
@@ -2117,11 +2288,20 @@ body {
   <div class="set-block">
     <label>数据备份（可选 · 导出 / 导入 JSON 副本）</label>
     <div class="set-row">
-      <button class="btn" id="setExport">导出本地副本</button>
+      <button class="btn" id="setExport">导出本地副本（JSON）</button>
+      <button class="btn" id="setExportCsv">导出表格（CSV）</button>
       <button class="btn" id="setImportBtn">导入</button>
       <button class="btn" id="setClear">清空缓存</button>
     </div>
     <input type="file" id="setImport" accept="application/json,.json" hidden>
+    <label style="margin-top:14px">空间管理（把数据按主题分开，如工作 / 生活）</label>
+    <div class="set-row">
+      <select id="spaceSel" class="set-select"></select>
+      <button class="btn" id="spaceNew">新建空间</button>
+      <button class="btn ghost" id="spaceRename">重命名</button>
+      <button class="btn danger ghost" id="spaceDel">删除</button>
+    </div>
+    <div class="set-hint" id="spaceHint"></div>
   </div>
   <div class="msaved" id="setMsg"></div>
   <div class="set-ver" id="setVer"></div>
@@ -2242,7 +2422,7 @@ body {
   <button class="bnav-btn" id="navHist"><span>历史</span></button>
   <button class="bnav-btn" id="navTrash"><span>回收站</span></button>
 </div>
-<button class="fab fab-rec" id="recFab" type="button" aria-label="记一笔" title="记一笔">
+<button class="fab fab-rec" id="recFab" type="button" aria-label="聊情绪" title="聊情绪">
   <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
 </button>
 
@@ -2262,6 +2442,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
 
   /* ---------- 本地数据：localStorage 持久化 + 导入导出（本地保存） ---------- */
   const LS_KEY = 'mood.data.v2';
+  const SPACE_KEY = 'mood.spaces.v1';
   function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function loadData() {
     try { const s = localStorage.getItem(LS_KEY); if (s) { const d = JSON.parse(s); if (d && Array.isArray(d.records)) return d; } } catch (e) {}
@@ -2284,7 +2465,18 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
   const Q_PROMPTS = window.__Q_PROMPTS__ || [];
   const NEXT_Q = DATA.nextQuestions;
   const GEN_DATE = window.__GEN_DATE__ || '';
-  function saveData() { try { localStorage.setItem(LS_KEY, JSON.stringify(DATA)); } catch (e) {} }
+  // 多空间：每次保存都把「当前空间」的完整快照写回 SPACE_KEY，保证切换/重载后不丢当前空间的数据
+  function persistCurrentSpace() {
+    let sp; try { sp = JSON.parse(localStorage.getItem(SPACE_KEY)); } catch (e) { sp = null; }
+    if (!sp || !sp.spaces) sp = { active: '默认空间', spaces: {} };
+    sp.spaces[sp.active] = {
+      records: DATA.records, trash: DATA.trash, deleted: DATA.deleted,
+      revived: DATA.revived, trashPurged: DATA.trashPurged,
+      nextQuestions: DATA.nextQuestions, todayQuestion: DATA.todayQuestion
+    };
+    try { localStorage.setItem(SPACE_KEY, JSON.stringify(sp)); } catch (e) {}
+  }
+  function saveData() { try { localStorage.setItem(LS_KEY, JSON.stringify(DATA)); persistCurrentSpace(); } catch (e) {} }
   const recs = (DATA.records || []).slice().sort((a, b) => a.date < b.date ? -1 : 1);
 
   /* ---------- 本地服务连接探测（决定能否「网页内直接写回文件」） ---------- */
@@ -2736,6 +2928,42 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     localStorage.removeItem(LS_KEY);
     const sm = $('#setMsg'); if (sm) sm.textContent = '✓ 已清空浏览器数据（刷新后回到初始状态）';
   }
+  // 增强导出：CSV（Excel 友好，带 BOM 防中文乱码）
+  function exportCsv() {
+    const rows = ['日期,时间,记录人,心情,精力,紧绷,睡眠,场景,标签,原因,想做事项,重要度,已完成,备注'];
+    (DATA.records || []).forEach(r => {
+      const w = { 1: '轻', 2: '中', 3: '重' }[+r.intentWeight] || '';
+      const cells = [r.date, r.time, r.author, r.mood, r.energy, r.tension, r.sleep, r.scene, (r.tags || []).join('/'), r.cause, r.intent, w, r.intentDone ? '是' : '', (r.note || '').replace(/\n/g, ' ')];
+      rows.push(cells.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
+    });
+    const blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = '情绪记录-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  /* ---------- 多空间管理（本地优先，把数据按主题分开，如工作 / 生活） ---------- */
+  function loadSpaces() {
+    try { const s = JSON.parse(localStorage.getItem(SPACE_KEY)); if (s && s.spaces) return s; } catch (e) {}
+    return { active: '默认空间', spaces: { '默认空间': { records: DATA.records, trash: DATA.trash, deleted: DATA.deleted, revived: DATA.revived, trashPurged: DATA.trashPurged } } };
+  }
+  function saveSpaces(sp) { try { localStorage.setItem(SPACE_KEY, JSON.stringify(sp)); } catch (e) {} }
+  function applySpace(name) {
+    const sp = loadSpaces();
+    if (!sp.spaces[name]) return;
+    const cur = sp.spaces[name];
+    DATA.records = Array.isArray(cur.records) ? cur.records : [];
+    DATA.trash = cur.trash || []; DATA.deleted = cur.deleted || [];
+    DATA.revived = cur.revived || []; DATA.trashPurged = cur.trashPurged || [];
+    DATA.nextQuestions = cur.nextQuestions || []; DATA.todayQuestion = cur.todayQuestion || '';
+    recs.length = 0; DATA.records.slice().sort((a, b) => a.date < b.date ? -1 : 1).forEach(x => recs.push(x));
+    sp.active = name; saveSpaces(sp); saveData(); buildQA(); updateConn(); renderAll();
+  }
+  function refreshSpaceSel() {
+    const sp = loadSpaces(); const sel = $('#spaceSel'); if (!sel) return;
+    sel.innerHTML = '';
+    Object.keys(sp.spaces).forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n + (n === sp.active ? '（当前）' : ''); sel.appendChild(o); });
+    sel.value = sp.active;
+  }
 
   /* ---------- DeepSeek（浏览器直连，key 仅存本机，不上传任何服务器） ---------- */
   const DS_URL = 'https://api.deepseek.com/chat/completions';
@@ -2897,6 +3125,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     const tip = $('#recTip'); if (tip) { tip.style.display = 'none'; tip.classList.remove('show'); }
     $('#recFree').value = '';
     $('#recImportant').checked = false;
+    resetCauseUI();
     const sg = $('#recSuggest'); if (sg) { sg.style.display = 'none'; sg.innerHTML = ''; }
     $('#recNote').value = text || '';
     md.classList.add('show'); $('#scrim').classList.add('show');
@@ -3121,9 +3350,25 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     setVal('recBody', Array.isArray(o.body) ? o.body.join(', ') : '');
     setVal('recBehavior', Array.isArray(o.behavior) ? o.behavior.join(', ') : '');
     setVal('recNote', o.note || raw || '');
-    setVal('recCause', o.cause || '');
+    setCauseUI(o.cause || '', o.intent || '', o.intentWeight || null);
     const ti = $('#recTags'); if (ti) ti.dispatchEvent(new Event('input'));
   }
+  function setCauseUI(cause, intent, weight) {
+    const chips = document.querySelectorAll('#recCausePick .cause-chip');
+    chips.forEach(c => c.classList.toggle('active', c.dataset.cause === cause));
+    const box = $('#recIntentBox');
+    if (cause === 'intent') {
+      if (box) box.style.display = '';
+      const iv = $('#recIntent'); if (iv) iv.value = intent || '';
+      const w = +weight || 2;
+      document.querySelectorAll('#recWeightPick .weight-chip').forEach(c => c.classList.toggle('active', +c.dataset.w === w));
+    } else {
+      if (box) box.style.display = 'none';
+      const iv = $('#recIntent'); if (iv) iv.value = '';
+      document.querySelectorAll('#recWeightPick .weight-chip').forEach(c => c.classList.remove('active'));
+    }
+  }
+  function resetCauseUI() { setCauseUI('', '', null); }
 
   /* ---------- 历史记录列表 + 底部导航（手机端） ---------- */
   function histFiltered() {
@@ -4038,7 +4283,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     document.querySelectorAll('[data-self-toggle]').forEach(t => t.style.display = show ? '' : 'none');
   }
   function renderDash() {
-    renderStats(); renderTrend(); renderHeat(); renderTags(); renderSleep(); renderScatter(); renderPeaks(); renderCalendar(); syncSelfToggles();
+    renderStats(); renderTrend(); renderHeat(); renderTags(); renderSleep(); renderScatter(); renderPeaks(); renderCalendar(); renderIntentList(); syncSelfToggles();
   }
   // 皮尔逊相关系数
   function pearson(pts) {
@@ -4099,6 +4344,87 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
         '</div>';
     }).filter(Boolean).join('') || '<div class="src-empty">维度数据不足（睡眠/精力/紧绷每项至少 5 条）</div>';
     $('#insightCorr').innerHTML = corrHtml;
+    renderProfile();
+  }
+  // 跨会话个人画像：从全部记录累积「关于你」的观察，每次解读都带上，让 AI 渐进地更懂你
+  let lastProfile = '';
+  function buildProfile() {
+    const rs = recs;
+    const all = DATA.records || [];
+    if (!rs.length) return { text: '（还没有足够的数据，多记几笔后这里会慢慢出现关于你的观察）', obs: [] };
+    const obs = [];
+    const dates = rs.map(r => r.date).filter(Boolean).sort();
+    obs.push('你一共记录了 ' + rs.length + ' 条情绪，最早可追溯到 ' + (dates[0] || '—') + '。');
+    const avgM = avg(rs, 'mood');
+    obs.push('整体平均心情 ' + fmt(avgM) + ' / 5' + (avgM >= 3.5 ? '，总体偏稳。' : avgM >= 2.5 ? '，起伏中等。' : '，近期偏低，多照顾自己。'));
+    const tagMap = {};
+    rs.forEach(r => (r.tags || []).forEach(t => { (tagMap[t] = tagMap[t] || []).push(+r.mood || 3); }));
+    const lowTags = Object.keys(tagMap).map(t => ({ t, a: tagMap[t].reduce((x, y) => x + y, 0) / tagMap[t].length, n: tagMap[t].length })).filter(x => x.n >= 2).sort((a, b) => a.a - b.a).slice(0, 3);
+    if (lowTags.length) obs.push('最消耗你的标签：' + lowTags.map(x => x.t + '（平均 ' + fmt(x.a) + '）').join('、') + '。');
+    const intents = all.filter(r => r && r.cause === 'intent' && (r.intent || '').trim());
+    if (intents.length) {
+      const undone = intents.filter(r => !r.intentDone);
+      const freq = {};
+      intents.forEach(r => { const k = (r.intent || '').trim(); freq[k] = (freq[k] || 0) + 1; });
+      const top = Object.keys(freq).sort((a, b) => freq[b] - freq[a]).slice(0, 3).map(k => k + (freq[k] > 1 ? '×' + freq[k] : ''));
+      obs.push('「想做却没做」共 ' + intents.length + ' 次，还没做 ' + undone.length + ' 次；最常卡住：' + top.join('、') + '。');
+    }
+    const sleepPts = rs.map(r => [+r.sleep, +r.mood]).filter(p => p[0] > 0 && !isNaN(p[0]) && p[1] != null);
+    if (sleepPts.length >= 5) {
+      const r = pearson(sleepPts);
+      if (!isNaN(r) && r > 0.3) obs.push('睡眠越好，心情也越好（相关 ' + r.toFixed(2) + '），睡眠是你的情绪地基。');
+      else if (!isNaN(r) && r < -0.3) obs.push('睡眠与心情呈负相关（' + r.toFixed(2) + '），疲惫时反而更平静，值得留意。');
+    }
+    const wd = [0, 0, 0, 0, 0, 0, 0], wn = [0, 0, 0, 0, 0, 0, 0];
+    rs.forEach(r => { const d = new Date(r.date + 'T00:00:00'); const i = d.getDay(); wd[i] += (+r.mood || 3); wn[i]++; });
+    let lowDay = -1, lowAvg = 99;
+    for (let i = 0; i < 7; i++) { if (wn[i] >= 2 && wd[i] / wn[i] < lowAvg) { lowAvg = wd[i] / wn[i]; lowDay = i; } }
+    const wnNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    if (lowDay >= 0) obs.push(wnNames[lowDay] + ' 的心情平均最低（' + fmt(lowAvg) + '），可以提前给自己一点缓冲。');
+    return { text: obs.join(' '), obs };
+  }
+  function renderProfile() {
+    const el = $('#profileList'); if (!el) return;
+    const p = buildProfile();
+    lastProfile = p.text;
+    if (!p.obs.length) { el.innerHTML = '<div class="src-empty">' + escapeHtml(p.text) + '</div>'; return; }
+    el.innerHTML = '<ul class="profile-ul">' + p.obs.map(o => '<li>' + escapeHtml(o) + '</li>').join('') + '</ul>';
+  }
+  function renderIntentList() {
+    const list = $('#intentList'); if (!list) return;
+    const items = (DATA.records || []).filter(r => r && r.cause === 'intent' && (r.intent || '').trim())
+      .sort((a, b) => (a.intentDone ? 1 : 0) - (b.intentDone ? 1 : 0) || (a.date < b.date ? 1 : -1))
+      .slice(0, 14);
+    if (!items.length) {
+      list.innerHTML = '<div class="intent-empty">还没有记录过「想做却没做」的情绪。下次想做却没做时，在「记一笔」里点「想做但没做」标记一下，这里会帮你汇总，看出哪些事反复卡住你。</div>';
+      return;
+    }
+    const wTxt = { 1: '轻', 2: '中', 3: '重' };
+    list.innerHTML = items.map(r => {
+      const w = +r.intentWeight || 2;
+      const done = !!r.intentDone;
+      const meta = (r.date || '') + (done ? ' · 已做' : ' · 还没做') + (r.author ? ' · ' + escapeHtml(r.author) : '');
+      return '<div class="intent-item' + (done ? ' done' : '') + '" data-id="' + escapeHtml(r.id || '') + '">' +
+        '<div class="intent-main">' +
+          '<div class="intent-txt">' + escapeHtml(r.intent) + '</div>' +
+          '<div class="intent-meta">' + escapeHtml(meta) + '</div>' +
+        '</div>' +
+        '<span class="intent-w w' + w + '">' + (wTxt[w] || '中') + '</span>' +
+        (done ? '<button type="button" class="intent-undo">撤销</button>' : '<button type="button" class="intent-do">我做了</button>') +
+      '</div>';
+    }).join('');
+    list.querySelectorAll('.intent-do').forEach(btn => btn.addEventListener('click', function () {
+      const id = btn.closest('.intent-item').dataset.id;
+      if (!id) return;
+      updateRecord(id, { intentDone: true });
+      renderIntentList();
+    }));
+    list.querySelectorAll('.intent-undo').forEach(btn => btn.addEventListener('click', function () {
+      const id = btn.closest('.intent-item').dataset.id;
+      if (!id) return;
+      updateRecord(id, { intentDone: false });
+      renderIntentList();
+    }));
   }
   async function insightAiSummary() {
     const btn = $('#insightAi'); if (!btn) return;
@@ -4106,9 +4432,15 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     if (!dsKey()) { if (out) out.textContent = '请先在「⚙ 设置」里填入 DeepSeek API Key。'; return; }
     const tagTxt = ($('#insightTagSrc').textContent || '').trim();
     const corrTxt = ($('#insightCorr').textContent || '').trim();
-    if (!tagTxt && !corrTxt) { if (out) out.textContent = '当前范围数据不足，先多记几笔再来解读。'; return; }
-    const sys = '你是情绪数据分析师。基于下面整理的「来源分析」和「维度相关性」，用中文写一段不超过 150 字的解读：哪些来源最滋养 / 最消耗用户，睡眠、精力、紧绷和心情的关系意味着什么，最后给一句温和的提醒。不要诊断、不要恐吓。';
-    const user = '来源分析（标签）：\n' + tagTxt + '\n\n维度相关性：\n' + corrTxt;
+    const profTxt = (lastProfile || '').trim();
+    const intents = (DATA.records || []).filter(r => r && r.cause === 'intent' && (r.intent || '').trim());
+    const undone = intents.filter(r => !r.intentDone).map(r => r.intent);
+    const intentTxt = intents.length
+      ? ('想做却没做：共 ' + intents.length + ' 条，其中还没做的有 ' + undone.length + ' 条（' + undone.slice(0, 6).map(function (s) { return escapeHtml(s); }).join('、') + (undone.length > 6 ? ' 等' : '') + '）')
+      : '';
+    if (!tagTxt && !corrTxt && !intentTxt && !profTxt) { if (out) out.textContent = '当前范围数据不足，先多记几笔再来解读。'; return; }
+    const sys = '你是情绪数据分析师。基于下面「关于你」的长期观察、来源分析、维度相关性和「想做却没做」清单，用中文写一段不超过 170 字的解读：哪些来源最滋养 / 最消耗用户，睡眠、精力、紧绷和心情的关系意味着什么，结合长期观察点出用户的情绪规律，并重点点出反复「想做却没做」的事可能如何消耗用户，最后给一句温和的提醒。不要诊断、不要恐吓。';
+    const user = '关于你的长期观察：\n' + (profTxt || '（暂无）') + '\n\n来源分析（标签）：\n' + tagTxt + '\n\n维度相关性：\n' + corrTxt + (intentTxt ? ('\n\n未完成的打算：\n' + intentTxt) : '');
     btn.disabled = true; btn.textContent = '解读中…';
     if (out) out.textContent = '';
     try {
@@ -4626,7 +4958,10 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
       body: f('recBody') ? f('recBody').split(/[,，]/).map(s => s.trim()).filter(Boolean) : [],
       behavior: f('recBehavior') ? f('recBehavior').split(/[,，]/).map(s => s.trim()).filter(Boolean) : [],
       note: f('recNote'),
-      cause: f('recCause'),
+      cause: (function () { var el = document.querySelector('#recCausePick .cause-chip.active'); return el ? el.dataset.cause : ''; })(),
+      intent: (function () { var el = document.querySelector('#recCausePick .cause-chip.active'); return (el && el.dataset.cause === 'intent') ? f('recIntent') : ''; })(),
+      intentWeight: (function () { var el = document.querySelector('#recCausePick .cause-chip.active'); if (!el || el.dataset.cause !== 'intent') return null; var w = document.querySelector('#recWeightPick .weight-chip.active'); return w ? +w.dataset.w : 2; })(),
+      intentDone: state.editingId ? !!((DATA.records.find(function (x) { return x.id === state.editingId; }) || {}).intentDone) : false,
       important: $('#recImportant') ? $('#recImportant').checked : false,
       _device: DEVICE
     };
@@ -4807,17 +5142,49 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     const tip = $('#recTip'); if (tip) { tip.style.display = 'none'; tip.classList.remove('show'); }
     const fr = $('#recFree'); if (fr) fr.value = '';
     const imp = $('#recImportant'); if (imp) imp.checked = false;
+    resetCauseUI();
     const sg = $('#recSuggest'); if (sg) { sg.style.display = 'none'; sg.innerHTML = ''; }
     $('#recModal').classList.add('show'); $('#scrim').classList.add('show');
   }
+  function openChat() {
+    // 右下角「+」= 聊情绪：打开独立对话弹窗并聚焦输入框
+    const m = $('#chatModal'); if (!m) return;
+    m.classList.add('show'); const sc = $('#scrim'); if (sc) sc.classList.add('show');
+    const inp = $('#aiInput');
+    if (inp) { setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60); }
+  }
+  function closeChat() {
+    const m = $('#chatModal'); if (m) m.classList.remove('show');
+    const sc = $('#scrim'); if (sc) sc.classList.remove('show');
+  }
   function bindRecordModal() {
     on('#recBtn', 'click', openRecModal);
-    on('#recFab', 'click', openRecModal);
+    on('#recFab', 'click', openChat);
     $('#recClose').addEventListener('click', () => { $('#recModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
     on('#dayPickClose', 'click', () => { const m = $('#dayPickModal'); if (m) m.classList.remove('show'); $('#scrim').classList.remove('show'); });
     document.querySelectorAll('#recMood button').forEach(b => b.addEventListener('click', () => {
       document.querySelectorAll('#recMood button').forEach(x => x.classList.remove('active'));
       b.classList.add('active'); $('#recMood').dataset.val = b.dataset.m;
+    }));
+    // 触发原因标签：单选；选「想做但没做」时展开意图输入
+    const causeBox = $('#recCausePick');
+    if (causeBox) causeBox.querySelectorAll('.cause-chip').forEach(ch => ch.addEventListener('click', () => {
+      const on = ch.classList.contains('active');
+      causeBox.querySelectorAll('.cause-chip').forEach(x => x.classList.remove('active'));
+      const box = $('#recIntentBox');
+      if (on) { if (box) box.style.display = 'none'; const iv = $('#recIntent'); if (iv) iv.value = ''; document.querySelectorAll('#recWeightPick .weight-chip').forEach(x => x.classList.remove('active')); return; }
+      ch.classList.add('active');
+      if (ch.dataset.cause === 'intent') {
+        if (box) box.style.display = '';
+        const iv = $('#recIntent'); if (iv) iv.focus();
+        if (!document.querySelector('#recWeightPick .weight-chip.active')) { const mid = document.querySelector('#recWeightPick .weight-chip[data-w="2"]'); if (mid) mid.classList.add('active'); }
+      } else { if (box) box.style.display = 'none'; }
+    }));
+    // 重要程度：单选
+    const wBox = $('#recWeightPick');
+    if (wBox) wBox.querySelectorAll('.weight-chip').forEach(w => w.addEventListener('click', () => {
+      wBox.querySelectorAll('.weight-chip').forEach(x => x.classList.remove('active'));
+      w.classList.add('active');
     }));
     $('#recSave').addEventListener('click', submitRecord);
     $('#recFree').addEventListener('input', liveSuggest);
@@ -4868,7 +5235,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
   function bindInteractions() {
     const panel = $('#themePanel');
     $('#themeBtn').addEventListener('click', () => { panel.classList.toggle('show'); $('#scrim').classList.toggle('show'); });
-    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); closeModal(); closeHistory(); closeTimeline(); $('#extractModal').classList.remove('show'); $('#dayPickModal').classList.remove('show'); });
+    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); closeModal(); closeHistory(); closeTimeline(); $('#extractModal').classList.remove('show'); $('#dayPickModal').classList.remove('show'); closeChat(); });
     $('#viewLabel').addEventListener('click', () => { if (state.mode === 'day') { const ids = recs.filter(r => r.date === state.day).map(r => r.id); if (ids.length) pickDayRecords(ids, state.day); } });
 
     /* ---------- 设置：DeepSeek / 云同步与备份 ---------- */
@@ -4883,7 +5250,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
       $('#dsModel').style.opacity = manual ? '1' : '0.5';
       loadGh();
       $('#setModal').classList.add('show'); $('#scrim').classList.add('show');
-      renderSetVer();
+      renderSetVer(); refreshSpaceSel();
     });
     $('#setClose').addEventListener('click', () => { $('#setModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
     $('#dsKey').addEventListener('input', e => {
@@ -4925,6 +5292,38 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
       ghEye.title = show ? '隐藏令牌' : '显示令牌';
     });
     $('#setExport').addEventListener('click', exportData);
+    $('#setExportCsv').addEventListener('click', exportCsv);
+    // 多空间：切换 / 新建 / 重命名 / 删除（本地优先；云同步会跟随当前激活空间）
+    $('#spaceSel').addEventListener('change', e => {
+      const sp = loadSpaces(); if (!sp.spaces[e.target.value]) return;
+      applySpace(e.target.value); refreshSpaceSel();
+      const sh = $('#spaceHint'); if (sh) sh.textContent = '已切换到「' + e.target.value + '」';
+    });
+    $('#spaceNew').addEventListener('click', () => {
+      const name = window.prompt('给新空间起个名字（如：工作 / 生活）', '新空间'); if (!name) return;
+      const n = name.trim(); if (!n) return;
+      const sp = loadSpaces();
+      if (sp.spaces[n]) { const sh = $('#spaceHint'); if (sh) sh.textContent = '已存在同名空间'; return; }
+      sp.spaces[n] = { records: [] }; sp.active = n; saveSpaces(sp);
+      DATA.records = []; DATA.trash = []; DATA.deleted = []; DATA.revived = []; DATA.trashPurged = [];
+      recs.length = 0; saveData(); buildQA(); updateConn(); renderAll();
+      refreshSpaceSel(); const sh = $('#spaceHint'); if (sh) sh.textContent = '已创建并切换到「' + n + '」';
+    });
+    $('#spaceRename').addEventListener('click', () => {
+      const sp = loadSpaces(); const old = sp.active;
+      const name = window.prompt('重命名当前空间', old); if (!name) return;
+      const n = name.trim(); if (!n || n === old) return;
+      if (sp.spaces[n]) { const sh = $('#spaceHint'); if (sh) sh.textContent = '已存在同名空间'; return; }
+      const data = sp.spaces[old]; delete sp.spaces[old]; sp.spaces[n] = data; sp.active = n; saveSpaces(sp);
+      refreshSpaceSel(); const sh = $('#spaceHint'); if (sh) sh.textContent = '已重命名为「' + n + '」';
+    });
+    $('#spaceDel').addEventListener('click', async () => {
+      const sp = loadSpaces(); const cur = sp.active;
+      if (Object.keys(sp.spaces).length <= 1) { const sh = $('#spaceHint'); if (sh) sh.textContent = '至少保留一个空间，不能删除'; return; }
+      const ok = await appConfirm('删除空间「' + cur + '」？其中的记录会一起删除。', '删除空间'); if (!ok) return;
+      delete sp.spaces[cur]; sp.active = Object.keys(sp.spaces)[0]; saveSpaces(sp);
+      applySpace(sp.active); refreshSpaceSel(); const sh = $('#spaceHint'); if (sh) sh.textContent = '已删除「' + cur + '」，切回「' + sp.active + '」';
+    });
     $('#setImportBtn').addEventListener('click', () => $('#setImport').click());
     $('#setImport').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
 
@@ -4976,7 +5375,7 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     $('#ghTestOk').addEventListener('click', ghTestClose);
     $('#ghTestScrim').addEventListener('click', ghTestClose);
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') { const am = $('#ghTestModal'); if (am && am.classList.contains('show')) ghTestClose(); }
+      if (e.key === 'Escape') { const am = $('#ghTestModal'); if (am && am.classList.contains('show')) ghTestClose(); const cm = $('#chatModal'); if (cm && cm.classList.contains('show')) closeChat(); }
     });
     $('#ghTest').addEventListener('click', async () => {
       const sm = $('#ghMsg'); const c = ghConf();
@@ -5043,6 +5442,8 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     on('#tlClose', 'click', closeTimeline);
     on('#histClose', 'click', closeHistory);
     on('#aiSend', 'click', aiChat);
+    on('#openChatBtn', 'click', openChat);
+    on('#chatClose', 'click', closeChat);
     on('#aiInput', 'keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') aiChat(); });
     on('#customColor', 'input', e => applyCustom(e.target.value));
     on('#modeDark', 'click', () => { root.setAttribute('data-theme', 'dark'); localStorage.setItem('mood.theme', 'dark'); derivePalette(currentAccent, 'dark'); const d = $('#modeDark'); if (d) d.classList.add('active'); const l = $('#modeLight'); if (l) l.classList.remove('active'); });
@@ -5642,6 +6043,20 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
   }
 
   /* ---------- 启动 ---------- */
+  // 启动屏：渲染完成 / 首屏引导出现后淡出；带最短展示时长，避免一闪而过；并有兜底，绝不卡住界面
+  var BOOT_T0 = Date.now();
+  function hideBoot() {
+    var b = document.getElementById('boot');
+    if (!b || b.dataset.hidden === '1') return;
+    b.dataset.hidden = '1';
+    var wait = Math.max(0, 650 - (Date.now() - BOOT_T0));
+    setTimeout(function () {
+      b.classList.add('hide');
+      setTimeout(function () { if (b && b.parentNode) b.parentNode.removeChild(b); }, 650);
+    }, wait);
+  }
+  window.addEventListener('load', hideBoot);
+  setTimeout(hideBoot, 4500); // 安全兜底：4.5s 后无论如何隐藏
   safeInit('loadSyncState', loadSyncState);   // 先恢复上次的同步结果，顶栏状态才不是瞎写的
   safeInit('buildSwatches', buildSwatches);
   safeInit('initTheme', initTheme);
@@ -5676,17 +6091,17 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     // 同步期间顶栏显示「同步中…」，成功/失败都有明确提示（不再静默吞错误）
     setSyncState('syncing');
     ghSync(null, false).then(function () {
-      renderAll(); genOpening();
+      renderAll(); genOpening(); hideBoot();
     }).catch(function (e) {
       // 加载时同步失败：仍然用本地数据渲染（可能是离线或临时网络问题），不白屏
-      renderAll(); genOpening();
+      renderAll(); genOpening(); hideBoot();
       var m = (e && e.message ? e.message : '同步失败');
       if (!(e && e.status)) m = '无法连接 GitHub（' + m + '），目前显示的是本地缓存数据';
       setSyncState('error', '· ' + m);
       console.warn('[Mood Atlas] 启动同步失败:', m, e);
     });
   } else {
-    genOpening();
+    genOpening(); hideBoot();
   }
 
   safeInit('bindModal', bindModal);
