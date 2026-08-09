@@ -2445,7 +2445,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
+window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -2608,9 +2608,19 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     if (!res.ok) throw await ghHttpErr(res, '列出仓库文件');
     const arr = await res.json();
     if (!Array.isArray(arr)) return [];
-    return arr.filter(function (x) { return x && x.name && /^情绪记录.*\.json$/.test(x.name) && !/回收站/.test(x.name); }).map(function (x) { return x.name; });
+    const myFile = ghMyFile();
+    return arr.filter(function (x) {
+      if (!x || !x.name) return false;
+      if (!/^情绪记录.*\.json$/.test(x.name)) return false;
+      if (/回收站/.test(x.name)) return false;
+      // 隔离模式（已填「我的同步文件」）下，跳过遗留的混装文件 情绪记录.json：它仍可能被尚未迁移的设备写入，
+      // 但已迁移的设备不该再把它合进自己的视图，否则会重新混入别人的旧记录（如旧署名的「兔」）
+      if (myFile && x.name === GH_FILE) return false;
+      return true;
+    }).map(function (x) { return x.name; });
   }
-  /* 多文件聚合拉取：隔离模式下，把自己的文件 + 仓库里其他人的文件 + 旧的 情绪记录.json 全部拉下合并；
+  /* 多文件聚合拉取：隔离模式下，只合入「我的文件 + 其他人的独立文件」，不再合入遗留的混装 情绪记录.json
+     （避免重新混入他人旧记录，如旧署名的「兔」）；若尚未上传任何独立文件则回退聚合混装文件，不丢数据。
      兼容模式（没填「我的同步文件」）则只拉旧的 情绪记录.json，行为和以前完全一致，不回归。
      推送时只用「自己文件」的 sha，绝不碰别人的文件，因此两人并发写也不会 409。 */
   async function ghPullAll() {
@@ -2620,7 +2630,11 @@ window.__BUILD__ = "v25 · 2026-08-09 15:54";</script>
     if (isolation) {
       let listed = [];
       try { listed = await ghListRepoFiles(); } catch (e) { listed = []; }
-      files = Array.from(new Set([myFile, GH_FILE].concat(listed)));
+      // 只合入「我的文件 + 其他人的独立文件」，不再合入遗留混装文件
+      files = Array.from(new Set([myFile].concat(listed)));
+      // 兜底：若仓库里除「我的文件」外没有任何独立文件，说明还没上传过，回退聚合遗留混装文件，避免空数据
+      const others = files.filter(function (n) { return n !== myFile && n !== GH_FILE; });
+      if (others.length === 0) files = Array.from(new Set([myFile, GH_FILE].concat(listed)));
     } else {
       files = [GH_FILE];
     }
