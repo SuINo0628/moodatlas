@@ -246,6 +246,8 @@ body {
 .set-row.nowrap input[type="password"] { min-width: 0; }
 .set-row.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .set-row.grid2 .btn { width: 100%; justify-content: center; }
+.set-row.stay1 { flex-wrap: nowrap; flex-direction: row; align-items: stretch; }
+.set-row.stay1 .btn { flex: 1; min-width: 0; white-space: nowrap; }
 
 /* ---------- 密码框：显示/隐藏眼睛 + Key 格式提示 ---------- */
 .pwd-wrap { position: relative; display: flex; align-items: center; flex: 1; min-width: 0; }
@@ -632,7 +634,7 @@ body {
 }
 .rec-field input:focus, .rec-field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .rec-field textarea { min-height: 62px; resize: vertical; }
-.mood-pick { display: flex; gap: 7px; }
+.mood-pick { display: flex; gap: 7px; width: 100%; justify-content: center; }
 .mood-pick button {
   flex: 1; padding: 12px 0; border-radius: var(--r-sm); border: 1px solid var(--glass-brd);
   background: var(--bg-1); color: var(--ink-soft); font-family: var(--font-display); font-weight: 700; font-size: 15px;
@@ -1833,6 +1835,49 @@ body {
   .trash-batchbar { position: sticky; bottom: 0; left: 0; right: 0; display: none; align-items: center; gap: 8px; padding: 10px 12px; background: var(--glass); border-top: 1px solid var(--glass-brd); z-index: 5; }
   .trash-batchbar.show { display: flex; }
   .trash-batchbar .tb-count { flex: 1; font-size: 13px; color: var(--ink-dim); }
+
+  /* ===== 时间轴 年/月/日 三级折叠 + 记录评论区 ===== */
+  .tl-year-head, .tl-month-head { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; padding: 10px 6px 6px; color: var(--ink); }
+  .tl-year-head { font-size: 18px; font-weight: 700; padding-top: 14px; }
+  .tl-month-head { font-size: 15px; font-weight: 600; color: var(--ink-soft); margin-left: 10px; }
+  .tl-year-count, .tl-month-count { font-size: 12px; font-weight: 400; color: var(--ink-dim); }
+  .tl-year-body { margin-left: 4px; border-left: 2px solid var(--line); padding-left: 8px; }
+  .tl-month-body { margin-left: 6px; border-left: 1px dashed var(--line); padding-left: 6px; }
+  .tl-year-group.collapsed > .tl-year-body,
+  .tl-month-group.collapsed > .tl-month-body,
+  .tl-date-group.collapsed > .tl-date-body { display: none; }
+  .tl-year-group.collapsed > .tl-year-head .tl-chevron,
+  .tl-month-group.collapsed > .tl-month-head .tl-chevron,
+  .tl-date-group.collapsed > .tl-date-head .tl-chevron { transform: rotate(-90deg); }
+  .tl-chevron { width: 14px; height: 14px; flex: 0 0 auto; transition: transform .2s ease; color: var(--ink-dim); }
+
+  /* 评论区：古早博客竖向时间线风 */
+  .tl-comments { margin: 2px 0 12px 26px; }
+  .cmt-head { margin: 2px 0; }
+  .cmt-toggle { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 12.5px; padding: 2px 4px; border-radius: 6px; }
+  .cmt-toggle:hover { color: var(--ink); background: var(--line); }
+  .cmt-chevron { font-size: 13px; transition: transform .2s; }
+  .tl-comments.open .cmt-chevron { transform: rotate(90deg); }
+  .cmt-list { margin: 6px 0 4px; display: flex; flex-direction: column; gap: 8px; }
+  .cmt-item { display: flex; gap: 8px; align-items: flex-start; }
+  .cmt-avatar { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0b1020; font-size: 12px; font-weight: 700; }
+  .cmt-main { flex: 1 1 auto; min-width: 0; }
+  .cmt-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-dim); }
+  .cmt-name { font-weight: 600; }
+  .cmt-del { margin-left: auto; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 11.5px; padding: 1px 4px; border-radius: 5px; }
+  .cmt-del:hover { color: #ff7a85; background: var(--line); }
+  .cmt-bubble { margin-top: 2px; background: var(--line); border-radius: 10px; padding: 7px 10px; font-size: 13px; line-height: 1.5; color: var(--ink); word-break: break-word; }
+  .cmt-item.me .cmt-bubble { background: transparent; border: 1px solid var(--accent); }
+  .cmt-empty { font-size: 12.5px; color: var(--ink-dim); padding: 4px 0; }
+  .cmt-input-row { display: flex; gap: 6px; margin-top: 8px; }
+  .cmt-input { flex: 1 1 auto; min-width: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; color: var(--ink); font-size: 13px; }
+  .cmt-input:focus { outline: none; border-color: var(--accent); }
+  .cmt-send { flex: 0 0 auto; }
+
+  /* 顶栏评论红点（仅共享模式显示） */
+  .cmt-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ff4d4f; margin-left: 8px; vertical-align: middle; box-shadow: 0 0 0 3px rgba(255,77,79,.18); cursor: pointer; }
+  .cmt-dot.on { animation: pulseDot 1.6s ease-in-out infinite; }
+  @keyframes pulseDot { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: .7; } }
 </style>
 </head>
 <body>
@@ -1853,7 +1898,7 @@ body {
   <div class="brand">
     <span class="dot"></span>
     <div>
-      <h1>Mood Atlas · 情绪地图</h1>
+      <h1>Mood Atlas · 情绪地图<span class="cmt-dot" id="cmtDot" title="有新的评论" style="display:none"></span></h1>
       <div class="sub">把「说不清的不对劲」变成看得见的轨迹</div>
     </div>
   </div>
@@ -2209,6 +2254,8 @@ body {
         <label>时间</label>
         <input type="time" id="recTime" step="1">
       </div>
+    </div>
+    <div class="rec-row rec-row-mood">
       <div class="rec-field" style="flex:1">
         <label>心情（1–5，必填）</label>
         <div class="mood-pick" id="recMood" data-val="3">
@@ -2362,7 +2409,7 @@ body {
     </div>
     <input type="file" id="setImport" accept="application/json,.json" hidden>
     <label style="margin-top:14px">AI 自动分类（根据记录内容自动打标签，无需手动管理）</label>
-    <div class="set-row">
+    <div class="set-row stay1">
       <button class="btn" id="aiClassifyBtn">立即分类</button>
       <button class="btn ghost" id="aiClassifyMerge">合并近似标签</button>
     </div>
@@ -2496,7 +2543,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v29 · 2026-08-10 18:43（文件隔离 / 情绪地形按作者双色·与高频标签作者色统一）";</script>
+window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居中独立整行 + 设置底部按钮强制同行）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -2522,6 +2569,7 @@ window.__BUILD__ = "v29 · 2026-08-10 18:43（文件隔离 / 情绪地形按作�
   if (!Array.isArray(DATA.revived)) DATA.revived = []; // 复活标记：从回收站恢复过的 id，压过更早的墓碑
   if (!Array.isArray(DATA.trash)) DATA.trash = []; // 回收站：被软删除的记录，可恢复或彻底删除
   if (!Array.isArray(DATA.trashPurged)) DATA.trashPurged = []; // 已离开回收站的 id（彻底删除 / 已恢复）
+  if (!DATA.commentRead) DATA.commentRead = {}; // 评论已读游标：recId -> 已读到的最大评论时间戳（用于顶栏红点）
   // 回收站里的老记录也要补稳定 id（和主记录同一套 fp_ 指纹），否则彻底删除/恢复时
   // 按 id 找不到会静默 return，表现成"点了没用、记录还在"。
   (DATA.trash || []).forEach(r => { if (!r.id) r.id = 'fp_' + recFingerprint(r); });
@@ -2712,13 +2760,32 @@ window.__BUILD__ = "v29 · 2026-08-10 18:43（文件隔离 / 情绪地形按作�
     return [r.date || '', r.time || '', r.author || '', r.mood == null ? '' : r.mood,
       String(r.scene || '').trim(), String(r.note || '').trim()].join('|');
   }
+  // 评论合并：两条记录合并时，评论按 id 做并集（都保留、不互相覆盖）；
+  // 任一方把某条评论标记为 deleted（软删除）则保留删除——删了的评论不再出现。
+  function mergeComments(a, b) {
+    const map = {}, out = [];
+    (a || []).concat(b || []).forEach(function (c) {
+      if (!c || !c.id) return;
+      const cur = map[c.id];
+      if (!cur) { map[c.id] = c; out.push(c); return; }
+      if (c.deleted) cur.deleted = true; // 删除优先：任一方删了就删
+    });
+    return out.sort(function (x, y) { return (x.ts || 0) - (y.ts || 0); });
+  }
   function mergeRecords(local, remote) {
     const byId = {};
     const put = function (r) {
       if (!r || !r.date) return;
       const k = r.id ? 'id:' + r.id : 'fp:' + recFingerprint(r);
       const cur = byId[k];
-      if (!cur || fieldScore(r) > fieldScore(cur)) byId[k] = r;
+      const comments = mergeComments(cur && cur.comments, r.comments);
+      let base;
+      if (!cur) base = r;
+      else if (fieldScore(r) > fieldScore(cur)) base = r;
+      else base = cur;
+      const rec = Object.assign({}, base); // 复制一份，避免改到原始（来自 localStorage / 云端）对象引用
+      rec.comments = comments;
+      byId[k] = rec;
     };
     (local || []).forEach(put);
     (remote || []).forEach(put);
@@ -2726,7 +2793,14 @@ window.__BUILD__ = "v29 · 2026-08-10 18:43（文件隔离 / 情绪地形按作�
     const byPrint = {};
     Object.keys(byId).forEach(function (k) {
       const r = byId[k], p = recFingerprint(r), cur = byPrint[p];
-      if (!cur || fieldScore(r) > fieldScore(cur)) byPrint[p] = r;
+      const comments = mergeComments(cur && cur.comments, r.comments);
+      let base;
+      if (!cur) base = r;
+      else if (fieldScore(r) > fieldScore(cur)) base = r;
+      else base = cur;
+      const rec = Object.assign({}, base);
+      rec.comments = comments;
+      byPrint[p] = rec;
     });
     return Object.keys(byPrint).map(function (p) { return byPrint[p]; }).sort(function (x, y) {
       if (x.date !== y.date) return x.date < y.date ? -1 : 1;
@@ -3015,6 +3089,7 @@ window.__BUILD__ = "v29 · 2026-08-10 18:43（文件隔离 / 情绪地形按作�
   function refreshRecs() {
     recs.length = 0;
     (DATA.records || []).slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (x) { recs.push(x); });
+    updateCmtDot();
   }
   // 同步失败后自动补一次：网络抖动不该让数据一直卡在本地
   let _retryTimer = null;
@@ -3662,59 +3737,195 @@ window.__BUILD__ = "v29 · 2026-08-10 18:43（文件隔离 / 情绪地形按作�
   function formatDow(dateStr) {
     try { return DAY_NAMES[new Date(dateStr + 'T00:00:00').getDay()] || ''; } catch(e) { return ''; }
   }
+  // ===== 时间轴：年 > 月 > 日 三级折叠 + 每条记录评论区 =====
+  function _tlCount(obj) { let n = 0; for (const k in obj) { if (Array.isArray(obj[k])) n += obj[k].length; else n += _tlCount(obj[k]); } return n; }
+  function _tlChevron() { return '<svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'; }
+
   function buildTimeline(target) {
     const list = target || $('#tlList'); if (!list) return;
     const sorted = histFiltered();
     list.innerHTML = '';
     if (!sorted.length) { list.innerHTML = '<div class="empty" style="padding:40px">' + ((state.histQ || state.histTag || state.histMood || state.histAuthor) ? '没有匹配的记录' : '还没有记录') + '</div>'; return; }
-    // 多人时上作者色
     const multi = authorList().length > 1;
     const cmap = authorColors();
-    // 按日期分组
-    const groups = {};
-    sorted.forEach(r => {
+    // 三级分组：年 > 月 > 日
+    const tree = {};
+    sorted.forEach(function (r) {
       const d = r.date || 'unknown';
-      if (!groups[d]) groups[d] = [];
-      groups[d].push(r);
+      const y = d.slice(0, 4); const m = d.slice(0, 7);
+      tree[y] = tree[y] || {}; tree[y][m] = tree[y][m] || {};
+      (tree[y][m][d] = tree[y][m][d] || []).push(r);
     });
-    const dates = Object.keys(groups).sort().reverse(); // 最新的在前
-    dates.forEach(d => {
-      const recsOfDay = groups[d];
-      const group = el('div', 'tl-date-group');
-      // 日期头（可点击折叠）
-      const head = el('div', 'tl-date-head');
-      head.innerHTML = `<svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        <span class="tl-date-label">${escapeHtml(d)}</span>
-        <span class="tl-date-dow">${formatDow(d)}</span>
-        <span class="tl-date-count">${recsOfDay.length} 条</span>`;
-      head.addEventListener('click', () => { group.classList.toggle('collapsed'); });
-      group.appendChild(head);
-      // 当天记录体
-      const body = el('div', 'tl-date-body');
-      recsOfDay.forEach(r => {
-        const mc = moodColor(r.mood || 3);
-        const imp = !!r.important;
-        const tags = (r.tags || []).map(t => `<span class="tl-tag">${t}</span>`).join('');
-        const au = authorKey(r);
-        const ac = multi ? (cmap[au] || 'var(--accent)') : null;
-        const item = el('div', 'tl-item' + (imp ? ' important' : ''));
-        item.dataset.id = r.id;
-        item.addEventListener('click', () => openRecordDetail(r.id));
-        const ttxt = r.time ? `<span class="tl-time">${r.time}</span>` : '';
-        const authorBadge = multi ? ` <span class="tl-author" style="--ac:${ac}"><i></i>${escapeHtml(au)}</span>` : '';
-        item.innerHTML = `
-          <div class="tl-axis"><span class="tl-dot"${multi ? ` style="border-color:${ac}"` : ''}></span></div>
-          <div class="tl-body">
-            <div class="tl-scene">${authorBadge}<span class="m" style="color:${mc}">${r.mood || '-'}/5</span> ${ttxt} ${r.scene ? '· ' + r.scene : ''}${imp ? '<span class="tl-imp-flag">重要事件</span>' : ''}</div>
-            ${tags ? `<div class="tl-tags">${tags}</div>` : ''}
-            ${r.note ? `<div class="tl-note">${String(r.note).slice(0, 120)}</div>` : ''}
-          </div>`;
-        body.appendChild(item);
+    Object.keys(tree).sort().reverse().forEach(function (y) {
+      const yg = el('div', 'tl-year-group');
+      const yh = el('div', 'tl-year-head');
+      yh.innerHTML = _tlChevron() + '<span class="tl-year-label">' + escapeHtml(y) + ' 年</span><span class="tl-year-count">' + _tlCount(tree[y]) + ' 条</span>';
+      yh.addEventListener('click', function () { yg.classList.toggle('collapsed'); });
+      yg.appendChild(yh);
+      const yb = el('div', 'tl-year-body');
+      Object.keys(tree[y]).sort().reverse().forEach(function (m) {
+        const mg = el('div', 'tl-month-group');
+        const mh = el('div', 'tl-month-head');
+        const mn = parseInt(m.slice(5, 7), 10);
+        mh.innerHTML = _tlChevron() + '<span class="tl-month-label">' + mn + ' 月</span><span class="tl-month-count">' + _tlCount(tree[y][m]) + ' 条</span>';
+        mh.addEventListener('click', function () { mg.classList.toggle('collapsed'); });
+        mg.appendChild(mh);
+        const mb = el('div', 'tl-month-body');
+        Object.keys(tree[y][m]).sort().reverse().forEach(function (d) {
+          const dg = el('div', 'tl-date-group');
+          const dh = el('div', 'tl-date-head');
+          dh.innerHTML = _tlChevron() + '<span class="tl-date-label">' + escapeHtml(d) + '</span><span class="tl-date-dow">' + formatDow(d) + '</span><span class="tl-date-count">' + tree[y][m][d].length + ' 条</span>';
+          dh.addEventListener('click', function () { dg.classList.toggle('collapsed'); });
+          dg.appendChild(dh);
+          const db = el('div', 'tl-date-body');
+          tree[y][m][d].forEach(function (r) {
+            const mc = moodColor(r.mood || 3);
+            const imp = !!r.important;
+            const tags = (r.tags || []).map(function (t) { return '<span class="tl-tag">' + escapeHtml(t) + '</span>'; }).join('');
+            const au = authorKey(r);
+            const ac = multi ? (cmap[au] || 'var(--accent)') : null;
+            const item = el('div', 'tl-item' + (imp ? ' important' : ''));
+            item.dataset.id = r.id;
+            item.addEventListener('click', function () { openRecordDetail(r.id); });
+            const ttxt = r.time ? '<span class="tl-time">' + r.time + '</span>' : '';
+            const authorBadge = multi ? ' <span class="tl-author" style="--ac:' + ac + '"><i></i>' + escapeHtml(au) + '</span>' : '';
+            item.innerHTML =
+              '<div class="tl-axis"><span class="tl-dot"' + (multi ? ' style="border-color:' + ac + '"' : '') + '></span></div>' +
+              '<div class="tl-body">' +
+                '<div class="tl-scene">' + authorBadge + '<span class="m" style="color:' + mc + '">' + (r.mood || '-') + '/5</span> ' + ttxt + (r.scene ? ' · ' + escapeHtml(r.scene) : '') + (imp ? '<span class="tl-imp-flag">重要事件</span>' : '') + '</div>' +
+                (tags ? '<div class="tl-tags">' + tags + '</div>' : '') +
+                (r.note ? '<div class="tl-note">' + escapeHtml(String(r.note).slice(0, 120)) + '</div>' : '') +
+              '</div>';
+            db.appendChild(item);
+            // 评论区（与 tl-item 平级，避免误触进记录详情）
+            const cbox = el('div', 'tl-comments');
+            cbox.dataset.rid = r.id;
+            renderCommentsInto(cbox, r);
+            db.appendChild(cbox);
+          });
+          dg.appendChild(db);
+          mb.appendChild(dg);
+        });
+        mg.appendChild(mb);
+        yb.appendChild(mg);
       });
-      group.appendChild(body);
-      list.appendChild(group);
+      yg.appendChild(yb);
+      list.appendChild(yg);
+    });
+    afterTimelineRender(list);
+  }
+  // 评论区渲染：古早博客竖向时间线，可折叠；只能删自己的评论
+  function renderCommentsInto(cbox, r) {
+    if (!cbox) return;
+    const cs = (r.comments || []).filter(function (c) { return !c.deleted; });
+    const me = myCommentName();
+    const multi = authorList().length > 1;
+    const cmap = authorColors();
+    let html = '<div class="cmt-head"><button type="button" class="cmt-toggle"><span class="cmt-count">' + (cs.length ? cs.length + ' 条评论' : '评论') + '</span><span class="cmt-chevron">›</span></button></div>';
+    if (cbox.classList.contains('open')) {
+      html += '<div class="cmt-list">';
+      if (cs.length) {
+        cs.slice().sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); }).forEach(function (c) {
+          const ac = authorColor(c.author);
+          const initial = escapeHtml((c.author || '?').slice(0, 1));
+          const isMe = c.author === me;
+          html += '<div class="cmt-item' + (isMe ? ' me' : '') + '">' +
+            '<span class="cmt-avatar" style="background:' + ac + '">' + initial + '</span>' +
+            '<div class="cmt-main"><div class="cmt-meta"><span class="cmt-name" style="color:' + ac + '">' + escapeHtml(c.author) + (isMe && multi ? '（我）' : '') + '</span><span class="cmt-time">' + fmtCmtTime(c.ts) + '</span>' +
+            (isMe ? '<button type="button" class="cmt-del" data-cid="' + c.id + '">删除</button>' : '') + '</div>' +
+            '<div class="cmt-bubble">' + escapeHtml(c.text) + '</div></div></div>';
+        });
+      } else {
+        html += '<div class="cmt-empty">还没有评论，来写第一句。</div>';
+      }
+      html += '</div><div class="cmt-input-row"><input type="text" class="cmt-input" placeholder="写句评论…" maxlength="500" /><button type="button" class="cmt-send btn sm primary">发送</button></div>';
+    }
+    cbox.innerHTML = html;
+    const toggle = cbox.querySelector('.cmt-toggle');
+    if (toggle) toggle.addEventListener('click', function (e) { e.stopPropagation(); cbox.classList.toggle('open'); renderCommentsInto(cbox, r); });
+    const send = cbox.querySelector('.cmt-send');
+    if (send) send.addEventListener('click', function (e) { e.stopPropagation(); const inp = cbox.querySelector('.cmt-input'); const t = inp.value.trim(); if (t) addComment(r.id, t); });
+    const inp = cbox.querySelector('.cmt-input');
+    if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.stopPropagation(); const t = inp.value.trim(); if (t) addComment(r.id, t); } });
+    cbox.querySelectorAll('.cmt-del').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); deleteComment(r.id, b.dataset.cid); }); });
+  }
+  function myCommentName() { return ghProfile() === 'shared' ? (ghNick() || '我') : '我'; }
+  function fmtCmtTime(ts) { if (!ts) return ''; const d = new Date(ts); const p = function (n) { return ('' + n).padStart(2, '0'); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+  function findRec(id) { return recs.find(function (x) { return x.id === id; }) || (DATA.records || []).find(function (x) { return x.id === id; }); }
+  function addComment(recId, text) {
+    const r = findRec(recId); if (!r) return;
+    r.comments = r.comments || [];
+    r.comments.push({ id: 'c_' + genId(), author: myCommentName(), text: text, ts: Date.now() });
+    saveData();
+    const c = ghConf(); if (c.enabled && c.token && c.auto) ghSync(null, false);
+    refreshComments(recId); updateCmtDot();
+  }
+  function deleteComment(recId, cid) {
+    const r = findRec(recId); if (!r || !r.comments) return;
+    const c = r.comments.find(function (x) { return x.id === cid; });
+    if (!c || c.author !== myCommentName()) return; // 只能删自己的评论
+    c.deleted = true; // 软删除：同步合并时仍保留删除状态，不会复活
+    saveData();
+    const cf = ghConf(); if (cf.enabled && cf.token && cf.auto) ghSync(null, false);
+    refreshComments(recId); updateCmtDot();
+  }
+  function refreshComments(recId) {
+    document.querySelectorAll('.tl-comments[data-rid="' + recId + '"]').forEach(function (cbox) {
+      const r = findRec(recId); if (r) renderCommentsInto(cbox, r);
     });
   }
+  // 已读游标 + 顶栏红点（仅共享模式）
+  function markRead(recId) {
+    const r = findRec(recId); if (!r) return;
+    const me = myCommentName(); let max = 0;
+    (r.comments || []).forEach(function (c) { if (!c.deleted && c.author !== me) max = Math.max(max, c.ts || 0); });
+    DATA.commentRead = DATA.commentRead || {};
+    if (max > 0) DATA.commentRead[recId] = max;
+    saveData(); updateCmtDot();
+  }
+  function firstUnreadRecId() {
+    if (ghProfile() !== 'shared') return null;
+    const me = myCommentName();
+    for (let i = 0; i < (DATA.records || []).length; i++) {
+      const r = DATA.records[i]; if (!r || !r.id) continue;
+      const seen = (DATA.commentRead && DATA.commentRead[r.id]) || 0;
+      for (let j = 0; j < (r.comments || []).length; j++) {
+        const c = r.comments[j];
+        if (!c.deleted && c.author !== me && (c.ts || 0) > seen) return r.id;
+      }
+    }
+    return null;
+  }
+  function updateCmtDot() {
+    const dot = document.getElementById('cmtDot'); if (!dot) return;
+    if (ghProfile() !== 'shared') { dot.style.display = 'none'; dot.classList.remove('on'); return; }
+    const unread = firstUnreadRecId();
+    if (unread) { dot.style.display = ''; dot.classList.add('on'); dot.dataset.rec = unread; }
+    else { dot.style.display = 'none'; dot.classList.remove('on'); }
+  }
+  function afterTimelineRender(list) {
+    if (!list || !state.tlJump) return;
+    const recId = state.tlJump; state.tlJump = null;
+    const item = list.querySelector('.tl-item[data-id="' + recId + '"]');
+    if (!item) return;
+    let p = item.parentElement;
+    while (p && p !== list) {
+      if (p.classList.contains('tl-year-group') || p.classList.contains('tl-month-group') || p.classList.contains('tl-date-group')) p.classList.remove('collapsed');
+      p = p.parentElement;
+    }
+    const cbox = list.querySelector('.tl-comments[data-rid="' + recId + '"]');
+    if (cbox) { cbox.classList.add('open'); const r = findRec(recId); if (r) renderCommentsInto(cbox, r); }
+    try { item.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    markRead(recId);
+  }
+  function openCmtDotJump() {
+    const dot = document.getElementById('cmtDot'); if (!dot) return;
+    const recId = dot.dataset.rec; if (!recId) return;
+    state.tlJump = recId;
+    openTimeline();
+  }
+  (function () { const d = document.getElementById('cmtDot'); if (d) d.addEventListener('click', openCmtDotJump); })();
+  updateCmtDot();
   /* ---------- 作者配色：共享空间里「谁是谁」一眼分清 ----------
      颜色不是随便挑的，而是从你当前主题的强调色沿色相环均匀派生出来，
      所以换主题时几个人的颜色会整体跟着变，但彼此始终区分得开。      */
@@ -4064,7 +4275,7 @@ window.__BUILD__ = "v29 · 2026-08-10 18:43（文件隔离 / 情绪地形按作�
     renderAuthorLegend();
     renderAuthorLegend($('#tlAuthorLegend'));
   }
-  function openTimeline() { buildTimeline($('#tlList')); $('#tlModal').classList.add('show'); $('#scrim').classList.add('show'); }
+  function openTimeline() { $('#tlModal').classList.add('show'); $('#scrim').classList.add('show'); buildTimeline($('#tlList')); }
   function closeTimeline() { $('#tlModal').classList.remove('show'); $('#scrim').classList.remove('show'); }
   function bindExtractModal() {
     $('#extractClose').addEventListener('click', () => { $('#extractModal').classList.remove('show'); $('#scrim').classList.remove('show'); });
