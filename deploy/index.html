@@ -372,6 +372,8 @@ body {
   /* 共享模式手机端只显示「我自己」的光球+AI一句话，避免两人卡片上下叠占满首屏 */
   .hero-shared .hp:not(.hp-self) { display: none; }
   .hero-shared .hp-self { flex: 1 1 100%; }
+  /* 手机端不要光球：隐藏首页光球，只留 AI 一句话和统计 */
+  .hp .orb-wrap { display: none; }
 }
 
 /* 概览：重排版（竖分隔线 + 统一间距） */
@@ -1900,9 +1902,9 @@ body {
   .cmt-input:focus { outline: none; border-color: var(--accent); }
   .cmt-send { flex: 0 0 auto; }
 
-  /* 顶栏评论红点（仅共享模式显示） */
-  .cmt-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ff4d4f; margin-left: 8px; vertical-align: middle; box-shadow: 0 0 0 3px rgba(255,77,79,.18); cursor: pointer; }
-  .cmt-dot.on { animation: pulseDot 1.6s ease-in-out infinite; }
+  /* 顶栏评论提醒徽章（仅共享模式·有未读时显示）：明显、不带光晕光球 */
+  .cmt-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #ff4d4f; color: #fff; font-size: 12px; font-weight: 700; margin-left: 10px; vertical-align: middle; cursor: pointer; line-height: 1; font-family: var(--font-mono); box-shadow: 0 2px 8px rgba(255,77,79,.35); transition: transform .15s; }
+  .cmt-badge:active { transform: scale(.92); }
   @keyframes pulseDot { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: .7; } }
 </style>
 </head>
@@ -1924,7 +1926,7 @@ body {
   <div class="brand">
     <span class="dot"></span>
     <div>
-      <h1>Mood Atlas · 情绪地图<span class="cmt-dot" id="cmtDot" title="有新的评论" style="display:none"></span></h1>
+      <h1>Mood Atlas · 情绪地图<span class="cmt-badge" id="cmtDot" title="有新的评论，点击查看" style="display:none"></span></h1>
       <div class="sub">把「说不清的不对劲」变成看得见的轨迹</div>
     </div>
   </div>
@@ -2568,7 +2570,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v36 · 2026-08-11 03:50（共享模式手机端首页只显示自己：隐藏他人卡片+跳过隐藏卡片AI调用）";</script>
+window.__BUILD__ = "v37 · 2026-08-11 03:57（评论提醒改为情绪地图右侧明显徽章带未读数+手机端隐藏首页光球）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -3923,26 +3925,38 @@ window.__BUILD__ = "v36 · 2026-08-11 03:50（共享模式手机端首页只显�
     if (max > 0) DATA.commentRead[recId] = max;
     saveData(); updateCmtDot();
   }
-  function firstUnreadRecId() {
-    if (ghProfile() !== 'shared') return null;
+  function unreadCmtInfo() {
+    if (ghProfile() !== 'shared') return { count: 0, firstId: null };
     const me = myCommentName();
+    let count = 0, firstId = null;
     for (let i = 0; i < (DATA.records || []).length; i++) {
       const r = DATA.records[i]; if (!r || !r.id) continue;
       const seen = (DATA.commentRead && DATA.commentRead[r.id]) || 0;
       for (let j = 0; j < (r.comments || []).length; j++) {
         const c = r.comments[j];
-        if (!c.deleted && c.author !== me && (c.ts || 0) > seen) return r.id;
+        if (!c.deleted && c.author !== me && (c.ts || 0) > seen) {
+          count++;
+          if (!firstId) firstId = r.id;
+        }
       }
     }
-    return null;
+    return { count: count, firstId: firstId };
   }
+  function firstUnreadRecId() { return unreadCmtInfo().firstId; }
   function updateCmtDot() {
     const dot = document.getElementById('cmtDot');
     const fab = document.getElementById('fabCmtBadge');
-    const unread = (ghProfile() === 'shared') ? firstUnreadRecId() : null;
+    const info = unreadCmtInfo();
+    const unread = info.firstId;
     if (dot) {
-      if (unread) { dot.style.display = ''; dot.classList.add('on'); dot.dataset.rec = unread; }
-      else { dot.style.display = 'none'; dot.classList.remove('on'); }
+      if (unread) {
+        dot.style.display = '';
+        dot.textContent = info.count > 1 ? String(info.count) : '新';
+        dot.dataset.rec = unread;
+      } else {
+        dot.style.display = 'none';
+        dot.textContent = '';
+      }
     }
     if (fab) fab.classList.toggle('on', !!unread);
   }
