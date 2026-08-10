@@ -2543,7 +2543,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居中独立整行 + 设置底部按钮强制同行）";</script>
+window.__BUILD__ = "v32 · 2026-08-11 01:48（作者归一化：兔/浣熊 自动显示并保存为 🐰/🦝）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -2614,7 +2614,12 @@ window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居�
       auto: localStorage.getItem('mood.ghAuto' + p) === '1'
     };
   }
-  function ghNick() { return (localStorage.getItem('mood.ghNick' + ghSuffix()) || '').trim(); }
+  function normalizeAuthor(name) {
+    if (!name) return name;
+    const m = { '兔': '🐰', '兔子': '🐰', '浣熊': '🦝' };
+    return m[name] || name;
+  }
+  function ghNick() { return normalizeAuthor((localStorage.getItem('mood.ghNick' + ghSuffix()) || '').trim()); }
   // 文件级隔离：每个人只往「自己的同步文件」写，朋友只写他那份，两人不再抢同一个文件 → 根除 409 冲突。
   // 留空＝兼容旧模式（所有人写同一个 情绪记录.json，仍可能冲突）。
   function ghMyFile() { return (localStorage.getItem('mood.ghMyFile' + ghSuffix()) || '').trim(); }
@@ -3087,6 +3092,7 @@ window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居�
   }
   // UI 用的 recs 数组要跟 DATA.records 保持同一份内容
   function refreshRecs() {
+    (DATA.records || []).forEach(function (r) { if (r && r.author != null) r.author = normalizeAuthor(r.author); });
     recs.length = 0;
     (DATA.records || []).slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (x) { recs.push(x); });
     updateCmtDot();
@@ -3849,7 +3855,7 @@ window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居�
     if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.stopPropagation(); const t = inp.value.trim(); if (t) addComment(r.id, t); } });
     cbox.querySelectorAll('.cmt-del').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); deleteComment(r.id, b.dataset.cid); }); });
   }
-  function myCommentName() { return ghProfile() === 'shared' ? (ghNick() || '我') : '我'; }
+  function myCommentName() { return normalizeAuthor(ghProfile() === 'shared' ? (ghNick() || '我') : '我'); }
   function fmtCmtTime(ts) { if (!ts) return ''; const d = new Date(ts); const p = function (n) { return ('' + n).padStart(2, '0'); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
   function findRec(id) { return recs.find(function (x) { return x.id === id; }) || (DATA.records || []).find(function (x) { return x.id === id; }); }
   function addComment(recId, text) {
@@ -3929,7 +3935,7 @@ window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居�
   /* ---------- 作者配色：共享空间里「谁是谁」一眼分清 ----------
      颜色不是随便挑的，而是从你当前主题的强调色沿色相环均匀派生出来，
      所以换主题时几个人的颜色会整体跟着变，但彼此始终区分得开。      */
-  function authorKey(r) { return ((r && r.author) || '').trim() || '未署名'; }
+  function authorKey(r) { return normalizeAuthor(((r && r.author) || '').trim() || '未署名'); }
   function authorList() {
     const seen = [];
     (recs || []).forEach(function (r) { const a = authorKey(r); if (seen.indexOf(a) < 0) seen.push(a); });
@@ -5371,7 +5377,7 @@ window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居�
     };
     if (ghProfile() === 'shared') {
       const nick = ghNick();
-      if (nick) rec.author = nick;
+      if (nick) rec.author = normalizeAuthor(nick);
     }
     DATA.records.push(rec);
     DATA.records.sort((a, b) => a.date < b.date ? -1 : 1);
@@ -5466,7 +5472,7 @@ window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居�
     };
     if (ghProfile() === 'shared') {
       const nick = ghNick();
-      if (nick) rec.author = nick;
+      if (nick) rec.author = normalizeAuthor(nick);
     }
     const sv = $('#recSaved');
     const SERVE = '';
@@ -5806,7 +5812,7 @@ window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居�
     on('#ghToken', 'input', e => { localStorage.setItem('mood.ghToken' + ghSuffix(), e.target.value.trim()); if (typeof updateGhTokenHint === 'function') updateGhTokenHint(); });
     on('#ghEnable', 'change', e => localStorage.setItem('mood.ghEnabled' + ghSuffix(), e.target.checked ? '1' : '0'));
     on('#ghAuto', 'change', e => localStorage.setItem('mood.ghAuto' + ghSuffix(), e.target.checked ? '1' : '0'));
-    on('#ghNick', 'input', e => localStorage.setItem('mood.ghNick' + ghSuffix(), e.target.value.trim()));
+    on('#ghNick', 'input', e => localStorage.setItem('mood.ghNick' + ghSuffix(), normalizeAuthor(e.target.value.trim())));
     // 明确的「保存设置」按钮：把四个字段整体强制覆盖写回，保证改错/误贴的密钥被彻底替换，并弹「已保存」确认
     function saveGhSettings() {
       const p = ghSuffix();
@@ -5821,7 +5827,7 @@ window.__BUILD__ = "v31 · 2026-08-11 01:34（狠狠修复·记一笔心情居�
       localStorage.setItem('mood.ghToken' + p, token);
       localStorage.setItem('mood.ghEnabled' + p, $('#ghEnable').checked ? '1' : '0');
       localStorage.setItem('mood.ghAuto' + p, $('#ghAuto').checked ? '1' : '0');
-      localStorage.setItem('mood.ghNick' + p, $('#ghNick').value.trim());
+      localStorage.setItem('mood.ghNick' + p, normalizeAuthor($('#ghNick').value.trim()));
       localStorage.setItem('mood.ghMyFile' + p, $('#ghMyFile').value.trim());
       localStorage.setItem('mood.aiRecord', $('#aiRecordAuto').checked ? 'on' : 'off');
       if (typeof updateDsKeyHint === 'function') updateDsKeyHint();
