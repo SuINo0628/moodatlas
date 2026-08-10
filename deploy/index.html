@@ -951,9 +951,8 @@ body {
 .tl-tag { font-size: 11.5px; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-glow); padding: 2px 9px; border-radius: 999px; }
 .tl-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; margin-top: 6px; word-break: break-word; }
 .tl-imp-flag { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--accent); margin-left: 8px; font-weight: 600; }
-/* 多人共享：作者徽章（彩色圆点+名字），无色条 */
+/* 多人共享：作者徽章（彩色名字，无圆点） */
 .tl-author { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ac); font-weight: 600; margin-left: 6px; vertical-align: middle; padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--ac) 10%, transparent); }
-.tl-author i { width: 7px; height: 7px; border-radius: 50%; background: var(--ac); flex: none; }
 
 /* 日期分组：每天一个可折叠的头 */
 .tl-date-group { margin-bottom: 6px; }
@@ -1851,23 +1850,25 @@ body {
   .tl-date-group.collapsed > .tl-date-head .tl-chevron { transform: rotate(-90deg); }
   .tl-chevron { width: 14px; height: 14px; flex: 0 0 auto; transition: transform .2s ease; color: var(--ink-dim); }
 
-  /* 评论区：古早博客竖向时间线风 */
+  /* 评论区：同作者连续评论合并，无头像圆点 */
   .tl-comments { margin: 2px 0 12px 26px; }
   .cmt-head { margin: 2px 0; }
   .cmt-toggle { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 12.5px; padding: 2px 4px; border-radius: 6px; }
   .cmt-toggle:hover { color: var(--ink); background: var(--line); }
   .cmt-chevron { font-size: 13px; transition: transform .2s; }
   .tl-comments.open .cmt-chevron { transform: rotate(90deg); }
-  .cmt-list { margin: 6px 0 4px; display: flex; flex-direction: column; gap: 8px; }
-  .cmt-item { display: flex; gap: 8px; align-items: flex-start; }
-  .cmt-avatar { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0b1020; font-size: 12px; font-weight: 700; }
-  .cmt-main { flex: 1 1 auto; min-width: 0; }
-  .cmt-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-dim); }
+  .cmt-list { margin: 6px 0 4px; display: flex; flex-direction: column; gap: 10px; }
+  .cmt-group { display: flex; flex-direction: column; gap: 3px; }
+  .cmt-group-head { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-dim); margin-bottom: 2px; }
   .cmt-name { font-weight: 600; }
-  .cmt-del { margin-left: auto; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 11.5px; padding: 1px 4px; border-radius: 5px; }
+  .cmt-time { font-size: 11px; color: var(--ink-dim); }
+  .cmt-group-body { display: flex; flex-direction: column; gap: 3px; padding-left: 8px; border-left: 2px solid var(--line); }
+  .cmt-line { display: flex; align-items: flex-start; gap: 4px; font-size: 13px; line-height: 1.5; color: var(--ink); }
+  .cmt-prefix { flex: 0 0 auto; color: var(--ink-dim); font-size: 12px; white-space: nowrap; margin-top: 1px; }
+  .cmt-bubble { flex: 1 1 auto; min-width: 0; background: var(--line); border-radius: 10px; padding: 6px 10px; word-break: break-word; }
+  .cmt-group.me .cmt-bubble { background: transparent; border: 1px solid var(--accent); }
+  .cmt-del { margin-left: auto; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 11.5px; padding: 1px 4px; border-radius: 5px; flex: 0 0 auto; }
   .cmt-del:hover { color: #ff7a85; background: var(--line); }
-  .cmt-bubble { margin-top: 2px; background: var(--line); border-radius: 10px; padding: 7px 10px; font-size: 13px; line-height: 1.5; color: var(--ink); word-break: break-word; }
-  .cmt-item.me .cmt-bubble { background: transparent; border: 1px solid var(--accent); }
   .cmt-empty { font-size: 12.5px; color: var(--ink-dim); padding: 4px 0; }
   .cmt-input-row { display: flex; gap: 6px; margin-top: 8px; }
   .cmt-input { flex: 1 1 auto; min-width: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; color: var(--ink); font-size: 13px; }
@@ -2543,7 +2544,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v32 · 2026-08-11 01:48（作者归一化：兔/浣熊 自动显示并保存为 🐰/🦝）";</script>
+window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + 移除头像/作者徽章圆点）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -3794,7 +3795,7 @@ window.__BUILD__ = "v32 · 2026-08-11 01:48（作者归一化：兔/浣熊 自�
             item.dataset.id = r.id;
             item.addEventListener('click', function () { openRecordDetail(r.id); });
             const ttxt = r.time ? '<span class="tl-time">' + r.time + '</span>' : '';
-            const authorBadge = multi ? ' <span class="tl-author" style="--ac:' + ac + '"><i></i>' + escapeHtml(au) + '</span>' : '';
+            const authorBadge = multi ? ' <span class="tl-author" style="--ac:' + ac + '">' + escapeHtml(au) + '</span>' : '';
             item.innerHTML =
               '<div class="tl-axis"><span class="tl-dot"' + (multi ? ' style="border-color:' + ac + '"' : '') + '></span></div>' +
               '<div class="tl-body">' +
@@ -3831,15 +3832,24 @@ window.__BUILD__ = "v32 · 2026-08-11 01:48（作者归一化：兔/浣熊 自�
     if (cbox.classList.contains('open')) {
       html += '<div class="cmt-list">';
       if (cs.length) {
-        cs.slice().sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); }).forEach(function (c) {
-          const ac = authorColor(c.author);
-          const initial = escapeHtml((c.author || '?').slice(0, 1));
-          const isMe = c.author === me;
-          html += '<div class="cmt-item' + (isMe ? ' me' : '') + '">' +
-            '<span class="cmt-avatar" style="background:' + ac + '">' + initial + '</span>' +
-            '<div class="cmt-main"><div class="cmt-meta"><span class="cmt-name" style="color:' + ac + '">' + escapeHtml(c.author) + (isMe && multi ? '（我）' : '') + '</span><span class="cmt-time">' + fmtCmtTime(c.ts) + '</span>' +
-            (isMe ? '<button type="button" class="cmt-del" data-cid="' + c.id + '">删除</button>' : '') + '</div>' +
-            '<div class="cmt-bubble">' + escapeHtml(c.text) + '</div></div></div>';
+        const sorted = cs.slice().sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+        const groups = [];
+        sorted.forEach(function (c) {
+          const last = groups[groups.length - 1];
+          if (last && last.author === c.author) { last.items.push(c); }
+          else { groups.push({ author: c.author, ts: c.ts, items: [c] }); }
+        });
+        groups.forEach(function (g) {
+          const ac = authorColor(g.author);
+          const isMe = g.author === me;
+          html += '<div class="cmt-group' + (isMe ? ' me' : '') + '">' +
+            '<div class="cmt-group-head"><span class="cmt-name" style="color:' + ac + '">' + escapeHtml(g.author) + (isMe && multi ? '（我）' : '') + '</span><span class="cmt-time">' + fmtCmtTime(g.ts) + '</span></div>' +
+            '<div class="cmt-group-body">';
+          g.items.forEach(function (c) {
+            html += '<div class="cmt-line" data-cid="' + c.id + '"><span class="cmt-prefix">' + (isMe ? '（我）' : escapeHtml(c.author)) + '：</span><span class="cmt-bubble">' + escapeHtml(c.text) + '</span>' +
+              (isMe ? '<button type="button" class="cmt-del" data-cid="' + c.id + '">删除</button>' : '') + '</div>';
+          });
+          html += '</div></div>';
         });
       } else {
         html += '<div class="cmt-empty">还没有评论，来写第一句。</div>';
