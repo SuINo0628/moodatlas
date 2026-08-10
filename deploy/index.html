@@ -785,14 +785,14 @@ body {
 .fab { display: none; }
 .fab.fab-rec {
   display: flex; align-items: center; justify-content: center;
-  position: fixed; z-index: 90;
+  position: fixed; z-index: 96;
   right: calc(16px + env(safe-area-inset-right));
   bottom: calc(24px + env(safe-area-inset-bottom));
   width: 56px; height: 56px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--accent-2, var(--accent)));
   color: #05222a; border: none; cursor: pointer; touch-action: manipulation;
   box-shadow: 0 12px 30px -8px var(--accent-glow), 0 0 0 6px var(--accent-soft);
-  transition: transform .15s ease, box-shadow .2s ease;
+  transition: transform .15s ease, box-shadow .2s ease, left .25s ease, top .25s ease, right .25s ease, bottom .25s ease;
 }
 .fab.fab-rec:hover { box-shadow: 0 16px 36px -8px var(--accent-glow), 0 0 0 8px var(--accent-soft); }
 .fab.fab-rec:active { transform: scale(.9); }
@@ -2496,7 +2496,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v27 · 2026-08-10 17:23（文件隔离）";</script>
+window.__BUILD__ = "v28 · 2026-08-10 17:57（文件隔离 / FAB拖拽·吸附·弹窗防误触·共享旧文件迁移）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -2669,11 +2669,11 @@ window.__BUILD__ = "v27 · 2026-08-10 17:23（文件隔离）";</script>
     if (isolation) {
       let listed = [];
       try { listed = await ghListRepoFiles(); } catch (e) { listed = []; }
-      // 只合入「我的文件 + 其他人的独立文件」，不再合入遗留混装文件
-      files = Array.from(new Set([myFile].concat(listed)));
-      // 兜底：若仓库里除「我的文件」外没有任何独立文件，说明还没上传过，回退聚合遗留混装文件，避免空数据
-      const others = files.filter(function (n) { return n !== myFile && n !== GH_FILE; });
-      if (others.length === 0) files = Array.from(new Set([myFile, GH_FILE].concat(listed)));
+      // 隔离模式下：拉「我的文件 + 其他人的独立文件」作为主体，同时始终把旧的「情绪记录.json」
+      // 作为迁移/兜底来源也拉下来。原因是：朋友可能还没迁移，他的记录仍留在旧文件里；
+      // 合并时 mergeRecords 会按 id / 内容指纹去重，墓碑/复活标记也会过滤掉已删记录，
+      // 不会因为合入旧文件就出现重复或死而复生。
+      files = Array.from(new Set([myFile].concat(listed).concat(GH_FILE)));
     } else {
       files = [GH_FILE];
     }
@@ -4377,7 +4377,18 @@ window.__BUILD__ = "v27 · 2026-08-10 17:23（文件隔离）";</script>
       pid = null; fab.style.touchAction = '';
       if (dragging) {
         dragging = false; fab.classList.remove('dragging'); fabMoved = true;
-        try { localStorage.setItem(KEY, JSON.stringify({ left: fab.offsetLeft, top: fab.offsetTop })); } catch (e2) {}
+        const r = fab.getBoundingClientRect();
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const w = r.width, h = r.height;
+        const margin = 6;                       // 贴边留的缝隙
+        const cx = r.left + w / 2;              // 圆心水平位置
+        const snapLeft = cx < vw / 2;
+        const nx = snapLeft ? margin : vw - w - margin;
+        // 垂直方向只做边界裁剪，保持用户拖到的相对高度
+        const ny = Math.max(margin, Math.min(r.top, vh - h - margin));
+        fab.style.right = 'auto'; fab.style.bottom = 'auto';
+        fab.style.left = nx + 'px'; fab.style.top = ny + 'px';
+        try { localStorage.setItem(KEY, JSON.stringify({ left: nx, top: ny, snap: snapLeft ? 'left' : 'right' })); } catch (e2) {}
       }
     };
     fab.addEventListener('pointerup', end);
@@ -5149,7 +5160,7 @@ window.__BUILD__ = "v27 · 2026-08-10 17:23（文件隔离）";</script>
   }
   function bindModal() {
     $('#mClose').addEventListener('click', closeModal);
-    $('#scrim').addEventListener('click', closeModal);
+    // 不再监听 scrim 点击关闭弹窗：统一改成只点右上角 × 关闭，避免误触。
     $('#mDeploy').addEventListener('click', deployAnswerToMap);
   }
 
@@ -5493,7 +5504,8 @@ window.__BUILD__ = "v27 · 2026-08-10 17:23（文件隔离）";</script>
   function bindInteractions() {
     const panel = $('#themePanel');
     $('#themeBtn').addEventListener('click', () => { panel.classList.toggle('show'); $('#scrim').classList.toggle('show'); });
-    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); closeModal(); closeHistory(); closeTimeline(); $('#extractModal').classList.remove('show'); $('#dayPickModal').classList.remove('show'); closeChat(); });
+      // 只有点面板自身的关闭/切换按钮才关闭；点灰色遮罩不再关弹窗，避免误触。
+    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); });
     $('#viewLabel').addEventListener('click', () => { if (state.mode === 'day') { const ids = recs.filter(r => r.date === state.day).map(r => r.id); if (ids.length) pickDayRecords(ids, state.day); } });
 
     /* ---------- 设置：DeepSeek / 云同步与备份 ---------- */
@@ -6232,9 +6244,7 @@ window.__BUILD__ = "v27 · 2026-08-10 17:23（文件隔离）";</script>
         dp.value = '';
       }
     });
-    on('#scrim', 'click', () => {
-      ['#reportModal', '#askModal', '#tagSheet'].forEach(s => { const m = $(s); if (m && m.classList.contains('show') && !m.classList.contains('keep')) { m.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); } });
-    });
+    // 遮罩层不再负责关闭 reportModal/askModal/tagSheet；统一只由各自的 × 按钮关闭。
   }
 
   /* ---------- 运行时自检：按钮能不能点 / 会不会飘 / 有没有被挡住 ----------
