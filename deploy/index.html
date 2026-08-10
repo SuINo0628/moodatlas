@@ -354,7 +354,9 @@ body {
 .hero-meta .date { font-size: 13px; color: var(--ink-dim); margin-top: 16px; font-family: var(--font-mono); }
 .hero-meta .hero-sub { margin-top: 14px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; max-width: 560px; }
 
-/* 共享模式：首页按「人」分块，每个人的圆圈（光球）+ AI 一句话彻底分开 */
+/* 共享模式：去掉两个分人矩形卡片，只显示一句整体的 AI 开场白 */
+.hero-shared .hp-single { padding: 0; border: none; background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; flex: 1 1 100%; align-items: flex-start; }
+.hero-shared .hp-single .hp-ai { font-size: 16px; line-height: 1.75; color: var(--ink); font-style: italic; max-width: 640px; margin-top: 4px; padding-left: 2px; }
 .hero-persons { display: flex; align-items: stretch; gap: 26px; flex-wrap: wrap; width: 100%; margin-top: 4px; }
 .hp { display: flex; align-items: center; gap: 18px; flex: 1 1 300px; min-width: 260px; }
 .hp-shared { padding: 12px 16px; border: 1px solid var(--glass-brd); border-radius: 18px; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 30px -20px rgba(0,0,0,.5); }
@@ -2570,7 +2572,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v37 · 2026-08-11 03:57（评论提醒改为情绪地图右侧明显徽章带未读数+手机端隐藏首页光球）";</script>
+window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分人矩形卡片，换成一句整体AI开场白）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -5059,24 +5061,18 @@ window.__BUILD__ = "v37 · 2026-08-11 03:57（评论提醒改为情绪地图右�
     for (let i = 0; i < 400; i++) { const k = d.toISOString().slice(0, 10); if (set.has(k)) { n++; d.setDate(d.getDate() - 1); } else break; }
     return n;
   }
-  /* Hero：共享模式下按「人」分块，每个人的圆圈（光球 + 头像徽章）+ AI 一句话彻底分开；
-     个人模式仍是单块。AI 开场白由 genOpening() 按 data-author 各自生成，互不串。 */
+  /* Hero：共享模式只显示一句整体的 AI 开场白（去掉两个分人矩形卡片）；
+     个人模式仍是单块（光球+AI+统计）。AI 一句话由 genOpening() 生成（author=null 时用合并记录）。 */
   function renderHero() {
     const shared = ghProfile() === 'shared';
-    const me = ghNick() || '未署名';
-    const authors = shared ? authorList() : [null];
     const wrap = $('#heroPersons'); if (!wrap) return;
     wrap.className = 'hero-persons' + (shared ? ' hero-shared' : '');
-    if (!authors.length) { wrap.innerHTML = '<div class="src-empty">共享空间还没有任何记录。</div>'; return; }
-    wrap.innerHTML = authors.map(function (a) {
-      const v = a ? recs.filter(r => authorKey(r) === a) : recs;
-      const has = v.length;
-      const m = has ? v[v.length - 1].mood : 3;
-      const mc = moodColor(m);
-      const emoji = a || '';
-      const isMe = a && a === me;
-      const name = a ? (emoji + (isMe ? '（我）' : '')) : '';
-      const badge = emoji ? '<div class="orb-badge">' + emoji + '</div>' : '';
+    if (shared) {
+      // 共享模式：不分人卡片，整体只显示一句 AI 开场白
+      wrap.innerHTML = '<div class="hp hp-single"><div class="hp-ai hero-ai" data-author=""></div></div>';
+    } else {
+      // 个人模式：单块含光球+AI+统计
+      const v = recs; const has = v.length; const m = has ? v[v.length - 1].mood : 3; const mc = moodColor(m);
       const dateTxt = !has ? '该范围内暂无记录'
         : (state.mode === 'day' ? state.day
           : state.mode === 'year' ? state.year + ' 年'
@@ -5085,19 +5081,17 @@ window.__BUILD__ = "v37 · 2026-08-11 03:57（评论提醒改为情绪地图右�
       const subTxt = !has ? '这个范围内还没有记录。'
         : (state.mode === 'all' ? ('已连续记录 ' + streakOf(v) + ' 天 · 最近心情 ' + m + '/5')
           : '当前区间 · ' + v.length + ' 条 · 平均心情 ' + fmt(avg(v, 'mood')) + '/5');
-      return '<div class="hp' + (a ? ' hp-shared' : '') + (isMe ? ' hp-self' : '') + '">';
+      wrap.innerHTML = '<div class="hp">'
         + '<div class="orb-wrap"><div class="orb">' + orbSvg(mc) + '</div>'
-        + '<div class="orb-val"><div class="num" data-m="' + m + '">0</div><div class="lab" style="color:' + mc + '">' + (has ? (moodBand(m) + ' · ' + m + '/5') : '无记录') + '</div></div>'
-        + badge + '</div>'
+        + '<div class="orb-val"><div class="num" data-m="' + m + '">0</div><div class="lab" style="color:' + mc + '">' + (has ? (moodBand(m) + ' · ' + m + '/5') : '无记录') + '</div></div></div>'
         + '<div class="hp-meta">'
-        + (name ? '<div class="hp-name">' + escapeHtml(name) + '</div>' : '')
-        + '<div class="hp-ai hero-ai" data-author="' + escapeHtml(a || '') + '"></div>'
+        + '<div class="hp-ai hero-ai" data-author=""></div>'
         + '<div class="hp-sub">' + escapeHtml(dateTxt) + ' · ' + escapeHtml(subTxt) + '</div>'
         + '</div>'
         + '</div>';
-    }).join('');
-    // 数字滚动动画：每块各自从 0 滚到该人的最新心情
-    wrap.querySelectorAll('.hp .num').forEach(function (n) { animateValue(n, (+n.dataset.m) || 0, 1200, 0); });
+      // 数字滚动动画：个人模式从 0 滚到最新心情
+      wrap.querySelectorAll('.hp .num').forEach(function (n) { animateValue(n, (+n.dataset.m) || 0, 1200, 0); });
+    }
     // 今日一问（全局，只渲染一次）
     const box = $('#todayQ'); if (box) {
       box.innerHTML = ''; let i = 0; const cur = el('span', 'cursor');
