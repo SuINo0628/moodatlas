@@ -2687,7 +2687,10 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
         throw e;                           // 401/403/429/网络错等连接级错误，向上抛给 ghSync 统一处理
       }
       if (!r) continue;
-      if (f === myFile) mySha = r.sha;     // 记「自己文件」的 sha，推送时只用它
+      // 记「将要推送的那个文件」的 sha。非隔离模式下 myFile 为空字符串，
+      // 推送目标退化为 GH_FILE（情绪记录.json），必须用 (myFile || GH_FILE) 才能匹配上。
+      // 以前写 f === myFile，非隔离模式下永远 false → mySha 永远 null → 推送不带 sha → 422。
+      if (f === (myFile || GH_FILE)) mySha = r.sha;
       recs = mergeRecords(recs, r.data.records);
       next = mergeNext(next, r.data.nextQuestions);
       del = mergeMarksKeepFp(del, r.data.deleted);
@@ -2971,6 +2974,12 @@ window.__BUILD__ = "v26 · 2026-08-09 22:11（文件隔离）";</script>
           const m = '同步出现冲突（数据在别处被更新），已保留本地数据并稍后自动重试';
           if (msgEl) msgEl.textContent = '· ' + m;
           setSyncState('error', m); scheduleRetry(); return;
+        }
+        // 推送 404：仓库不存在或路径错误（拉取阶段的 404 是正常的"文件还没建"，不会走到这里）
+        if (e && e.status === 404) {
+          const m = '仓库 ' + c.user + '/' + c.repo + ' 不存在或令牌没有权限。请在 GitHub 先建好这个私有仓库，并确认令牌选上了它';
+          if (msgEl) msgEl.textContent = '✗ ' + m;
+          setSyncState('error', m); return;
         }
         const m = (e && e.message ? e.message : String(e));
         if (msgEl) msgEl.textContent = '✗ 同步失败：' + m;
