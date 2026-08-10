@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mood Atlas · 界面结构与 GitHub 开源组件库对照</title>
+<style>
+  :root {
+    --bg: #0a0e14; --card: #11161f; --border: rgba(255,255,255,0.1);
+    --text: #eef2fb; --soft: #c8d2e0; --dim: #8892a6;
+    --accent: #5eead4; --accent2: #38bdf8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'PingFang SC','Microsoft YaHei',system-ui,sans-serif; line-height: 1.7; padding: 40px 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
+  .subtitle { color: var(--dim); font-size: 14px; margin-bottom: 40px; }
+
+  .screen-section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 30px; margin-bottom: 28px; }
+  .screen-section:hover { border-color: var(--accent); }
+
+  .screen-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+  .screen-num { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); color: #0b1118; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; flex-shrink: 0; }
+  .screen-title { font-size: 20px; font-weight: 700; }
+  .screen-type { font-size: 12px; color: var(--accent2); background: rgba(56,189,248,0.1); padding: 3px 10px; border-radius: 999px; }
+  .screen-desc { color: var(--soft); font-size: 14px; margin-bottom: 16px; }
+
+  .sub-section { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .sub-title { font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 10px; }
+
+  .lib-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
+  .lib-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .lib-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .lib-url { font-size: 12px; color: var(--accent2); word-break: break-all; margin-bottom: 6px; display: block; }
+  .lib-stars { font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+  .lib-why { font-size: 13px; color: var(--soft); line-height: 1.6; }
+  .lib-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px; margin-right: 4px; margin-top: 4px; }
+  .tag-vanilla { background: rgba(94,234,212,0.12); color: var(--accent); }
+  .tag-zero { background: rgba(56,189,248,0.12); color: var(--accent2); }
+  .tag-mit { background: rgba(255,255,255,0.06); color: var(--dim); }
+
+  .interaction-block { margin-top: 16px; background: rgba(94,234,212,0.04); border-left: 3px solid var(--accent); padding: 14px 18px; border-radius: 0 10px 10px 0; }
+  .interaction-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .interaction-flow { font-size: 13px; color: var(--soft); line-height: 1.75; }
+  .interaction-flow .step { color: var(--accent2); font-weight: 600; }
+  .interaction-flow .arrow { color: var(--dim); margin: 0 4px; }
+
+  .summary-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+  .summary-table th { text-align: left; padding: 10px 14px; font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--border); }
+  .summary-table td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .summary-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  @media (max-width: 768px) {
+    body { padding: 20px 12px; }
+    .screen-section { padding: 20px 16px; }
+    .screen-header { gap: 8px; }
+    .screen-title { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Mood Atlas · 界面结构与 GitHub 开源组件库对照</h1>
+<p class="subtitle">共梳理 10 个界面 / 视图，每个界面匹配 1-3 个 GitHub 开源库，并明确交互逻辑。全表优先推荐零依赖、纯原生 JS 的库，与 Mood Atlas 现有技术栈一致。</p>
+
+<!-- 1. 启动屏 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">1</span>
+    <span class="screen-title">启动屏</span>
+    <span class="screen-type">全屏动效</span>
+  </div>
+  <p class="screen-desc">PWA 添加到桌面后打开的第一个界面，纯 CSS 动效 + Canvas 粒子，无网络依赖，快速渲染后自动淡出进入看板。当前实现：极光 + 品牌字 + 进度条。</p>
+
+  <div class="sub-section">
+    <div class="sub-title">推荐 GitHub 开源库</div>
+    <div class="lib-grid">
+      <div class="lib-card">
+        <div class="lib-name">① splash-screen-js</div>
+        <a class="lib-url" href="https://github.com/andygup/splash-screen-js" target="_blank">github.com/andygup/splash-screen-js</a>
+        <div class="lib-stars">⭐ 19 · 仅 1.26KB · 纯 CSS3+JS</div>
+        <div class="lib-why">100% 框架无关，极简 API（show/hide），适合 PWA 首屏。CSS 可完全自定义，比当前硬编码的启动屏更易维护。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-zero">零依赖</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+      <div class="lib-card">
+        <div class="lib-name">② nanosplash</div>
+        <a class="lib-url" href="https://github.com/isakhauge/nanosplash" target="_blank">github.com/isakhauge/nanosplash</a>
+        <div class="lib-stars">⭐ 仅 3KB · TypeScript 支持 · ESM/CJS/IIFE</div>
+        <div class="lib-why">极轻量加载屏，支持 show/hide FIFO 队列，可嵌入到指定容器内。适合需要"数据加载中"场景，不止是首屏。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-zero">零依赖</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+      <div class="lib-card">
+        <div class="lib-name">③ particles-js</div>
+        <a class="lib-url" href="https://github.com/joseba-mirena/particles-js" target="_blank">github.com/joseba-mirena/particles-js</a>
+        <div class="lib-stars">⭐ v1.2.0 · 11.8KB min · 多种粒子类型</div>
+        <div class="lib-why">如果替换当前 Canvas 粒子背景，这个库支持 circle / star / confetti / emoji 四种粒子 + flow / rain / firework 三种动画模式 + 鼠标互动。可替代当前手写的 #bg Canvas。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-zero">零依赖</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① 页面加载</span> <span class="arrow">→</span> 显示启动屏（极光 Canvas + 品牌字 CSS 动效 + 进度条）<br>
+      <span class="step">② 渲染完成 / 3 秒最短展示</span> <span class="arrow">→</span> 启动屏 fadeOut（opacity 过渡 0.6s）<br>
+      <span class="step">③ 兜底机制</span> <span class="arrow">→</span> 8 秒硬超时强制移除，绝不卡界面<br>
+      <span class="step">④ 进入看板</span> <span class="arrow">→</span> 触发 IntersectionObserver 逐个 reveal 面板入场动画
+    </div>
+  </div>
+</div>
+
+<!-- 2. 看板 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">2</span>
+    <span class="screen-title">看板（Dashboard）</span>
+    <span class="screen-type">数据可视化主视图</span>
+  </div>
+  <p class="screen-desc">核心页面，包含：时间段选择器、Hero 情绪球、概览统计、情绪地形图（SVG 散点）、热力图（13 周）、高频标签云、情绪日历、睡眠图表、精力×紧绷散点图、高峰低谷、未完成打算、今日提问、聊情绪入口。</p>
+
+  <div class="sub-section">
+    <div class="sub-title">推荐 GitHub 开源库</div>
+    <div class="lib-grid">
+      <div class="lib-card">
+        <div class="lib-name">① Frappe Charts</div>
+        <a class="lib-url" href="https://github.com/frappe/charts" target="_blank">github.com/frappe/charts</a>
+        <div class="lib-stars">⭐ 15k+ · 零依赖 · 纯 SVG · 响应式</div>
+        <div class="lib-why">零依赖纯 SVG 图表库，支持折线图/柱状图/散点图/饼图/热力图。非常适合替换当前手写的情绪地形（SVG scatter）和睡眠图表。API 极简，开箱即用。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-zero">零依赖</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+      <div class="lib-card">
+        <div class="lib-name">② Cal-Heatmap</div>
+        <a class="lib-url" href="https://github.com/wa0x6e/cal-heatmap" target="_blank">github.com/wa0x6e/cal-heatmap</a>
+        <div class="lib-stars">⭐ 3.1k · TypeScript · 动画日期导航</div>
+        <div class="lib-why">GitHub 贡献图风格的日历热力图。支持动画日期导航、时间间隔自定义、多语言、插件系统。可直接替代当前手写的情绪日历（#calGrid），功能远比当前丰富。</div>
+        <span class="lib-tag tag-vanilla">TS 编写</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+      <div class="lib-card">
+        <div class="lib-name">③ calendar-heatmap（@goujon）</div>
+        <a class="lib-url" href="https://github.com/dkirwan/calendar-heatmap" target="_blank">github.com/dkirwan/calendar-heatmap</a>
+        <div class="lib-stars">⭐ 轻量 · 支持 onClick/onHover · 响应式 auto-size</div>
+        <div class="lib-why">更轻量的日历热力图替代方案。支持 fitWidth 自适应、tooltip、accessibility、React 绑定（可选）。API 更简洁，比 Cal-Heatmap 更轻。</div>
+        <span class="lib-tag tag-vanilla">Vanilla</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① 时间段选择</span> <span class="arrow">→</span> 全部/按年/按月/按日 四个按钮切换，切换后触发全仪表盘重渲染（emotion terrain + heatmap + calendar + stats）<br>
+      <span class="step">② Hero 区</span> <span class="arrow">→</span> 情绪球（#orb）实时显示最近一条记录的心情值；点击"今日一问"展开作答模态框 → 写完后"落到地图"存储并刷新<br>
+      <span class="step">③ 概览统计</span> <span class="arrow">→</span> 展示记录天数、平均心情、高频标签等，数据来自 DATA.records 聚合计算<br>
+      <span class="step">④ 情绪地形</span> <span class="arrow">→</span> SVG 散点图（近 30 天），"我们/自己" toggle 切换视角；点数据点 → 跳转编辑该条记录<br>
+      <span class="step">⑤ 热力图 + 标签云</span> <span class="arrow">→</span> 同一行并排；点标签 → 跳到「历史」视图并筛选该标签<br>
+      <span class="step">⑥ 情绪日历</span> <span class="arrow">→</span> 月份导航（‹ ›），点击有记录的日期 → 弹出当日记录选择窗 → 查看/编辑<br>
+      <span class="step">⑦ 睡眠 + 精力紧绷</span> <span class="arrow">→</span> 日均/月均/年均/自定义周期切换，数据联动更新<br>
+      <span class="step">⑧ 提问区</span> <span class="arrow">→</span> "AI 生成追问"按钮 → DeepSeek API 生成新问题；点问题卡片 → 作答模态框<br>
+      <span class="step">⑨ 底部"记一笔"FAB</span> <span class="arrow">→</span> 右下角浮动按钮，可拖拽移动位置，单击（无拖拽）→ 打开聊情绪弹窗
+    </div>
+  </div>
+</div>
+
+<!-- 3. 记一笔 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">3</span>
+    <span class="screen-title">记一笔</span>
+    <span class="screen-type">表单弹窗</span>
+  </div>
+  <p class="screen-desc">全功能记录编辑弹窗。支持：随手写 + AI 帮填 → 结构化表单（日期/时间/心情/睡眠/精力/紧绷/场景/标签/身体信号/行为/备注/重要事件/原因）。</p>
+
+  <div class="sub-section">
+    <div class="sub-title">推荐 GitHub 开源库</div>
+    <div class="lib-grid">
+      <div class="lib-card">
+        <div class="lib-name">① settings-ui</div>
+        <a class="lib-url" href="https://github.com/TimoBechtel/settings-ui" target="_blank">github.com/TimoBechtel/settings-ui</a>
+        <div class="lib-stars">⭐ JSON 模板驱动 · 数据绑定 · 可扩展插件</div>
+        <div class="lib-why">用 JSON 模板自动生成表单 UI + 数据绑定。支持 number/text/boolean/selection/radio 等类型。如果想把"记一笔"的表单字段抽象成配置驱动，这个库可以省去大量手写 HTML。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① 打开方式</span> <span class="arrow">→</span> 顶部"记一笔"按钮 / 每日提醒"记一笔" / 日历点击日期（编辑模式）<br>
+      <span class="step">② 随手写（可选）</span> <span class="arrow">→</span> 先自由输入 → "让 AI 帮你整理填写"按钮 → DeepSeek 解析为结构化字段 → 回填到下方表单<br>
+      <span class="step">③ 心情选择</span> <span class="arrow">→</span> 1-5 五个按钮，点击高亮，默认 3，必填<br>
+      <span class="step">④ 原因选择</span> <span class="arrow">→</span> 想做但没做/人际/压力/身体/其他 → 选"想做但没做"时展开意图+权重子表单<br>
+      <span class="step">⑤ 落到地图</span> <span class="arrow">→</span> 保存到 localStorage → 触发自动同步到 GitHub（如启用）→ 关闭弹窗 → 刷新看板<br>
+      <span class="step">⑥ 编辑模式</span> <span class="arrow">→</span> 带已有数据打开，显示"删除此条"按钮；修改后保存会覆盖原记录
+    </div>
+  </div>
+</div>
+
+<!-- 4. AI 帮填 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">4</span>
+    <span class="screen-title">AI 帮填</span>
+    <span class="screen-type">对话式整理</span>
+  </div>
+  <p class="screen-desc">独立弹窗，用户随便写一段话 → AI 理解后以对话方式追问澄清 → 最终整理成结构化记录 → 用户确认后回填到"记一笔"表单。</p>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① 用户输入自由文本</span> <span class="arrow">→</span> "让 AI 理解一下"按钮 → 发送到 DeepSeek API<br>
+      <span class="step">② AI 返回理解结果</span> <span class="arrow">→</span> 以聊天气泡展示（.xbubble.ai），可能包含追问（如"你提到的胸口闷，是紧张还是身体不舒服？"）<br>
+      <span class="step">③ 用户回复追问</span> <span class="arrow">→</span> 继续对话式交互，直到 AI 认为信息足够<br>
+      <span class="step">④ AI 输出结构化 JSON</span> <span class="arrow">→</span> 展示提取到的 mood/scene/tags/sleep/energy/tension 等字段<br>
+      <span class="step">⑤ 用户确认</span> <span class="arrow">→</span> 点击"确认并填入"→ 回填到"记一笔"表单 → 用户可再修改 → 保存
+    </div>
+  </div>
+</div>
+
+<!-- 5. 聊情绪 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">5</span>
+    <span class="screen-title">聊情绪</span>
+    <span class="screen-type">AI 聊天窗</span>
+  </div>
+  <p class="screen-desc">DeepSeek 直连 AI 对话窗。结合用户过往记录温柔回应，聊完可一键记一笔。支持"问数据"模式直接查询统计。</p>
+
+  <div class="sub-section">
+    <div class="sub-title">推荐 GitHub 开源库</div>
+    <div class="lib-grid">
+      <div class="lib-card">
+        <div class="lib-name">① KleanChat-lite</div>
+        <a class="lib-url" href="https://github.com/medhavisahgal/KleanChat-lite" target="_blank">github.com/medhavisahgal/KleanChat-lite</a>
+        <div class="lib-stars">⭐ 零依赖 · 纯 HTML/CSS/JS · 移动响应式</div>
+        <div class="lib-why">极简聊天界面模板，纯原生实现，结构清晰。可作为聊情绪 UI 重构的基础骨架。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-zero">零依赖</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+      <div class="lib-card">
+        <div class="lib-name">② Ultralytics LLM Chat Widget</div>
+        <a class="lib-url" href="https://github.com/ultralytics/llm" target="_blank">github.com/ultralytics/llm</a>
+        <div class="lib-stars">⭐ 零依赖 · SSE 流式 · 暗色模式 · WCAG 无障碍</div>
+        <div class="lib-why">生产级 AI 对话组件。支持 SSE 流式输出（DeepSeek 兼容）、暗色/浅色自动切换、移动端全屏、键盘导航。如果未来想让聊情绪支持流式响应，这个库非常合适。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-zero">零依赖</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① 打开方式</span> <span class="arrow">→</span> 看板"打开聊情绪"按钮 / 右下角 FAB / 顶部"AI 帮填"按钮 / 键盘快捷键<br>
+      <span class="step">② 发送消息</span> <span class="arrow">→</span> 文本输入 → Enter/Ctrl+Enter 发送 → DeepSeek API 请求 → 加载动画 → 显示 AI 回复<br>
+      <span class="step">③ 上下文注入</span> <span class="arrow">→</span> 发送时将最近 30 条记录摘要作为 system prompt 注入，让 AI 结合历史回应<br>
+      <span class="step">④ 问数据模式</span> <span class="arrow">→</span> 点击"问数据"切换 → 发送时额外注入统计摘要（平均心情、趋势、高频标签等）<br>
+      <span class="step">⑤ 结束对话</span> <span class="arrow">→</span> AI 判断聊到情绪可记录时显示"记一笔"提示条 → 点击提取对话内容生成记录 → 回填到"记一笔"表单
+    </div>
+  </div>
+</div>
+
+<!-- 6. 时间轴 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">6</span>
+    <span class="screen-title">时间轴</span>
+    <span class="screen-type">时间线列表 + 情绪洞察</span>
+  </div>
+  <p class="screen-desc">底部导航第二个视图。垂直时间线展示所有记录，重要事件高亮。顶部含情绪洞察面板（AI 观察/profile、来源分析、维度相关性、AI 解读）。</p>
+
+  <div class="sub-section">
+    <div class="sub-title">推荐 GitHub 开源库</div>
+    <div class="lib-grid">
+      <div class="lib-card">
+        <div class="lib-name">① timelined</div>
+        <a class="lib-url" href="https://github.com/Ondreas/timelined" target="_blank">github.com/Ondreas/timelined</a>
+        <div class="lib-stars">⭐ 纯 CSS · 无需 JS · 左右交替/统一对齐</div>
+        <div class="lib-why">纯 CSS 垂直时间线组件。支持左右交替、统一右对齐、折叠模式、箭头装饰、Font Awesome 图标。用纯 CSS 实现视觉效果，符合 Mood Atlas 的 Vanilla 哲学。可替代当前手写的时间轴样式。</div>
+        <span class="lib-tag tag-zero">零 JS</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+      <div class="lib-card">
+        <div class="lib-name">② leigh90/timeline</div>
+        <a class="lib-url" href="https://github.com/leigh90/timeline" target="_blank">github.com/leigh90/timeline</a>
+        <div class="lib-stars">⭐ 支持水平和垂直 · 响应式 · data-attribute 配置</div>
+        <div class="lib-why">纯 JS 水平/垂直双模式时间线。支持 data-attributes 配置（不需要写 JS）、响应式断点、滚动触发动画。适合需要水平时间线的场景。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① 日期跳转</span> <span class="arrow">→</span> 输入框选择日期 → 滚动到对应时间轴位置<br>
+      <span class="step">② 情绪洞察面板</span> <span class="arrow">→</span> 可折叠（收起/展开）· 我们/自己 toggle 切换视角<br>
+      <span class="step">③ 来源分析·标签</span> <span class="arrow">→</span> 展示每个标签对应的平均心情和记录数<br>
+      <span class="step">④ 来源分析·场景</span> <span class="arrow">→</span> 展示每个场景对应的平均心情和记录数<br>
+      <span class="step">⑤ 维度相关性</span> <span class="arrow">→</span> 计算睡眠-心情、精力-心情、紧绷-心情的相关系数<br>
+      <span class="step">⑥ "让 AI 解读"</span> <span class="arrow">→</span> DeepSeek API → 输出自然语言解读<br>
+      <span class="step">⑦ 时间轴条目</span> <span class="arrow">→</span> 带"重要"标记的条目高亮显示 · 点击条目 → 打开编辑弹窗<br>
+      <span class="step">⑧ 图例</span> <span class="arrow">→</span> 显示各署名作者的颜色映射
+    </div>
+  </div>
+</div>
+
+<!-- 7. 历史 + 标签关系图 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">7</span>
+    <span class="screen-title">历史记录 + 标签关系图</span>
+    <span class="screen-type">搜索筛选 + 节点网络</span>
+  </div>
+  <p class="screen-desc">底部导航第三个视图。顶部搜索栏 + 标签筛选 + 心情芯片；中间 Obsidian 风格标签关系图（SVG force-directed）；底部历史列表。</p>
+
+  <div class="sub-section">
+    <div class="sub-title">推荐 GitHub 开源库（节点网络图）</div>
+    <div class="lib-grid">
+      <div class="lib-card">
+        <div class="lib-name">① d3-force（D3.js 子模块）</div>
+        <a class="lib-url" href="https://github.com/d3/d3-force" target="_blank">github.com/d3/d3-force</a>
+        <div class="lib-stars">⭐ D3 内置 · 力导向布局 · 业界标准</div>
+        <div class="lib-why">当前标签关系图手写了力导向算法。d3-force 是业界标准的力布局引擎，支持碰撞检测、link force、多体力等。引入 D3 的 force 模块可以大大简化现有 ~200 行手写力布局代码。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+      <div class="lib-card">
+        <div class="lib-name">② svg3dtagcloud</div>
+        <a class="lib-url" href="https://github.com/Appigle/svg3dtagcloud" target="_blank">github.com/Appigle/svg3dtagcloud</a>
+        <div class="lib-stars">⭐ 3D 标签云 · 自定义颜色 · 支持文本+图片</div>
+        <div class="lib-why">如果想把标签云（#tags）做成 3D 球体旋转效果，这个库提供开箱即用的 SVG 3D 标签云。支持自定义颜色、字体大小、旋转速度。比当前平面标签云更有视觉冲击力。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① 搜索</span> <span class="arrow">→</span> 输入框实时筛选：匹配场景/备注/标签/原因字段<br>
+      <span class="step">② 标签筛选</span> <span class="arrow">→</span> 点击"全部标签"→ 底部弹层（.sheet）展开 → 多选标签 → 关闭弹层 → 列表和关系图同步筛选<br>
+      <span class="step">③ 心情芯片</span> <span class="arrow">→</span> 点击 1/2/3/4/5 → 高亮选中的心情等级 → 仅显示该等级的记录<br>
+      <span class="step">④ 标签关系图</span> <span class="arrow">→</span> SVG 力导向布局，可拖拽平移/滚轮缩放 · 点节点 → 筛选该标签的记录 · "整理标签" → 重置布局<br>
+      <span class="step">⑤ 历史列表</span> <span class="arrow">→</span> 每项含日期/心情/标签/备注 · 点击 → 打开编辑弹窗<br>
+      <span class="step">⑥ "生成 AI 总结"</span> <span class="arrow">→</span> 打开独立模态框 → 选择时间范围 → DeepSeek 生成文字总结 → 可导出 PDF
+    </div>
+  </div>
+</div>
+
+<!-- 8. 回收站 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">8</span>
+    <span class="screen-title">回收站</span>
+    <span class="screen-type">独立页</span>
+  </div>
+  <p class="screen-desc">整屏独立页面（.page），从底部导航进入。展示被软删除的记录，可从云端回收站文件拉取、恢复或彻底删除。</p>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① 进入</span> <span class="arrow">→</span> 底部导航"回收站"→ 整屏 slide up 过渡 → 自动从 GitHub 拉取回收站文件<br>
+      <span class="step">② 列表展示</span> <span class="arrow">→</span> 每条显示心情图标/日期/场景/备注/标签<br>
+      <span class="step">③ 恢复</span> <span class="arrow">→</span> 从回收站移除 → 加回主记录列表 → 同步到云端<br>
+      <span class="step">④ 彻底删除</span> <span class="arrow">→</span> 从回收站移除 → 加入 trashPurged 标记 → 云端回收站同步删除<br>
+      <span class="step">⑤ 清空回收站</span> <span class="arrow">→</span> 全部彻底删除，云端同步<br>
+      <span class="step">⑥ 返回</span> <span class="arrow">→</span> 左上角返回按钮 → 回到之前的视图
+    </div>
+  </div>
+</div>
+
+<!-- 9. 设置面板 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">9</span>
+    <span class="screen-title">设置面板</span>
+    <span class="screen-type">配置弹窗</span>
+  </div>
+  <p class="screen-desc">全功能设置弹窗，分三大块：DeepSeek API 配置（Key/模型/路由）、GitHub 云同步（个人/共享空间/令牌/文件隔离）、数据备份（导出 JSON/CSV/导入/清缓存/AI 分类）。</p>
+
+  <div class="sub-section">
+    <div class="sub-title">推荐 GitHub 开源库</div>
+    <div class="lib-grid">
+      <div class="lib-card">
+        <div class="lib-name">① settings-ui</div>
+        <a class="lib-url" href="https://github.com/TimoBechtel/settings-ui" target="_blank">github.com/TimoBechtel/settings-ui</a>
+        <div class="lib-stars">⭐ JSON 模板 → 自动生成表单 + 数据绑定 + onChange 回调</div>
+        <div class="lib-why">如果想把设置面板改成配置驱动，这个库用 JSON schema 自动生成表单 UI，支持 section 分组、数据绑定、change listener。但需要评估迁移成本，当前手写的设置面板已经比较完善。</div>
+        <span class="lib-tag tag-vanilla">Vanilla JS</span><span class="lib-tag tag-mit">MIT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① DeepSeek 配置</span> <span class="arrow">→</span> Key 输入（密码框+眼睛图标切换显示/隐藏）→ "测试"按钮验证连接 → 模型选择（智能路由/手动）→ 手动模式下选模型<br>
+      <span class="step">② GitHub 同步</span> <span class="arrow">→</span> 个人/共享空间分段切换 → 启用同步+自动同步开关 → 输入用户名/仓库名/令牌（密码框）→ "测试连接"验证（独立浮层弹窗显示结果）→ "立即同步"推数据 → "保存设置"落 localStorage<br>
+      <span class="step">③ 文件隔离</span> <span class="arrow">→</span> 共享空间下显示"我的同步文件"输入框 → 多人各自写不同文件避免 409 冲突<br>
+      <span class="step">④ 数据备份</span> <span class="arrow">→</span> 导出 JSON（下载文件）/ 导出 CSV / 导入（文件选择器）/ 清空缓存<br>
+      <span class="step">⑤ AI 分类</span> <span class="arrow">→</span> "立即分类" → DeepSeek 分析所有记录 → 自动打标签 → "合并近似标签"去重<br>
+      <span class="step">⑥ 所有设置保存</span> <span class="arrow">→</span> "保存设置"按钮统一写 localStorage → 成功后弹窗确认（ghTestAlert）
+    </div>
+  </div>
+</div>
+
+<!-- 10. 主题面板 -->
+<div class="screen-section">
+  <div class="screen-header">
+    <span class="screen-num">10</span>
+    <span class="screen-title">主题面板</span>
+    <span class="screen-type">色板切换</span>
+  </div>
+  <p class="screen-desc">侧滑面板（.theme-panel），14 套预置色板 + 自定义颜色选择器 + 深色/浅色切换。所有颜色由 JS derivePalette() 从单一主题色实时派生。</p>
+
+  <div class="interaction-block">
+    <div class="interaction-title">交互逻辑</div>
+    <div class="interaction-flow">
+      <span class="step">① 打开</span> <span class="arrow">→</span> 顶部"主题"按钮 → 侧滑面板从右滑入 + 背景遮罩（#scrim）<br>
+      <span class="step">② 色板选择</span> <span class="arrow">→</span> 14 个颜色圆点（.swatch），点击 → derivePalette() 实时计算全部语义色 → 注入 CSS 变量 → 全页面即时变色<br>
+      <span class="step">③ 自定义颜色</span> <span class="arrow">→</span> HTML color input → 选择后同样触发 derivePalette()<br>
+      <span class="step">④ 深色/浅色</span> <span class="arrow">→</span> 两个按钮 → 切换 data-theme="light" 属性 → CSS 变量全面更新<br>
+      <span class="step">⑤ 关闭</span> <span class="arrow">→</span> 点击遮罩 / 再次点"主题"按钮 → 面板滑出
+    </div>
+  </div>
+</div>
+
+<!-- 汇总表 -->
+<h2 style="margin-top: 50px; margin-bottom: 16px; font-size: 22px;">汇总对照表</h2>
+<table class="summary-table">
+  <thead>
+    <tr><th>界面</th><th>最推荐开源库</th><th>替换目标</th><th>引入收益</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>启动屏</td>
+      <td>particles-js</td>
+      <td>#bg Canvas 粒子背景</td>
+      <td>多种粒子类型+鼠标互动，替换手写 200 行 Canvas 代码</td>
+    </tr>
+    <tr>
+      <td>看板·情绪地形</td>
+      <td>Frappe Charts</td>
+      <td>手写 SVG scatter</td>
+      <td>零依赖图表库，减少 ~300 行手写 SVG 代码</td>
+    </tr>
+    <tr>
+      <td>看板·情绪日历</td>
+      <td>Cal-Heatmap</td>
+      <td>#calGrid 手写日历</td>
+      <td>动画导航+tooltip+响应式，替换 ~200 行手写日历</td>
+    </tr>
+    <tr>
+      <td>看板·标签云</td>
+      <td>svg3dtagcloud</td>
+      <td>#tags 平面标签云</td>
+      <td>3D 旋转标签球，视觉升级明显</td>
+    </tr>
+    <tr>
+      <td>AI 聊情绪</td>
+      <td>Ultralytics LLM Widget</td>
+      <td>#aiChat 聊天窗</td>
+      <td>SSE 流式输出+暗色模式+无障碍，替换手写聊天 UI</td>
+    </tr>
+    <tr>
+      <td>时间轴</td>
+      <td>timelined</td>
+      <td>.tl-list 时间轴样式</td>
+      <td>纯 CSS 时间线，减少样式维护</td>
+    </tr>
+    <tr>
+      <td>标签关系图</td>
+      <td>d3-force</td>
+      <td>手写力导向算法</td>
+      <td>业界标准力布局，减少 ~150 行手写物理引擎</td>
+    </tr>
+    <tr>
+      <td>设置面板</td>
+      <td>保持现有</td>
+      <td>—</td>
+      <td>当前设置面板已完善，迁移 settings-ui 收益不大</td>
+    </tr>
+    <tr>
+      <td>主题面板</td>
+      <td>保持现有</td>
+      <td>—</td>
+      <td>derivePalette() 方案已很优雅，无需替换</td>
+    </tr>
+    <tr>
+      <td>全局粒子背景</td>
+      <td>particleground</td>
+      <td>#bg Canvas + 极光</td>
+      <td>粒子连线+视差效果，更灵动</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="margin-top: 40px; color: var(--dim); font-size: 13px; text-align: center; border-top: 1px solid var(--border); padding-top: 24px;">
+  生成时间：2026-08-10 · 基于 Mood Atlas v26 代码分析 · 所有推荐库均为 MIT/Apache 2.0 开源协议 · 优先零依赖 Vanilla JS 方案
+</p>
+</div>
+</body>
+</html>

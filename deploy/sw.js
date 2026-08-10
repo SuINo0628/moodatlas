@@ -8,5 +8,11 @@ self.addEventListener("fetch",function(e){
     e.respondWith(fetch(e.request).then(function(res){var cp=res.clone();caches.open(CACHE).then(function(c){c.put(e.request,cp);});return res;}).catch(function(){return caches.match(e.request).then(function(r){return r||caches.match("./index.html");});}));
     return;
   }
+  var origin;
+  try{ origin=new URL(e.request.url).origin; }catch(_){ origin=""; }
+  if(origin&&origin!==self.location.origin){ /* 跨域（GitHub API 等）：网络优先且不缓存，保证云同步每次都取到最新数据，不会被旧缓存误导 */
+    e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));
+    return;
+  }
   e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request).then(function(res){var cp=res.clone();caches.open(CACHE).then(function(c){c.put(e.request,cp);});return res;}).catch(function(){return caches.match("./index.html");});}));
 });
