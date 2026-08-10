@@ -787,7 +787,7 @@ body {
 .fab { display: none; }
 .fab.fab-rec {
   display: flex; align-items: center; justify-content: center;
-  position: fixed; z-index: 96;
+  position: fixed; z-index: 96; touch-action: none;
   right: calc(16px + env(safe-area-inset-right));
   bottom: calc(24px + env(safe-area-inset-bottom));
   width: 56px; height: 56px; border-radius: 50%;
@@ -798,6 +798,10 @@ body {
 }
 .fab.fab-rec:hover { box-shadow: 0 16px 36px -8px var(--accent-glow), 0 0 0 8px var(--accent-soft); }
 .fab.fab-rec:active { transform: scale(.9); }
+  .fab-badge { position: absolute; top: 3px; right: 3px; width: 12px; height: 12px; border-radius: 50%;
+    background: #ff4d4f; border: 2px solid var(--bg-2); display: none; z-index: 2; pointer-events: none;
+    box-shadow: 0 0 0 3px rgba(255,77,79,.25); }
+  .fab-badge.on { display: block; animation: pulseDot 1.6s ease-in-out infinite; }
 .fab.fab-rec.dragging { transition: none; cursor: grabbing; box-shadow: 0 18px 40px -8px var(--accent-glow), 0 0 0 10px var(--accent-soft); }
 @media (max-width: 900px) {
   /* 手机端 FAB 抬到固定底部导航之上，避免遮挡 */
@@ -2064,32 +2068,7 @@ body {
       <button class="btn primary" id="openChatBtn" type="button">打开聊情绪</button>
     </section>
 
-    <!-- 聊情绪 独立弹窗（DeepSeek 直连） -->
-    <div class="modal chat-modal" id="chatModal">
-      <div class="chat-modal-head">
-        <div class="cm-titles">
-          <span class="cm-title">AI 对话 · 聊情绪</span>
-          <span class="cm-sub">用 DeepSeek 温柔回应你的记录</span>
-        </div>
-        <div class="chat-modal-actions">
-          <button class="btn sm ghost" id="askDataBtn" type="button">问数据</button>
-          <button class="mclose" id="chatClose" type="button" aria-label="关闭">×</button>
-        </div>
-      </div>
-      <div class="ai-chat" id="aiChat"></div>
-      <div class="ai-row">
-        <div class="ai-input-wrap">
-          <textarea id="aiInput" placeholder="和 AI 说说今天的状态，它会结合你的记录温柔回应…（Ctrl/Cmd+Enter 发送）"></textarea>
-          <button class="btn primary" id="aiSend" aria-label="发送">发送</button>
-        </div>
-      </div>
-      <div class="ai-record-prompt" id="aiRecordPrompt" style="display:none">
-        <span class="arp-txt">要把这次聊到的情绪记一笔吗？</span>
-        <button class="btn sm primary" id="aiRecordSave" type="button">记一笔</button>
-        <button class="btn sm ghost" id="aiRecordSkip" type="button">不用了</button>
-      </div>
-      <div class="assist-saved" id="aiChatStatus"></div>
-    </div>
+    
 
   </main>
 
@@ -2212,6 +2191,32 @@ body {
     <button class="btn" id="modeLight">浅色</button>
   </div>
 </div>
+<div class="modal chat-modal" id="chatModal">
+  <div class="chat-modal-head">
+    <div class="cm-titles">
+      <span class="cm-title">AI 对话 · 聊情绪</span>
+      <span class="cm-sub">用 DeepSeek 温柔回应你的记录</span>
+    </div>
+    <div class="chat-modal-actions">
+      <button class="btn sm ghost" id="askDataBtn" type="button">问数据</button>
+      <button class="mclose" id="chatClose" type="button" aria-label="关闭">×</button>
+    </div>
+  </div>
+  <div class="ai-chat" id="aiChat"></div>
+  <div class="ai-row">
+    <div class="ai-input-wrap">
+      <textarea id="aiInput" placeholder="和 AI 说说今天的状态，它会结合你的记录温柔回应…（Ctrl/Cmd+Enter 发送）"></textarea>
+      <button class="btn primary" id="aiSend" aria-label="发送">发送</button>
+    </div>
+  </div>
+  <div class="ai-record-prompt" id="aiRecordPrompt" style="display:none">
+    <span class="arp-txt">要把这次聊到的情绪记一笔吗？</span>
+    <button class="btn sm primary" id="aiRecordSave" type="button">记一笔</button>
+    <button class="btn sm ghost" id="aiRecordSkip" type="button">不用了</button>
+  </div>
+  <div class="assist-saved" id="aiChatStatus"></div>
+</div>
+
 <div class="scrim" id="scrim"></div>
 
 <!-- 作答模态框 -->
@@ -2537,6 +2542,7 @@ body {
 </div>
 <button class="fab fab-rec" id="recFab" type="button" aria-label="聊情绪" title="聊情绪">
   <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+  <span class="fab-badge" id="fabCmtBadge"></span>
 </button>
 
 <script>window.__DATA__ = {"version":1,"records":[],"nextQuestions":[{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}]};
@@ -2544,7 +2550,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + 移除头像/作者徽章圆点）";</script>
+window.__BUILD__ = "v34 · 2026-08-11 03:20（修复 FAB 聊情绪弹窗被层叠上下文困住·灰屏无弹窗 + 移动端拖拽吸附 + FAB 评论红点）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -3913,11 +3919,14 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     return null;
   }
   function updateCmtDot() {
-    const dot = document.getElementById('cmtDot'); if (!dot) return;
-    if (ghProfile() !== 'shared') { dot.style.display = 'none'; dot.classList.remove('on'); return; }
-    const unread = firstUnreadRecId();
-    if (unread) { dot.style.display = ''; dot.classList.add('on'); dot.dataset.rec = unread; }
-    else { dot.style.display = 'none'; dot.classList.remove('on'); }
+    const dot = document.getElementById('cmtDot');
+    const fab = document.getElementById('fabCmtBadge');
+    const unread = (ghProfile() === 'shared') ? firstUnreadRecId() : null;
+    if (dot) {
+      if (unread) { dot.style.display = ''; dot.classList.add('on'); dot.dataset.rec = unread; }
+      else { dot.style.display = 'none'; dot.classList.remove('on'); }
+    }
+    if (fab) fab.classList.toggle('on', !!unread);
   }
   function afterTimelineRender(list) {
     if (!list || !state.tlJump) return;
