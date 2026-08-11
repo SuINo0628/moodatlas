@@ -206,7 +206,7 @@ body {
 .ai-box { margin-top: 30px; padding: 22px; border-radius: var(--r-md); background: var(--glass); border: 1px solid var(--glass-brd); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 .ai-chat { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; margin-top: 12px; padding: 4px 2px; }
 .ai-chat:empty { display: flex; align-items: center; justify-content: center; min-height: 110px; text-align: center; }
-.ai-chat:empty::before { content: '还没有对话。写点今天的感受，AI 会结合你的记录回应你～'; color: var(--ink-dim); font-size: 12.5px; line-height: 1.65; max-width: 260px; padding: 0 16px; }
+.ai-chat:empty::before { content: '还没有对话。写点今天的感受，小绪会结合你的记录回应你～'; color: var(--ink-dim); font-size: 12.5px; line-height: 1.65; max-width: 260px; padding: 0 16px; }
 .ai-row { margin-top: 14px; }
 .ai-record-prompt { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--accent) 10%, var(--bg-1)); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
 .ai-record-prompt .arp-txt { font-size: 13px; color: var(--ink); flex: 1 1 auto; min-width: 140px; }
@@ -341,7 +341,8 @@ body {
 .orb-val .lab { font-size: 11.5px; letter-spacing: .6px; margin-top: 7px; font-weight: 600; }
 
 .hero-meta { flex: 1; min-width: 280px; }
-.hero-meta .q-label { font-size: 12px; color: var(--accent); letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 7px; }
+.hero-q { flex: 1 1 100%; }
+.hero-q .q-label { font-size: 12px; color: var(--accent); letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 7px; }
 .hero-meta .q-label::after { content: "→"; opacity: 0.6; }
 .today-q {
   font-family: var(--font-display); font-size: 27px; font-weight: 600; line-height: 1.42;
@@ -352,6 +353,30 @@ body {
 @keyframes blink { 50% { opacity: 0; } }
 .hero-meta .date { font-size: 13px; color: var(--ink-dim); margin-top: 16px; font-family: var(--font-mono); }
 .hero-meta .hero-sub { margin-top: 14px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; max-width: 560px; }
+
+/* 共享模式：去掉两个分人矩形卡片，只显示一句整体的 AI 开场白 */
+.hero-shared .hp-single { padding: 0; border: none; background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; flex: 1 1 100%; align-items: flex-start; }
+.hero-shared .hp-single .hp-ai { font-size: 16px; line-height: 1.75; color: var(--ink); font-style: italic; max-width: 640px; margin-top: 4px; padding-left: 2px; }
+.hero-persons { display: flex; align-items: stretch; gap: 26px; flex-wrap: wrap; width: 100%; margin-top: 4px; }
+.hp { display: flex; align-items: center; gap: 18px; flex: 1 1 300px; min-width: 260px; }
+.hp-shared { padding: 12px 16px; border: 1px solid var(--glass-brd); border-radius: 18px; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 10px 30px -20px rgba(0,0,0,.5); }
+.hp .orb-wrap { width: 118px; height: 118px; flex: 0 0 auto; }
+.hp .orb-val .num { font-size: 38px; }
+.hp .orb-badge { position: absolute; right: -2px; top: -2px; width: 38px; height: 38px; border-radius: 50%; background: var(--bg-2); border: 2px solid var(--glass-brd); display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 14px rgba(0,0,0,.3); z-index: 3; }
+.hp-meta { flex: 1; min-width: 0; }
+.hp-name { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.hp-ai { margin-top: 8px; font-size: 13.5px; }
+.hp-sub { margin-top: 8px; font-size: 12px; color: var(--ink-dim); font-family: var(--font-mono); }
+@media (max-width: 640px) {
+  .hero-persons { gap: 14px; }
+  .hp { flex: 1 1 100%; }
+  .hp-shared { padding: 12px; }
+  /* 共享模式手机端只显示「我自己」的光球+AI一句话，避免两人卡片上下叠占满首屏 */
+  .hero-shared .hp:not(.hp-self) { display: none; }
+  .hero-shared .hp-self { flex: 1 1 100%; }
+  /* 手机端不要光球：隐藏首页光球，只留 AI 一句话和统计 */
+  .hp .orb-wrap { display: none; }
+}
 
 /* 概览：重排版（竖分隔线 + 统一间距） */
 .glance { display: flex; align-items: stretch; flex-wrap: wrap; margin: 4px 0 6px; }
@@ -505,6 +530,27 @@ body {
 .modal .mactions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 .modal .msaved { color: var(--accent); font-size: 13px; margin-top: 12px; min-height: 16px; line-height: 1.5; opacity: 0; transition: opacity 0.3s; }
 .modal .msaved.show { opacity: 1; }
+/* 合并近似标签：AI 建议 + 人工编辑 */
+.merge-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; margin: -4px 0 14px; }
+.merge-note b { color: var(--accent); font-weight: 600; }
+.merge-groups { display: flex; flex-direction: column; gap: 12px; }
+.merge-group { border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 13px; background: var(--bg-1); }
+.merge-group-head { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.merge-canon { flex: 1 1 auto; min-width: 0; background: var(--bg-2); border: 1px solid var(--line-strong, var(--glass-brd)); border-radius: var(--r-sm); padding: 6px 10px; color: var(--ink); font-size: 13.5px; font-weight: 600; }
+.merge-canon:focus { outline: none; border-color: var(--accent); }
+.merge-group-del { flex: 0 0 auto; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 12px; padding: 4px 6px; border-radius: 6px; white-space: nowrap; }
+.merge-group-del:hover { color: #ff7a85; background: var(--line); }
+.merge-aliases { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.merge-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 12.5px; }
+.merge-chip b { font-weight: 500; }
+.merge-chip-x { cursor: pointer; border: none; background: rgba(0,0,0,.08); color: inherit; border-radius: 50%; width: 17px; height: 17px; font-size: 12px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.merge-chip-x:hover { background: rgba(0,0,0,.16); }
+.merge-add-row { display: flex; gap: 6px; margin-top: 9px; }
+.merge-add-input { flex: 1 1 auto; min-width: 0; background: var(--bg-2); border: 1px solid var(--line-strong, var(--glass-brd)); border-radius: var(--r-sm); padding: 5px 9px; color: var(--ink); font-size: 12.5px; }
+.merge-add-input:focus { outline: none; border-color: var(--accent); }
+.merge-empty { font-size: 13px; color: var(--ink-dim); padding: 6px 0; }
+.merge-foot { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+.merge-foot .grow { flex: 1 1 auto; }
 
 /* ---------- GitHub 测试连接结果弹窗（独立浮层） ---------- */
 .alert-scrim {
@@ -787,7 +833,7 @@ body {
 .fab { display: none; }
 .fab.fab-rec {
   display: flex; align-items: center; justify-content: center;
-  position: fixed; z-index: 96;
+  position: fixed; z-index: 96; touch-action: none;
   right: calc(16px + env(safe-area-inset-right));
   bottom: calc(24px + env(safe-area-inset-bottom));
   width: 56px; height: 56px; border-radius: 50%;
@@ -798,6 +844,10 @@ body {
 }
 .fab.fab-rec:hover { box-shadow: 0 16px 36px -8px var(--accent-glow), 0 0 0 8px var(--accent-soft); }
 .fab.fab-rec:active { transform: scale(.9); }
+  .fab-badge { position: absolute; top: 3px; right: 3px; width: 12px; height: 12px; border-radius: 50%;
+    background: #ff4d4f; border: 2px solid var(--bg-2); display: none; z-index: 2; pointer-events: none;
+    box-shadow: 0 0 0 3px rgba(255,77,79,.25); }
+  .fab-badge.on { display: block; animation: pulseDot 1.6s ease-in-out infinite; }
 .fab.fab-rec.dragging { transition: none; cursor: grabbing; box-shadow: 0 18px 40px -8px var(--accent-glow), 0 0 0 10px var(--accent-soft); }
 @media (max-width: 900px) {
   /* 手机端 FAB 抬到固定底部导航之上，避免遮挡 */
@@ -1838,10 +1888,10 @@ body {
   /* ===== 时间轴 年/月/日 三级折叠 + 记录评论区 ===== */
   .tl-year-head, .tl-month-head { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; padding: 10px 6px 6px; color: var(--ink); }
   .tl-year-head { font-size: 18px; font-weight: 700; padding-top: 14px; }
-  .tl-month-head { font-size: 15px; font-weight: 600; color: var(--ink-soft); margin-left: 10px; }
+  .tl-month-head { font-size: 15px; font-weight: 600; color: var(--ink-soft); margin-left: 4px; }
   .tl-year-count, .tl-month-count { font-size: 12px; font-weight: 400; color: var(--ink-dim); }
-  .tl-year-body { margin-left: 4px; border-left: 2px solid var(--line); padding-left: 8px; }
-  .tl-month-body { margin-left: 6px; border-left: 1px dashed var(--line); padding-left: 6px; }
+  .tl-year-body { margin-left: 0; padding-left: 0; }
+  .tl-month-body { margin-left: 0; padding-left: 4px; }
   .tl-year-group.collapsed > .tl-year-body,
   .tl-month-group.collapsed > .tl-month-body,
   .tl-date-group.collapsed > .tl-date-body { display: none; }
@@ -1850,34 +1900,53 @@ body {
   .tl-date-group.collapsed > .tl-date-head .tl-chevron { transform: rotate(-90deg); }
   .tl-chevron { width: 14px; height: 14px; flex: 0 0 auto; transition: transform .2s ease; color: var(--ink-dim); }
 
-  /* 评论区：同作者连续评论合并，无头像圆点 */
-  .tl-comments { margin: 2px 0 12px 26px; }
+  /* 评论区：作者 emoji + 时间 + 同作者连续合并 + 可回复 */
+  .tl-comments { margin: 2px 0 16px 18px; }
   .cmt-head { margin: 2px 0; }
   .cmt-toggle { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 12.5px; padding: 2px 4px; border-radius: 6px; }
   .cmt-toggle:hover { color: var(--ink); background: var(--line); }
   .cmt-chevron { font-size: 13px; transition: transform .2s; }
   .tl-comments.open .cmt-chevron { transform: rotate(90deg); }
-  .cmt-list { margin: 6px 0 4px; display: flex; flex-direction: column; gap: 10px; }
-  .cmt-group { display: flex; flex-direction: column; gap: 3px; }
-  .cmt-group-head { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-dim); margin-bottom: 2px; }
+  .cmt-list { margin: 8px 0 6px; display: flex; flex-direction: column; gap: 14px; }
+  .cmt-group { display: flex; flex-direction: column; gap: 4px; }
+  .cmt-group-head { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-dim); margin-bottom: 1px; }
+  .cmt-avatar { font-size: 14px; line-height: 1; }
   .cmt-name { font-weight: 600; }
-  .cmt-time { font-size: 11px; color: var(--ink-dim); }
-  .cmt-group-body { display: flex; flex-direction: column; gap: 3px; padding-left: 8px; border-left: 2px solid var(--line); }
-  .cmt-line { display: flex; align-items: flex-start; gap: 4px; font-size: 13px; line-height: 1.5; color: var(--ink); }
+  .cmt-time { font-size: 11px; color: var(--ink-dim); margin-left: auto; }
+  .cmt-group-body { display: flex; flex-direction: column; gap: 5px; padding-left: 22px; }
+  .cmt-line { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; line-height: 1.55; color: var(--ink); position: relative; }
+  .cmt-line:first-child { padding-top: 2px; }
   .cmt-prefix { flex: 0 0 auto; color: var(--ink-dim); font-size: 12px; white-space: nowrap; margin-top: 1px; }
-  .cmt-bubble { flex: 1 1 auto; min-width: 0; background: var(--line); border-radius: 10px; padding: 6px 10px; word-break: break-word; }
-  .cmt-group.me .cmt-bubble { background: transparent; border: 1px solid var(--accent); }
-  .cmt-del { margin-left: auto; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 11.5px; padding: 1px 4px; border-radius: 5px; flex: 0 0 auto; }
+  .cmt-bubble { flex: 1 1 auto; min-width: 0; background: transparent; border-radius: 0; padding: 1px 0; word-break: break-word; }
+  .cmt-group.me .cmt-bubble { background: transparent; border: none; }
+  .cmt-actions { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity .15s; }
+  .cmt-line:hover .cmt-actions { opacity: 1; }
+  .cmt-reply, .cmt-del { background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 11.5px; padding: 2px 5px; border-radius: 5px; flex: 0 0 auto; }
+  .cmt-reply:hover { color: var(--accent); background: var(--line); }
   .cmt-del:hover { color: #ff7a85; background: var(--line); }
   .cmt-empty { font-size: 12.5px; color: var(--ink-dim); padding: 4px 0; }
-  .cmt-input-row { display: flex; gap: 6px; margin-top: 8px; }
-  .cmt-input { flex: 1 1 auto; min-width: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; color: var(--ink); font-size: 13px; }
+  .cmt-input-wrap { margin-top: 10px; }
+  .cmt-reply-hint { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-dim); margin-bottom: 6px; }
+  .cmt-reply-hint strong { color: var(--ink-soft); font-weight: 500; }
+  .cmt-reply-hint button { background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 12px; padding: 2px 6px; border-radius: 5px; }
+  .cmt-reply-hint button:hover { color: var(--ink); background: var(--line); }
+  .cmt-input-row { display: flex; gap: 6px; }
+  .cmt-input { flex: 1 1 auto; min-width: 0; background: var(--bg-1); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; color: var(--ink); font-size: 13px; }
   .cmt-input:focus { outline: none; border-color: var(--accent); }
   .cmt-send { flex: 0 0 auto; }
+  /* 回复楼 */
+  .cmt-replies { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px 22px; padding-left: 10px; border-left: 2px solid var(--line); }
+  .cmt-reply-card { display: flex; flex-direction: column; gap: 2px; }
+  .cmt-reply-head { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-dim); }
+  .cmt-reply-head .cmt-avatar { font-size: 13px; }
+  .cmt-reply-body { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; line-height: 1.55; color: var(--ink); padding-left: 19px; }
+  .cmt-reply-target { color: var(--accent); font-weight: 500; }
+  .cmt-reply-card .cmt-actions { opacity: 0; transition: opacity .15s; }
+  .cmt-reply-card:hover .cmt-actions { opacity: 1; }
 
-  /* 顶栏评论红点（仅共享模式显示） */
-  .cmt-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ff4d4f; margin-left: 8px; vertical-align: middle; box-shadow: 0 0 0 3px rgba(255,77,79,.18); cursor: pointer; }
-  .cmt-dot.on { animation: pulseDot 1.6s ease-in-out infinite; }
+  /* 顶栏评论提醒徽章（仅共享模式·有未读时显示）：明显、不带光晕光球 */
+  .cmt-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #ff4d4f; color: #fff; font-size: 12px; font-weight: 700; margin-left: 10px; vertical-align: middle; cursor: pointer; line-height: 1; font-family: var(--font-mono); box-shadow: 0 2px 8px rgba(255,77,79,.35); transition: transform .15s; }
+  .cmt-badge:active { transform: scale(.92); }
   @keyframes pulseDot { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: .7; } }
 </style>
 </head>
@@ -1899,7 +1968,7 @@ body {
   <div class="brand">
     <span class="dot"></span>
     <div>
-      <h1>Mood Atlas · 情绪地图<span class="cmt-dot" id="cmtDot" title="有新的评论" style="display:none"></span></h1>
+      <h1>Mood Atlas · 情绪地图<span class="cmt-badge" id="cmtDot" title="有新的评论，点击查看" style="display:none"></span></h1>
       <div class="sub">把「说不清的不对劲」变成看得见的轨迹</div>
     </div>
   </div>
@@ -1932,15 +2001,12 @@ body {
       <button class="btn sm ghost" id="remindLater" type="button">下次再说</button>
     </div>
     <!-- HERO -->
-    <section class="hero reveal">
-      <div class="orb-wrap"><div id="orb"></div><div class="orb-val" id="orbVal"></div></div>
-      <div class="hero-meta">
+    <section class="hero reveal" id="hero">
+      <div class="hero-q">
         <div class="q-label">今日一问 · 点击展开作答</div>
         <div class="today-q" id="todayQ"></div>
-        <div class="date" id="heroDate"></div>
-        <div class="hero-sub" id="heroSub"></div>
-        <div class="hero-ai" id="heroAi"></div>
       </div>
+      <div class="hero-persons" id="heroPersons"></div>
     </section>
 
     <!-- 快捷：回顾 / 导出 PDF（首页入口） -->
@@ -2060,36 +2126,11 @@ body {
     <!-- 聊情绪入口卡：点开「+」或这里，弹出独立对话窗 -->
     <section class="panel reveal" id="chatEntryCard">
       <h2><span class="ic"></span>聊情绪</h2>
-      <p style="color:var(--ink-soft);font-size:14px;margin:2px 0 12px">卡住、烦躁，或只是想说说话的时候，随时找 AI 聊聊。它会结合你过往的记录温柔回应，聊完还能一键记一笔。</p>
+      <p style="color:var(--ink-soft);font-size:14px;margin:2px 0 12px">卡住、烦躁，或只是想说说话的时候，随时找小绪聊聊。它会结合你过往的记录温柔回应，聊完还能一键记一笔。</p>
       <button class="btn primary" id="openChatBtn" type="button">打开聊情绪</button>
     </section>
 
-    <!-- 聊情绪 独立弹窗（DeepSeek 直连） -->
-    <div class="modal chat-modal" id="chatModal">
-      <div class="chat-modal-head">
-        <div class="cm-titles">
-          <span class="cm-title">AI 对话 · 聊情绪</span>
-          <span class="cm-sub">用 DeepSeek 温柔回应你的记录</span>
-        </div>
-        <div class="chat-modal-actions">
-          <button class="btn sm ghost" id="askDataBtn" type="button">问数据</button>
-          <button class="mclose" id="chatClose" type="button" aria-label="关闭">×</button>
-        </div>
-      </div>
-      <div class="ai-chat" id="aiChat"></div>
-      <div class="ai-row">
-        <div class="ai-input-wrap">
-          <textarea id="aiInput" placeholder="和 AI 说说今天的状态，它会结合你的记录温柔回应…（Ctrl/Cmd+Enter 发送）"></textarea>
-          <button class="btn primary" id="aiSend" aria-label="发送">发送</button>
-        </div>
-      </div>
-      <div class="ai-record-prompt" id="aiRecordPrompt" style="display:none">
-        <span class="arp-txt">要把这次聊到的情绪记一笔吗？</span>
-        <button class="btn sm primary" id="aiRecordSave" type="button">记一笔</button>
-        <button class="btn sm ghost" id="aiRecordSkip" type="button">不用了</button>
-      </div>
-      <div class="assist-saved" id="aiChatStatus"></div>
-    </div>
+    
 
   </main>
 
@@ -2212,6 +2253,32 @@ body {
     <button class="btn" id="modeLight">浅色</button>
   </div>
 </div>
+<div class="modal chat-modal" id="chatModal">
+  <div class="chat-modal-head">
+    <div class="cm-titles">
+      <span class="cm-title">小绪 · 聊情绪</span>
+      <span class="cm-sub">用 DeepSeek 温柔回应你的记录</span>
+    </div>
+    <div class="chat-modal-actions">
+      <button class="btn sm ghost" id="askDataBtn" type="button">问数据</button>
+      <button class="mclose" id="chatClose" type="button" aria-label="关闭">×</button>
+    </div>
+  </div>
+  <div class="ai-chat" id="aiChat"></div>
+  <div class="ai-row">
+    <div class="ai-input-wrap">
+      <textarea id="aiInput" placeholder="和小绪说说今天的状态，它会结合你的记录温柔回应…（Ctrl/Cmd+Enter 发送）"></textarea>
+      <button class="btn primary" id="aiSend" aria-label="发送">发送</button>
+    </div>
+  </div>
+  <div class="ai-record-prompt" id="aiRecordPrompt" style="display:none">
+    <span class="arp-txt">要把这次聊到的情绪记一笔吗？</span>
+    <button class="btn sm primary" id="aiRecordSave" type="button">记一笔</button>
+    <button class="btn sm ghost" id="aiRecordSkip" type="button">不用了</button>
+  </div>
+  <div class="assist-saved" id="aiChatStatus"></div>
+</div>
+
 <div class="scrim" id="scrim"></div>
 
 <!-- 作答模态框 -->
@@ -2420,6 +2487,22 @@ body {
   <div class="set-ver" id="setVer"></div>
 </div>
 
+<!-- 合并近似标签：AI 建议 + 人工编辑 -->
+<div class="modal" id="mergeModal">
+  <span class="mclose" id="mergeClose">×</span>
+  <div class="mtag">合并近似标签</div>
+  <h3>合并你的标签</h3>
+  <p class="merge-note">下面是 <b>小绪</b> 根据现有标签提出的合并建议。你可以直接改：改标准名、增删别名，也能删掉某组或自己加一组。确认后，别名会被统一替换成标准名（只动你自己的记录）。</p>
+  <div id="mergeGroups" class="merge-groups"></div>
+  <div class="merge-foot">
+    <div class="grow"></div>
+    <button class="btn ghost" id="mergeReSuggest">让小绪重新建议</button>
+    <button class="btn ghost" id="mergeAddGroup">加一组</button>
+    <button class="btn primary" id="mergeApply">确认合并</button>
+  </div>
+  <div class="set-hint" id="mergeHint"></div>
+</div>
+
 <!-- GitHub 测试连接结果弹窗（独立浮层，可叠加在设置面板之上） -->
 <div class="alert-scrim" id="ghTestScrim"></div>
 <div class="alert-modal" id="ghTestModal" role="alertdialog" aria-modal="true" aria-labelledby="ghTestTitle">
@@ -2536,7 +2619,8 @@ body {
   <button class="bnav-btn" id="navTrash"><span>回收站</span></button>
 </div>
 <button class="fab fab-rec" id="recFab" type="button" aria-label="聊情绪" title="聊情绪">
-  <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+  <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="var(--on-accent)" stroke="none"/></svg>
+  <span class="fab-badge" id="fabCmtBadge"></span>
 </button>
 
 <script>window.__DATA__ = {"version":1,"records":[],"nextQuestions":[{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}]};
@@ -2544,7 +2628,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + 移除头像/作者徽章圆点）";</script>
+window.__BUILD__ = "v52 · 2026-08-12 01:05（时间轴进一步去掉月份左侧竖线，缓解拥挤）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -2571,6 +2655,24 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
   if (!Array.isArray(DATA.trash)) DATA.trash = []; // 回收站：被软删除的记录，可恢复或彻底删除
   if (!Array.isArray(DATA.trashPurged)) DATA.trashPurged = []; // 已离开回收站的 id（彻底删除 / 已恢复）
   if (!DATA.commentRead) DATA.commentRead = {}; // 评论已读游标：recId -> 已读到的最大评论时间戳（用于顶栏红点）
+  // 评论独立存储（v39 起）：不再嵌在每条记录里，避免「给对方的记录评论」在隔离模式下传不出去。
+  if (!Array.isArray(DATA.comments)) DATA.comments = [];
+  // 迁移：旧版把评论嵌在记录 .comments 里，转到独立的 DATA.comments（按 id 去重，软删状态保留）
+  if (!DATA.__commentsMigrated) {
+    (DATA.records || []).forEach(function (r) {
+      if (r && Array.isArray(r.comments)) {
+        r.comments.forEach(function (c) {
+          if (!c || !c.id || !r.id) return;
+          if (!DATA.comments.some(function (x) { return x.id === c.id; })) {
+            DATA.comments.push({ recId: r.id, id: c.id, author: c.author, text: c.text, ts: c.ts || Date.now(), deleted: !!c.deleted });
+          }
+        });
+        delete r.comments;
+      }
+    });
+    DATA.__commentsMigrated = true;
+    saveData();
+  }
   // 回收站里的老记录也要补稳定 id（和主记录同一套 fp_ 指纹），否则彻底删除/恢复时
   // 按 id 找不到会静默 return，表现成"点了没用、记录还在"。
   (DATA.trash || []).forEach(r => { if (!r.id) r.id = 'fp_' + recFingerprint(r); });
@@ -2596,12 +2698,17 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
 
   /* ---------- GitHub 云同步（前端直连 api.github.com，手机/电脑共用一份数据） ---------- */
   const GH_FILE = '情绪记录.json';
+  // 评论独立共享文件（v39 起）：所有参与者读写同一个文件，评论不再嵌在记录里，
+  // 这样「给对方的记录评论」也能跨设备同步（隔离模式下记录是各写各的文件，嵌在记录里的评论会被挡在门外）。
+  const GH_COMMENT_FILE = '情绪记录_评论.json';
   // 回收站也按人隔离：每个人只读写「自己的回收站文件」（由「我的同步文件」派生），
   // 和朋友互不串，也避免两人同时删东西时这个文件 409。兼容模式（没填）退化为旧的 情绪记录_回收站.json。
   function ghTrashFile() {
     const base = (ghMyFile() || GH_FILE).replace(/\.json$/i, '');
     return base + '_回收站.json';
   }
+  // 评论文件是共享的，所有人读写同一个（不像记录按人隔离），靠「先拉→合并→再推 + 409 重试」保证不乱
+  function ghCommentFile() { return GH_COMMENT_FILE; }
   function ghProfile() { return localStorage.getItem('mood.ghProfile') || 'personal'; }
   function ghSuffix() { return ghProfile() === 'shared' ? '2' : ''; }
   function ghConf() {
@@ -2619,6 +2726,10 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     if (!name) return name;
     const m = { '兔': '🐰', '兔子': '🐰', '浣熊': '🦝' };
     return m[name] || name;
+  }
+  function authorDisplayName(author) {
+    const m = { '🐰': '兔子', '🦝': '浣熊' };
+    return m[author] || author || '我';
   }
   function ghNick() { return normalizeAuthor((localStorage.getItem('mood.ghNick' + ghSuffix()) || '').trim()); }
   // 文件级隔离：每个人只往「自己的同步文件」写，朋友只写他那份，两人不再抢同一个文件 → 根除 409 冲突。
@@ -2706,6 +2817,7 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
       if (!x || !x.name) return false;
       if (!/^情绪记录.*\.json$/.test(x.name)) return false;
       if (/回收站/.test(x.name)) return false;
+      if (/评论/.test(x.name)) return false; // 评论独立文件，绝不能当成记录拉进来合并
       // 隔离模式（已填「我的同步文件」）下，跳过遗留的混装文件 情绪记录.json：它仍可能被尚未迁移的设备写入，
       // 但已迁移的设备不该再把它合进自己的视图，否则会重新混入别人的旧记录（如旧署名的「兔」）
       if (myFile && x.name === GH_FILE) return false;
@@ -2784,13 +2896,11 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
       if (!r || !r.date) return;
       const k = r.id ? 'id:' + r.id : 'fp:' + recFingerprint(r);
       const cur = byId[k];
-      const comments = mergeComments(cur && cur.comments, r.comments);
       let base;
       if (!cur) base = r;
       else if (fieldScore(r) > fieldScore(cur)) base = r;
       else base = cur;
       const rec = Object.assign({}, base); // 复制一份，避免改到原始（来自 localStorage / 云端）对象引用
-      rec.comments = comments;
       byId[k] = rec;
     };
     (local || []).forEach(put);
@@ -2799,13 +2909,11 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     const byPrint = {};
     Object.keys(byId).forEach(function (k) {
       const r = byId[k], p = recFingerprint(r), cur = byPrint[p];
-      const comments = mergeComments(cur && cur.comments, r.comments);
       let base;
       if (!cur) base = r;
       else if (fieldScore(r) > fieldScore(cur)) base = r;
       else base = cur;
       const rec = Object.assign({}, base);
-      rec.comments = comments;
       byPrint[p] = rec;
     });
     return Object.keys(byPrint).map(function (p) { return byPrint[p]; }).sort(function (x, y) {
@@ -2906,6 +3014,35 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
       }
     }
   }
+  // 评论文件同步（仿 syncTrash）：拉→合并→推，单点共享文件靠 409 重试兜底
+  let _cmtBusy = false;
+  async function syncComments(_retried) {
+    const c = ghConf();
+    if (!c.enabled || !c.token || !c.user || !c.repo) return;
+    if (_cmtBusy && !_retried) return; // 已在飞则跳过，下次同步会再触发，避免并发 409
+    _cmtBusy = true;
+    try {
+      // 拉取失败（非 404）就中断，绝不拿本地盲推，否则会覆盖别人的评论
+      const r = await ghPull(ghCommentFile());
+      let sha = null;
+      if (r && r.data) {
+        const remote = Array.isArray(r.data.comments) ? r.data.comments : [];
+        DATA.comments = mergeComments(DATA.comments, remote); // 按 id 并集 + 软删优先，两边评论都不丢
+        saveData();
+        sha = r.sha;
+      }
+      await ghPush({ comments: DATA.comments || [], updatedAt: new Date().toISOString() }, sha, ghCommentFile());
+    } catch (e) {
+      // 409/422 = 别人刚写、sha 过期：重新拉最新再推，最多重试 3 次
+      if (e && (e.status === 409 || e.status === 422) && (!_retried || _retried < 3)) {
+        _cmtBusy = false;
+        return syncComments((_retried || 0) + 1);
+      }
+      // 其他（限流/网络/令牌）忽略，下次同步重来，本地评论不丢
+    } finally {
+      _cmtBusy = false;
+    }
+  }
   // 判断两次同步负载是否内容一致（忽略数组顺序），用于识别「没有新数据要同步」
   function arrSig(arr) {
     return (arr || []).map(function (x) { return JSON.stringify(x); }).sort().join('\u0001');
@@ -3004,6 +3141,19 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
         DATA.nextQuestions = merged.nextQuestions;
         DATA.deleted = allDel;
         DATA.revived = allRev;
+        // 兼容旧版：合并进来的记录若仍嵌着 comments（旧设备还没升级 v39），迁到独立评论表，否则旧评论看不见
+        (DATA.records || []).forEach(function (r) {
+          if (r && Array.isArray(r.comments)) {
+            r.comments.forEach(function (c) {
+              if (!c || !c.id || !r.id) return;
+              DATA.comments = DATA.comments || [];
+              if (!DATA.comments.some(function (x) { return x.id === c.id; })) {
+                DATA.comments.push({ recId: r.id, id: c.id, author: c.author, text: c.text, ts: c.ts || Date.now(), deleted: !!c.deleted });
+              }
+            });
+            delete r.comments;
+          }
+        });
         saveData();
         // 云端已有且内容完全一致 → 没有新数据要同步：跳过推送，避免无谓的 GitHub 写入与 409 冲突
         if (remote && payloadEquals(
@@ -3011,6 +3161,7 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
           { records: remote.data.records, nextQuestions: remote.data.nextQuestions, deleted: remote.data.deleted, revived: remote.data.revived, purged: remote.data.purged }
         )) {
           refreshRecs();
+          try { syncComments(); } catch (_) {} // 评论独立文件同步（后台）
           setSyncState('ok');
           if (msgEl) msgEl.textContent = '✓ 数据已同步过了，暂时没有新的要同步的数据';
           if (doReload) setTimeout(function () { location.reload(); }, 700);
@@ -3028,6 +3179,7 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
           updatedAt: new Date().toISOString()
         }, remote ? remote.sha : null, (ghMyFile() || GH_FILE));
         refreshRecs(); // 云端拉回来的记录要立刻进 UI 用的数组，否则要刷新页面才看得见
+        try { syncComments(); } catch (_) {} // 评论独立文件同步（后台，不阻塞主同步）
         setSyncState('ok');
         bumpSyncCount();
         const others = countOtherAuthors();
@@ -3288,7 +3440,7 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     appendBubble(box, 'user', txt); inp.value = '';
     if (sv) sv.textContent = '';
     const rp0 = $('#aiRecordPrompt'); if (rp0) rp0.style.display = 'none';
-    const sys = '你是一个温柔、专业、不评判的情绪陪伴助手。用中文，简短共情地回应，偶尔给一个可操作的小建议。结合用户提供的近期情绪记录来理解语境，但用自然语言表达，不要直接罗列数据格式。';
+    const sys = '你是小绪，一个温柔、专业、不评判的情绪陪伴助手。用中文，简短共情地回应，偶尔给一个可操作的小建议。结合用户提供的近期情绪记录来理解语境，但用自然语言表达，不要直接罗列数据格式。';
     const user = '我的近期情绪记录：\n' + (recentSummary(14) || '（暂无记录）') + '\n\n我的话：' + txt;
     const loading = appendBubble(box, 'ai', '思考中…');
     try {
@@ -3305,6 +3457,9 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     const ub = document.querySelectorAll('#aiChat .bubble.user');
     const ab = document.querySelectorAll('#aiChat .bubble.ai');
     if (!ub.length) { rp.style.display = 'none'; return; }
+    // 抓取「用户说的所有话」（整段对话），而不是只取最后一条——记录时 AI 会基于全部内容分析、填字段
+    const full = Array.prototype.map.call(ub, function (b) { return (b.textContent || '').trim(); }).filter(Boolean).join('\n');
+    rp.dataset.full = full;
     rp.dataset.user = (ub[ub.length - 1].textContent || '').slice(0, 300);
     rp.dataset.ai = (ab.length ? ab[ab.length - 1].textContent : '').slice(0, 300);
     rp.style.display = '';
@@ -3326,6 +3481,37 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     const sg = $('#recSuggest'); if (sg) { sg.style.display = 'none'; sg.innerHTML = ''; }
     $('#recNote').value = text || '';
     md.classList.add('show'); $('#scrim').classList.add('show');
+  }
+  // 从聊天的整段话出发：把全部文字一次性交给 AI 分析，自动填好心情/标签/身体信号/行为/场景/原因等字段
+  async function aiFillFromChat(text) {
+    if (!text || !text.trim()) return;
+    const sv = $('#recSaved');
+    const key = dsKey();
+    if (!key) {
+      // 没配 Key：至少把整段话放进备注，让用户手动填
+      $('#recNote').value = text;
+      if (sv) { sv.textContent = '未配置 DeepSeek Key，已把整段话放进「备注」，请手动补全字段后点「落到地图」。'; sv.classList.add('show'); }
+      return;
+    }
+    if (sv) { sv.textContent = 'AI 正在分析你的整段话，并填好标签等字段…'; sv.classList.add('show'); }
+    try {
+      const res = await callDeepSeek(extractSysPrompt(), text, { task: 'extract', json: true });
+      const obj = parseExtract(res.text);
+      const f = obj && obj.fields ? obj.fields : null;
+      if (f && (f.mood || (f.tags && f.tags.length) || f.note || f.scene || (f.body && f.body.length) || (f.behavior && f.behavior.length))) {
+        if (Array.isArray(f.tags)) f.tags = cleanTags(f.tags);
+        fillRecordForm(f, f.note || text);
+        const tip = $('#recTip');
+        if (tip) { tip.textContent = 'AI 已读完整段话并整理好字段，请确认/修改后点「落到地图」。'; tip.classList.add('show'); tip.style.display = 'block'; }
+        if (sv) { sv.textContent = '✓ AI 已根据整段话填好（心情/标签/场景等），确认无误即可「落到地图」。'; sv.classList.add('show'); }
+      } else {
+        $('#recNote').value = text;
+        if (sv) { sv.textContent = 'AI 没能完整解析，已把整段话放进「备注」，你手动补全也行。'; sv.classList.add('show'); }
+      }
+    } catch (e) {
+      $('#recNote').value = text;
+      if (sv) { sv.textContent = '✗ AI 分析失败（' + ((e && e.message) || e) + '），已把整段话放进备注，可手动填。'; sv.classList.add('show'); }
+    }
   }
   /* ---------- 同步状态（真实反映结果，不再是只看配置的摆设） ----------
      状态：idle 未配置 / ready 已配置未同步 / syncing 进行中 / ok 成功 / error 失败
@@ -3416,10 +3602,8 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     const c = $('#extractChat'); if (c) c.innerHTML = '';
     const f = $('#extractFollow'); if (f) f.style.display = 'none';
   }
-  async function extractCall() {
-    const key = dsKey();
-    if (!key) throw new Error('no-key');
-    const sys = '你是情绪记录助手，帮用户把"说不清"的状态理清并归类。这是多次对话的流程：\n'
+  function extractSysPrompt() {
+    return '你是小绪，一个情绪记录助手，帮用户把"说不清"的状态理清并归类。整理字段时，凡是涉及你（助手）自己的表述都用"小绪"，不要写"AI"。这是多次对话的流程：\n'
       + '1) 用户先用口语描述今天的状态（可能碎片化、情绪化、用词不精确）。\n'
       + '2) 你判断是否已能较准确地归类。若信息不足（例如只说"有点焦虑说不清""精力透支"却没说是身体还是心理、什么场景、针对什么事、和谁在一起），就提出 1-3 个具体、好回答的澄清问题（中文，口语化，一次别太多）。\n'
       + '3) 若信息足够，就输出结构化字段。\n'
@@ -3443,6 +3627,11 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
       + '}\n'
       + '注意：这些是"帮用户理清情绪"的可选项，不要强迫他回答。若用户明确不想填某项，就写 null。'
       + (function(){ var tt = topTags(20); return tt.length ? '\n用户已有高频标签：' + tt.join('/') + '。请优先使用这些标签，如不匹配再创建新标签（2-4字）。' : ''; })();
+  }
+  async function extractCall() {
+    const key = dsKey();
+    if (!key) throw new Error('no-key');
+    const sys = extractSysPrompt();
     const r2 = resolveModel('extract');
     const r = await fetch(DS_URL, {
       method: 'POST',
@@ -3821,66 +4010,134 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     });
     afterTimelineRender(list);
   }
-  // 评论区渲染：古早博客竖向时间线，可折叠；只能删自己的评论
+  // 评论区渲染：作者 emoji + 时间 + 同作者连续合并 + 可回复评论
+  function countComments(recId) {
+    return (DATA.comments || []).filter(function (c) { return c.recId === recId && !c.deleted; }).length;
+  }
+  function getCommentById(cid) {
+    return (DATA.comments || []).find(function (c) { return c.id === cid; });
+  }
+  function getChildComments(parentId) {
+    return (DATA.comments || []).filter(function (c) { return c.parentId === parentId && !c.deleted; }).sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+  }
+  function buildTopGroups(recId) {
+    const all = getComments(recId).filter(function (c) { return !c.parentId; }).sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+    const groups = [];
+    all.forEach(function (c) {
+      const last = groups[groups.length - 1];
+      if (last && last.author === c.author) { last.items.push(c); }
+      else { groups.push({ author: c.author, ts: c.ts, items: [c] }); }
+    });
+    return groups;
+  }
   function renderCommentsInto(cbox, r) {
     if (!cbox) return;
-    const cs = (r.comments || []).filter(function (c) { return !c.deleted; });
+    const groups = buildTopGroups(r.id);
     const me = myCommentName();
     const multi = authorList().length > 1;
-    const cmap = authorColors();
-    let html = '<div class="cmt-head"><button type="button" class="cmt-toggle"><span class="cmt-count">' + (cs.length ? cs.length + ' 条评论' : '评论') + '</span><span class="cmt-chevron">›</span></button></div>';
+    let html = '<div class="cmt-head"><button type="button" class="cmt-toggle"><span class="cmt-count">' + (countComments(r.id) ? countComments(r.id) + ' 条评论' : '评论') + '</span><span class="cmt-chevron">›</span></button></div>';
     if (cbox.classList.contains('open')) {
       html += '<div class="cmt-list">';
-      if (cs.length) {
-        const sorted = cs.slice().sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
-        const groups = [];
-        sorted.forEach(function (c) {
-          const last = groups[groups.length - 1];
-          if (last && last.author === c.author) { last.items.push(c); }
-          else { groups.push({ author: c.author, ts: c.ts, items: [c] }); }
-        });
+      if (groups.length) {
         groups.forEach(function (g) {
           const ac = authorColor(g.author);
           const isMe = g.author === me;
           html += '<div class="cmt-group' + (isMe ? ' me' : '') + '">' +
-            '<div class="cmt-group-head"><span class="cmt-name" style="color:' + ac + '">' + escapeHtml(g.author) + (isMe && multi ? '（我）' : '') + '</span><span class="cmt-time">' + fmtCmtTime(g.ts) + '</span></div>' +
+            '<div class="cmt-group-head"><span class="cmt-avatar">' + escapeHtml(g.author) + '</span><span class="cmt-name" style="color:' + ac + '">' + escapeHtml(authorDisplayName(g.author)) + '</span>' + (isMe && multi ? '（我）' : '') + '<span class="cmt-time">' + fmtCmtTime(g.ts) + '</span></div>' +
             '<div class="cmt-group-body">';
-          g.items.forEach(function (c) {
-            html += '<div class="cmt-line" data-cid="' + c.id + '"><span class="cmt-prefix">' + (isMe ? '（我）' : escapeHtml(c.author)) + '：</span><span class="cmt-bubble">' + escapeHtml(c.text) + '</span>' +
-              (isMe ? '<button type="button" class="cmt-del" data-cid="' + c.id + '">删除</button>' : '') + '</div>';
-          });
+            g.items.forEach(function (c) {
+              html += renderTopLine(c, isMe);
+              const replies = getChildComments(c.id);
+              if (replies.length) html += renderReplies(replies, me, multi);
+            });
           html += '</div></div>';
         });
       } else {
         html += '<div class="cmt-empty">还没有评论，来写第一句。</div>';
       }
-      html += '</div><div class="cmt-input-row"><input type="text" class="cmt-input" placeholder="写句评论…" maxlength="500" /><button type="button" class="cmt-send btn sm primary">发送</button></div>';
+      html += '</div>';
+      html += renderInputRow(cbox);
     }
     cbox.innerHTML = html;
+    bindCmtEvents(cbox, r);
+  }
+  function renderTopLine(c, isGroupMe) {
+    return '<div class="cmt-line" data-cid="' + c.id + '">' +
+      '<span class="cmt-bubble" title="' + fmtCmtTime(c.ts) + '">' + escapeHtml(c.text) + '</span>' +
+      '<span class="cmt-actions"><button type="button" class="cmt-reply" data-cid="' + c.id + '" data-name="' + escapeHtml(authorDisplayName(c.author)) + '">回复</button>' + (isGroupMe ? '<button type="button" class="cmt-del" data-cid="' + c.id + '">删除</button>' : '') + '</span>' +
+      '</div>';
+  }
+  function renderReplies(children, me, multi) {
+    let html = '<div class="cmt-replies">';
+    children.forEach(function (c) {
+      html += renderReplyCard(c, me, multi);
+    });
+    html += '</div>';
+    return html;
+  }
+  function renderReplyCard(c, me, multi) {
+    const isMe = c.author === me;
+    const ac = authorColor(c.author);
+    const target = c.replyTo ? '<span class="cmt-reply-target">回复 ' + escapeHtml(authorDisplayName(c.replyTo)) + '</span> ' : '';
+    const html = '<div class="cmt-reply-card" data-cid="' + c.id + '">' +
+      '<div class="cmt-reply-head"><span class="cmt-avatar">' + escapeHtml(c.author) + '</span><span class="cmt-name" style="color:' + ac + '">' + escapeHtml(authorDisplayName(c.author)) + '</span>' + (isMe && multi ? '（我）' : '') + target + '<span class="cmt-time">' + fmtCmtTime(c.ts) + '</span></div>' +
+      '<div class="cmt-reply-body"><span class="cmt-bubble" title="' + fmtCmtTime(c.ts) + '">' + escapeHtml(c.text) + '</span>' +
+      '<span class="cmt-actions"><button type="button" class="cmt-reply" data-cid="' + c.id + '" data-name="' + escapeHtml(authorDisplayName(c.author)) + '">回复</button>' + (isMe ? '<button type="button" class="cmt-del" data-cid="' + c.id + '">删除</button>' : '') + '</span></div>' +
+      '</div>';
+    const nested = getChildComments(c.id);
+    return html + (nested.length ? renderReplies(nested, me, multi) : '');
+  }
+  function renderInputRow(cbox) {
+    const replyCid = cbox.dataset.replyCid || '';
+    const replyName = cbox.dataset.replyName || '';
+    let html = '<div class="cmt-input-wrap">';
+    if (replyCid) {
+      html += '<div class="cmt-reply-hint"><span>回复 <strong>' + escapeHtml(replyName) + '</strong></span><button type="button" class="cmt-cancel-reply">取消回复</button></div>';
+    }
+    html += '<div class="cmt-input-row"><input type="text" class="cmt-input" placeholder="' + (replyCid ? '回复 ' + escapeHtml(replyName) + '…' : '写句评论…') + '" maxlength="500" /><button type="button" class="cmt-send btn sm primary">发送</button></div></div>';
+    return html;
+  }
+  function bindCmtEvents(cbox, r) {
     const toggle = cbox.querySelector('.cmt-toggle');
     if (toggle) toggle.addEventListener('click', function (e) { e.stopPropagation(); cbox.classList.toggle('open'); renderCommentsInto(cbox, r); });
     const send = cbox.querySelector('.cmt-send');
-    if (send) send.addEventListener('click', function (e) { e.stopPropagation(); const inp = cbox.querySelector('.cmt-input'); const t = inp.value.trim(); if (t) addComment(r.id, t); });
+    if (send) send.addEventListener('click', function (e) { e.stopPropagation(); const inp = cbox.querySelector('.cmt-input'); const t = inp.value.trim(); if (!t) return; const rc = cbox.dataset.replyCid || ''; const rn = cbox.dataset.replyName || ''; cbox.dataset.replyCid = ''; cbox.dataset.replyName = ''; addComment(r.id, t, rc, rn); });
     const inp = cbox.querySelector('.cmt-input');
-    if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.stopPropagation(); const t = inp.value.trim(); if (t) addComment(r.id, t); } });
+    if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.stopPropagation(); const t = inp.value.trim(); if (!t) return; const rc = cbox.dataset.replyCid || ''; const rn = cbox.dataset.replyName || ''; cbox.dataset.replyCid = ''; cbox.dataset.replyName = ''; addComment(r.id, t, rc, rn); } });
     cbox.querySelectorAll('.cmt-del').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); deleteComment(r.id, b.dataset.cid); }); });
+    cbox.querySelectorAll('.cmt-reply').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); cbox.dataset.replyCid = b.dataset.cid; cbox.dataset.replyName = b.dataset.name; renderCommentsInto(cbox, r); const inp2 = cbox.querySelector('.cmt-input'); if (inp2) inp2.focus(); }); });
+    const cancel = cbox.querySelector('.cmt-cancel-reply');
+    if (cancel) cancel.addEventListener('click', function (e) { e.stopPropagation(); cbox.dataset.replyCid = ''; cbox.dataset.replyName = ''; renderCommentsInto(cbox, r); });
   }
   function myCommentName() { return normalizeAuthor(ghProfile() === 'shared' ? (ghNick() || '我') : '我'); }
+  // 判断某条记录是否属于「当前用户」：个人模式全部算自己；共享模式只算署名与本人一致（且已设置昵称）的记录
+  function isMyRec(r) {
+    if (ghProfile() !== 'shared') return true;
+    const me = ghNick();
+    if (!me) return true; // 未设置昵称时兜底：全部处理，避免按钮无反应
+    return authorKey(r) === me;
+  }
+  function getComments(recId) { return (DATA.comments || []).filter(function (c) { return c.recId === recId && !c.deleted; }); }
   function fmtCmtTime(ts) { if (!ts) return ''; const d = new Date(ts); const p = function (n) { return ('' + n).padStart(2, '0'); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
   function findRec(id) { return recs.find(function (x) { return x.id === id; }) || (DATA.records || []).find(function (x) { return x.id === id; }); }
-  function addComment(recId, text) {
-    const r = findRec(recId); if (!r) return;
-    r.comments = r.comments || [];
-    r.comments.push({ id: 'c_' + genId(), author: myCommentName(), text: text, ts: Date.now() });
+  function addComment(recId, text, parentId, replyTo) {
+    if (!recId) return;
+    DATA.comments = DATA.comments || [];
+    DATA.comments.push({ recId: recId, id: 'c_' + genId(), author: myCommentName(), text: text, ts: Date.now(), deleted: false, parentId: parentId || null, replyTo: replyTo || null });
     saveData();
     const c = ghConf(); if (c.enabled && c.token && c.auto) ghSync(null, false);
     refreshComments(recId); updateCmtDot();
   }
   function deleteComment(recId, cid) {
-    const r = findRec(recId); if (!r || !r.comments) return;
-    const c = r.comments.find(function (x) { return x.id === cid; });
+    DATA.comments = DATA.comments || [];
+    const c = DATA.comments.find(function (x) { return x.id === cid && x.recId === recId; });
     if (!c || c.author !== myCommentName()) return; // 只能删自己的评论
-    c.deleted = true; // 软删除：同步合并时仍保留删除状态，不会复活
+    const toDelete = [cid];
+    function collect(pid) {
+      DATA.comments.forEach(function (x) { if (x.recId === recId && x.parentId === pid && toDelete.indexOf(x.id) < 0) { toDelete.push(x.id); collect(x.id); } });
+    }
+    collect(cid);
+    toDelete.forEach(function (id) { const x = DATA.comments.find(function (z) { return z.id === id; }); if (x) x.deleted = true; });
     saveData();
     const cf = ghConf(); if (cf.enabled && cf.token && cf.auto) ghSync(null, false);
     refreshComments(recId); updateCmtDot();
@@ -3892,32 +4149,45 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
   }
   // 已读游标 + 顶栏红点（仅共享模式）
   function markRead(recId) {
-    const r = findRec(recId); if (!r) return;
+    if (!recId) return;
     const me = myCommentName(); let max = 0;
-    (r.comments || []).forEach(function (c) { if (!c.deleted && c.author !== me) max = Math.max(max, c.ts || 0); });
+    getComments(recId).forEach(function (c) { if (c.author !== me) max = Math.max(max, c.ts || 0); });
     DATA.commentRead = DATA.commentRead || {};
     if (max > 0) DATA.commentRead[recId] = max;
     saveData(); updateCmtDot();
   }
-  function firstUnreadRecId() {
-    if (ghProfile() !== 'shared') return null;
+  function unreadCmtInfo() {
+    if (ghProfile() !== 'shared') return { count: 0, firstId: null };
     const me = myCommentName();
-    for (let i = 0; i < (DATA.records || []).length; i++) {
-      const r = DATA.records[i]; if (!r || !r.id) continue;
-      const seen = (DATA.commentRead && DATA.commentRead[r.id]) || 0;
-      for (let j = 0; j < (r.comments || []).length; j++) {
-        const c = r.comments[j];
-        if (!c.deleted && c.author !== me && (c.ts || 0) > seen) return r.id;
+    const seen = DATA.commentRead || {};
+    let count = 0, firstId = null;
+    (DATA.comments || []).forEach(function (c) {
+      if (c.deleted || c.author === me) return;
+      const rseen = seen[c.recId] || 0;
+      if ((c.ts || 0) > rseen) {
+        count++;
+        if (!firstId) firstId = c.recId;
+      }
+    });
+    return { count: count, firstId: firstId };
+  }
+  function firstUnreadRecId() { return unreadCmtInfo().firstId; }
+  function updateCmtDot() {
+    const dot = document.getElementById('cmtDot');
+    const fab = document.getElementById('fabCmtBadge');
+    const info = unreadCmtInfo();
+    const unread = info.firstId;
+    if (dot) {
+      if (unread) {
+        dot.style.display = '';
+        dot.textContent = info.count > 1 ? String(info.count) : '新';
+        dot.dataset.rec = unread;
+      } else {
+        dot.style.display = 'none';
+        dot.textContent = '';
       }
     }
-    return null;
-  }
-  function updateCmtDot() {
-    const dot = document.getElementById('cmtDot'); if (!dot) return;
-    if (ghProfile() !== 'shared') { dot.style.display = 'none'; dot.classList.remove('on'); return; }
-    const unread = firstUnreadRecId();
-    if (unread) { dot.style.display = ''; dot.classList.add('on'); dot.dataset.rec = unread; }
-    else { dot.style.display = 'none'; dot.classList.remove('on'); }
+    if (fab) fab.classList.toggle('on', !!unread);
   }
   function afterTimelineRender(list) {
     if (!list || !state.tlJump) return;
@@ -4516,7 +4786,7 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
       s.className = 'swatch'; s.dataset.key = key;
       s.style.background = `linear-gradient(135deg, ${p.accent}, ${hslToHex((hexToHsl(p.accent).h + 30) % 360, hexToHsl(p.accent).s, Math.min(0.95, hexToHsl(p.accent).l + 0.05))})`;
       s.innerHTML = `<span class="nm">${p.name}</span>`;
-      s.addEventListener('click', () => applyPalette(key));
+      s.addEventListener('click', () => { applyPalette(key); closeThemePanel(); });
       wrap.appendChild(s);
     });
   }
@@ -4530,6 +4800,7 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
   // 安全事件绑定：元素不存在时静默跳过，避免单个 null 引用中断整段初始化（曾因 #tlBtn 被删导致连锁失效）
   const on = (sel, ev, fn, opt) => { const n = typeof sel === 'string' ? $(sel) : sel; if (n) n.addEventListener(ev, fn, opt); return n; };
+  function closeThemePanel() { const panel = $('#themePanel'); if (panel) panel.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); }
   /* [Bug3 修复] SVG 表现属性里的 var(--x) 浏览器不解析，导致光球/趋势图/睡眠环等图表变黑或不可见。
      统一处理：任何 SVG 插入 DOM 后，把 var() 换成真实计算色值（带 fallback 则用 fallback）。 */
   function __resolveSvgVars(root) {
@@ -5006,40 +5277,59 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
 
   /* ---------- Hero（光球随主题变色） ---------- */
   let curView = [];
+  function orbSvg(mc) {
+    return '<svg viewBox="0 0 200 200">'
+      + '<circle cx="100" cy="100" r="78" fill="none" stroke="var(--accent)" stroke-width="2" opacity="0.35" class="orb-ring"/>'
+      + '<circle cx="100" cy="100" r="62" fill="var(--bg-2)" fill-opacity="0.55" class="orb-core"/>'
+      + '<circle cx="100" cy="100" r="62" fill="none" stroke="' + mc + '" stroke-width="2.4" opacity="0.75" class="orb-core"/>'
+      + '</svg>';
+  }
+  function streakOf(v) {
+    const set = new Set((v || []).map(r => r.date)); let n = 0; const d = new Date();
+    for (let i = 0; i < 400; i++) { const k = d.toISOString().slice(0, 10); if (set.has(k)) { n++; d.setDate(d.getDate() - 1); } else break; }
+    return n;
+  }
+  /* Hero：共享模式只显示一句整体的 AI 开场白（去掉两个分人矩形卡片）；
+     个人模式仍是单块（光球+AI+统计）。AI 一句话由 genOpening() 生成（author=null 时用合并记录）。 */
   function renderHero() {
-    const v = getViewRecs(); const has = v.length; const m = has ? v[v.length - 1].mood : 3;
-    const mc = moodColor(m);
-    $('#orb').innerHTML = `
-      <svg viewBox="0 0 200 200">
-        <defs>
-          <radialGradient id="og" cx="50%" cy="42%" r="60%">
-            <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.95"/>
-            <stop offset="60%" stop-color="var(--accent)" stop-opacity="0.42"/>
-            <stop offset="100%" stop-color="var(--accent-2)" stop-opacity="0.05"/>
-          </radialGradient>
-        </defs>
-        <circle cx="100" cy="100" r="78" fill="none" stroke="var(--accent)" stroke-width="2" opacity="0.35" class="orb-ring"/>
-        <circle cx="100" cy="100" r="62" fill="var(--bg-2)" fill-opacity="0.55" class="orb-core"/>
-        <circle cx="100" cy="100" r="62" fill="none" stroke="${mc}" stroke-width="2.4" opacity="0.75" class="orb-core"/>
-      </svg>`;
-    $('#orbVal').innerHTML = `<div class="num" id="orbNum">0</div><div class="lab" style="color:${mc}">${has ? (moodBand(m) + ' · ' + m + '/5') : '无记录'}</div>`;
-    animateValue($('#orbNum'), m, 1200, 0);
-    $('#heroDate').textContent = !has ? '该范围内暂无记录'
-      : (state.mode === 'day' ? state.day
-        : state.mode === 'year' ? state.year + ' 年'
-        : state.mode === 'month' ? state.year + '-' + pad2(state.month)
-        : '最近记录 · ' + v[v.length - 1].date);
-    $('#heroSub').textContent = !has ? '这个范围内还没有记录。'
-      : (state.mode === 'all' ? (`已连续记录 ${streak()} 天 · 最近一次心情 ${m}/5`)
-        : `当前区间 · ${v.length} 条记录 · 平均心情 ${fmt(avg(v, 'mood'))}/5`);
-
-    const box = $('#todayQ'); box.innerHTML = ''; let i = 0; const cur = el('span', 'cursor');
-    function tick() {
-      if (i <= TODAY_Q.length) { box.textContent = TODAY_Q.slice(0, i); box.appendChild(cur); i++; setTimeout(tick, 24 + Math.random() * 28); }
-      else cur.remove();
+    const shared = ghProfile() === 'shared';
+    const wrap = $('#heroPersons'); if (!wrap) return;
+    wrap.className = 'hero-persons' + (shared ? ' hero-shared' : '');
+    if (shared) {
+      // 共享模式：不分人卡片，整体只显示一句 AI 开场白
+      wrap.innerHTML = '<div class="hp hp-single"><div class="hp-ai hero-ai" data-author=""></div></div>';
+    } else {
+      // 个人模式：单块含光球+AI+统计
+      const v = recs; const has = v.length; const m = has ? v[v.length - 1].mood : 3; const mc = moodColor(m);
+      const dateTxt = !has ? '该范围内暂无记录'
+        : (state.mode === 'day' ? state.day
+          : state.mode === 'year' ? state.year + ' 年'
+          : state.mode === 'month' ? state.year + '-' + pad2(state.month)
+          : '最近 · ' + v[v.length - 1].date);
+      const subTxt = !has ? '这个范围内还没有记录。'
+        : (state.mode === 'all' ? ('已连续记录 ' + streakOf(v) + ' 天 · 最近心情 ' + m + '/5')
+          : '当前区间 · ' + v.length + ' 条 · 平均心情 ' + fmt(avg(v, 'mood')) + '/5');
+      wrap.innerHTML = '<div class="hp">'
+        + '<div class="orb-wrap"><div class="orb">' + orbSvg(mc) + '</div>'
+        + '<div class="orb-val"><div class="num" data-m="' + m + '">0</div><div class="lab" style="color:' + mc + '">' + (has ? (moodBand(m) + ' · ' + m + '/5') : '无记录') + '</div></div></div>'
+        + '<div class="hp-meta">'
+        + '<div class="hp-ai hero-ai" data-author=""></div>'
+        + '<div class="hp-sub">' + escapeHtml(dateTxt) + ' · ' + escapeHtml(subTxt) + '</div>'
+        + '</div>'
+        + '</div>';
+      // 数字滚动动画：个人模式从 0 滚到最新心情
+      wrap.querySelectorAll('.hp .num').forEach(function (n) { animateValue(n, (+n.dataset.m) || 0, 1200, 0); });
     }
-    setTimeout(tick, 400);
-    box.onclick = () => openModal('q0');
+    // 今日一问（全局，只渲染一次）
+    const box = $('#todayQ'); if (box) {
+      box.innerHTML = ''; let i = 0; const cur = el('span', 'cursor');
+      function tick() {
+        if (i <= TODAY_Q.length) { box.textContent = TODAY_Q.slice(0, i); box.appendChild(cur); i++; setTimeout(tick, 24 + Math.random() * 28); }
+        else cur.remove();
+      }
+      setTimeout(tick, 400);
+      box.onclick = () => openModal('q0');
+    }
   }
 
   /* 概览胶囊。
@@ -5547,6 +5837,8 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     DATA.trash = DATA.trash || [];
     DATA.trashPurged = (DATA.trashPurged || []).filter(t => t.id !== id); // 重新进回收站，清掉"已离开"标记
     if (!DATA.trash.some(t => t.id === id)) DATA.trash.push(Object.assign({}, r, { delAt: Date.now() }));
+    // 同步把这条记录的评论软删（避免记录没了、评论还在 → 孤儿评论显示错乱；软删跨设备同步）
+    (DATA.comments || []).forEach(function (c) { if (c.recId === id) c.deleted = true; });
     saveData();
     const c = ghConf();
     if (c.auto) {
@@ -5751,7 +6043,7 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     const panel = $('#themePanel');
     $('#themeBtn').addEventListener('click', () => { panel.classList.toggle('show'); $('#scrim').classList.toggle('show'); });
       // 只有点面板自身的关闭/切换按钮才关闭；点灰色遮罩不再关弹窗，避免误触。
-    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); });
+    $('#scrim').addEventListener('click', () => { closeThemePanel(); });
     $('#viewLabel').addEventListener('click', () => { if (state.mode === 'day') { const ids = recs.filter(r => r.date === state.day).map(r => r.id); if (ids.length) pickDayRecords(ids, state.day); } });
 
     /* ---------- 设置：DeepSeek / 云同步与备份 ---------- */
@@ -5812,6 +6104,11 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     // AI 自动分类
     on('#aiClassifyBtn', 'click', aiClassify);
     on('#aiClassifyMerge', 'click', aiClassifyMerge);
+    // 合并近似标签弹窗：关闭 / 重新建议 / 加组 / 确认
+    on('#mergeClose', 'click', closeMergeModal);
+    on('#mergeReSuggest', 'click', () => runMergeSuggest(false));
+    on('#mergeAddGroup', 'click', mergeAddGroup);
+    on('#mergeApply', 'click', applyMergeGroups);
     on('#setImportBtn', 'click', () => $('#setImport').click());
     on('#setImport', 'change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
 
@@ -5932,9 +6229,9 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     on('#openChatBtn', 'click', openChat);
     on('#chatClose', 'click', closeChat);
     on('#aiInput', 'keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') aiChat(); });
-    on('#customColor', 'input', e => applyCustom(e.target.value));
-    on('#modeDark', 'click', () => { root.setAttribute('data-theme', 'dark'); localStorage.setItem('mood.theme', 'dark'); derivePalette(currentAccent, 'dark'); const d = $('#modeDark'); if (d) d.classList.add('active'); const l = $('#modeLight'); if (l) l.classList.remove('active'); });
-    on('#modeLight', 'click', () => { root.setAttribute('data-theme', 'light'); localStorage.setItem('mood.theme', 'light'); derivePalette(currentAccent, 'light'); const l = $('#modeLight'); if (l) l.classList.add('active'); const d = $('#modeDark'); if (d) d.classList.remove('active'); });
+    on('#customColor', 'input', e => { applyCustom(e.target.value); closeThemePanel(); });
+    on('#modeDark', 'click', () => { root.setAttribute('data-theme', 'dark'); localStorage.setItem('mood.theme', 'dark'); derivePalette(currentAccent, 'dark'); const d = $('#modeDark'); if (d) d.classList.add('active'); const l = $('#modeLight'); if (l) l.classList.remove('active'); closeThemePanel(); });
+    on('#modeLight', 'click', () => { root.setAttribute('data-theme', 'light'); localStorage.setItem('mood.theme', 'light'); derivePalette(currentAccent, 'light'); const l = $('#modeLight'); if (l) l.classList.add('active'); const d = $('#modeDark'); if (d) d.classList.remove('active'); closeThemePanel(); });
 
     // 同步状态点一下就能真的同步 / 重试；没配置过就直接把设置面板打开
     on('#connDot', 'click', () => {
@@ -5996,21 +6293,33 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
 
   }
 
-  /* ---------- AI 开场白：按历史记录生成一句开场语（每日缓存，避免重复消耗） ---------- */
+  /* ---------- AI 开场白：共享模式下按「人」分别生成一句话（圆圈 + AI 一句话彻底分开） ---------- */
   async function genOpening() {
-    const box = $('#heroAi'); if (!box) return;
+    const els = document.querySelectorAll('.hp-ai');
+    for (const box of els) {
+      // 手机端共享模式只显示「自己」那块，隐藏的卡片不再消耗 AI 额度
+      if (!box.offsetParent) continue;
+      const author = (box.dataset.author || '') || null;
+      await genOpeningFor(author, box);
+    }
+  }
+  async function genOpeningFor(author, box) {
+    if (!box) return;
     if (!dsKey()) { box.textContent = '在「设置」填入 DeepSeek Key，让 AI 每天为你写一句开场白。'; box.classList.add('show'); return; }
-    if (!recs.length) { box.textContent = '还没有记录，先从「记一笔」开始吧。'; box.classList.add('show'); return; }
+    const v = author ? recs.filter(r => authorKey(r) === author) : recs;
+    if (!v.length) { box.textContent = '还没有记录，先从「记一笔」开始吧。'; box.classList.add('show'); return; }
     const day = todayLocal();
-    const cached = localStorage.getItem('mood.opening-' + day);
+    const cacheKey = 'mood.opening-' + day + (author ? '-' + author : '');
+    const cached = localStorage.getItem(cacheKey);
     if (cached) { box.textContent = cached; box.classList.add('show'); return; }
-    box.textContent = 'AI 正在根据你的记录，写下今天的开场白…'; box.classList.add('show');
-    const recent = recs.slice(-10).reverse().map(r => `${r.date} 心情${r.mood || '?'}/5${(r.tags && r.tags.length) ? ' [' + r.tags.join('/') + ']' : ''}${r.note ? '：' + String(r.note).slice(0, 40) : ''}`).join('\n');
+    box.textContent = 'AI 正在写今天的开场白…'; box.classList.add('show');
+    const recent = v.slice(-10).reverse().map(r => `${r.date} 心情${r.mood || '?'}/5${(r.tags && r.tags.length) ? ' [' + r.tags.join('/') + ']' : ''}${r.note ? '：' + String(r.note).slice(0, 40) : ''}`).join('\n');
+    const who = author ? ('（这是 ' + author + ' 的记录，请用贴合 ta 的语气）') : '';
     const sys = '你是用户的私人情绪陪伴助手。下面是该用户最近的情绪记录（按时间）。请用一句温柔、有洞察的话作为今天的「开场白」，帮助用户回看自己的状态。要求：不超过 40 字；不要使用表情符号；不要重复用户原话；语气温和、像朋友。只输出这句话本身，不要任何解释或引号。';
     try {
-      const r = await callDeepSeek(sys, recent, { task: 'opening' });
+      const r = await callDeepSeek(sys, recent + who, { task: 'opening' });
       const line = (r.text || '').trim().replace(/^["'「」]+|["'「」]+$/g, '');
-      if (line) { box.textContent = line; localStorage.setItem('mood.opening-' + day, line); }
+      if (line) { box.textContent = line; localStorage.setItem(cacheKey, line); }
       else { box.textContent = '今天也辛苦了，慢慢来，我在这里陪你。'; }
     } catch (e) {
       box.textContent = '今天也辛苦了，慢慢来，我在这里陪你。';
@@ -6176,7 +6485,7 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     appendBubble(box, 'user', txt); inp.value = '';
     if (sv) sv.textContent = '';
     const ctx = recs.slice(-180).map(r => [r.date + ' 心情' + r.mood, r.scene ? '场景:' + r.scene : '', (r.tags || []).length ? '标签:' + r.tags.join('/') : '', r.note ? '备注:' + r.note : '', r.cause ? '原因:' + r.cause : ''].filter(Boolean).join(' · ')).join('\n');
-    const sys = '你是一个基于用户历史情绪记录的数据分析助手。用户会用自然语言提问（例如「上月我最低谷那周怎么了」「什么场景最让我焦虑」）。请基于下面提供的历史记录，用中文、具体、有依据地回答，可引用具体日期和记录内容，不要编造不存在的数据。如果记录不足以回答，就如实说样本不够。';
+    const sys = '你是小绪，一个基于用户历史情绪记录的数据分析助手。用户会用自然语言提问（例如「上月我最低谷那周怎么了」「什么场景最让我焦虑」）。请基于下面提供的历史记录，用中文、具体、有依据地回答，可引用具体日期和记录内容，不要编造不存在的数据。如果记录不足以回答，就如实说样本不够。';
     const user = '我的历史情绪记录（最近 180 条）：\n' + (ctx || '（暂无记录）') + '\n\n我的问题：' + txt;
     const loading = appendBubble(box, 'ai', '查数据中…');
     try {
@@ -6459,9 +6768,13 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
     on('#heroPdf', 'click', exportReportPdf);
     on('#aiRecordSave', 'click', () => {
       const rp = $('#aiRecordPrompt');
-      const txt = '和 AI 聊到的：\n' + (rp ? (rp.dataset.user || '') : '') + '\n\n（AI 回应：' + (rp ? (rp.dataset.ai || '') : '') + '）';
-      openNewRecordWithNote(txt);
+      // 用整段对话（用户说的所有话），不再只取最后一条
+      const full = rp ? (rp.dataset.full || rp.dataset.user || '') : '';
       if (rp) rp.style.display = 'none';
+      // 打开「记一笔」弹窗，把整段话放进「随手写」，并自动让 AI 分析全部内容、填好标签等字段
+      openRecModal();
+      const fr = $('#recFree'); if (fr) fr.value = full;
+      aiFillFromChat(full);
     });
     on('#aiRecordSkip', 'click', () => { const rp = $('#aiRecordPrompt'); if (rp) rp.style.display = 'none'; });
     on('#askDataBtn', 'click', () => { const m = $('#askModal'); if (m) m.classList.add('show'); const sc = $('#scrim'); if (sc) sc.classList.add('show'); });
@@ -6661,27 +6974,104 @@ window.__BUILD__ = "v33 · 2026-08-11 01:58（评论区合并同作者消息 + �
       if (hint) hint.textContent = '✓ 已为 ' + count + ' 条记录生成标签';
     } catch (e) { if (hint) hint.textContent = '✗ 分类失败：' + ((e && e.message) || e); }
   }
+  // 合并近似标签：弹出可编辑弹窗（AI 建议 + 人工修改）
+  var _mergeGroups = [];
   async function aiClassifyMerge() {
-    var hint = $('#aiClassifyHint');
-    if (!dsKey()) { if (hint) hint.textContent = '请先在设置里填入 DeepSeek API Key'; return; }
+    var hint = $('#mergeHint'); if (hint) hint.textContent = '';
+    var m = $('#mergeModal'); if (m) m.classList.add('show');
+    var sc = $('#scrim'); if (sc) sc.classList.add('show');
+    await runMergeSuggest(true);
+  }
+  function mergeMyTags() {
     var tagMap = {};
-    (DATA.records || []).forEach(function (r) { (r.tags || []).forEach(function (t) { tagMap[t] = (tagMap[t] || 0) + 1; }); });
-    var tags = Object.keys(tagMap);
-    if (tags.length < 2) { if (hint) hint.textContent = '标签太少，无需合并'; return; }
-    if (hint) hint.textContent = '正在识别近似标签…';
-    var sys = '你是标签整理助手。找出语义近似的标签组，归并到同一个标准标签。只输出 JSON：{"groups":[{"canonical":"标准标签","aliases":["别名1","别名2"]}]}';
+    (DATA.records || []).forEach(function (r) { if (!isMyRec(r)) return; (r.tags || []).forEach(function (t) { tagMap[t] = (tagMap[t] || 0) + 1; }); });
+    return Object.keys(tagMap);
+  }
+  async function runMergeSuggest(showLoading) {
+    var hint = $('#mergeHint');
+    var tags = mergeMyTags();
+    if (tags.length < 2) { if (hint) hint.textContent = '标签太少，合并意义不大（仍可手动加组）'; renderMergeGroups([]); return; }
+    if (!dsKey()) { if (hint) hint.textContent = '请先在设置里填入 DeepSeek API Key 才能让小绪建议（也可手动加组）'; renderMergeGroups(_mergeGroups); return; }
+    if (showLoading && hint) hint.textContent = '小绪正在识别近似标签…';
+    var sys = '你是标签整理助手。找出语义近似的标签组，归并到同一个标准标签。只输出 JSON：{"groups":[{"canonical":"标准标签","aliases":["别名1","别名2"]}]}。标准标签必须来自给定标签里最通用/最简的那个，不要发明新词。';
     try {
       var res = await callDeepSeek(sys, JSON.stringify(tags), { task: 'extract' });
       var obj = JSON.parse(res.text.replace(/```json|```/g, '').trim());
-      if (!obj || !Array.isArray(obj.groups) || !obj.groups.length) { if (hint) hint.textContent = '没有需要合并的近似标签'; return; }
-      var lines = obj.groups.map(function (g) { return g.canonical + ' ← ' + (g.aliases || []).join('、'); });
-      var ok = await appConfirm('以下标签将被合并：\n\n' + lines.join('\n') + '\n\n确认合并？', '合并标签');
-      if (!ok) { if (hint) hint.textContent = '已取消'; return; }
-      obj.groups.forEach(function (g) { var canon = g.canonical; (g.aliases || []).forEach(function (alias) { (DATA.records || []).forEach(function (r) { if (r.tags) r.tags = r.tags.map(function (t) { return t === alias ? canon : t; }); }); }); });
-      saveData(); renderAll();
-      if (hint) hint.textContent = '✓ 已合并 ' + obj.groups.length + ' 组标签';
-    } catch (e) { if (hint) hint.textContent = '✗ 合并失败：' + ((e && e.message) || e); }
+      var groups = (obj && Array.isArray(obj.groups)) ? obj.groups : [];
+      groups = groups.filter(function (g) { return g && g.canonical && Array.isArray(g.aliases) && g.aliases.length; });
+      _mergeGroups = groups;
+      renderMergeGroups(groups);
+      if (hint) hint.textContent = groups.length ? ('小绪建议合并 ' + groups.length + ' 组（可随意修改）') : '没发现明显可合并的标签，你可以手动加一组';
+    } catch (e) {
+      if (hint) hint.textContent = '✗ 小绪建议失败：' + ((e && e.message) || e) + '（你仍可手动添加）';
+      renderMergeGroups(_mergeGroups);
+    }
   }
+  function renderMergeGroups(groups) {
+    var box = $('#mergeGroups'); if (!box) return;
+    box.innerHTML = '';
+    if (!groups.length) { box.innerHTML = '<div class="merge-empty">还没有分组。点「加一组」自己合并标签吧。</div>'; return; }
+    groups.forEach(function (g, gi) {
+      var card = document.createElement('div');
+      card.className = 'merge-group';
+      var aliasesHtml = (g.aliases || []).map(function (a, ai) {
+        return '<span class="merge-chip" data-g="' + gi + '" data-a="' + ai + '"><b>' + escapeHtml(a) + '</b><button type="button" class="merge-chip-x" data-g="' + gi + '" data-a="' + ai + '">×</button></span>';
+      }).join('');
+      card.innerHTML =
+        '<div class="merge-group-head">' +
+          '<input class="merge-canon" data-g="' + gi + '" value="' + escapeHtml(g.canonical) + '" placeholder="标准标签名">' +
+          '<button type="button" class="merge-group-del" data-g="' + gi + '">删除整组</button>' +
+        '</div>' +
+        '<div class="merge-aliases" data-g="' + gi + '">' + aliasesHtml + '</div>' +
+        '<div class="merge-add-row">' +
+          '<input class="merge-add-input" data-g="' + gi + '" placeholder="加一个别名后回车…" maxlength="30">' +
+          '<button type="button" class="merge-add-btn btn sm ghost" data-g="' + gi + '">加</button>' +
+        '</div>';
+      box.appendChild(card);
+    });
+    box.querySelectorAll('.merge-canon').forEach(function (inp) {
+      inp.addEventListener('input', function () { if (_mergeGroups[+inp.dataset.g]) _mergeGroups[+inp.dataset.g].canonical = inp.value; });
+    });
+    box.querySelectorAll('.merge-chip-x').forEach(function (b) {
+      b.addEventListener('click', function () { var g = +b.dataset.g, a = +b.dataset.a; if (_mergeGroups[g]) { _mergeGroups[g].aliases.splice(a, 1); renderMergeGroups(_mergeGroups); } });
+    });
+    box.querySelectorAll('.merge-group-del').forEach(function (b) {
+      b.addEventListener('click', function () { _mergeGroups.splice(+b.dataset.g, 1); renderMergeGroups(_mergeGroups); });
+    });
+    box.querySelectorAll('.merge-add-input').forEach(function (inp) {
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addMergeAlias(+inp.dataset.g, inp.value); inp.value = ''; } });
+    });
+    box.querySelectorAll('.merge-add-btn').forEach(function (b) {
+      b.addEventListener('click', function () { var inp = box.querySelector('.merge-add-input[data-g="' + b.dataset.g + '"]'); addMergeAlias(+b.dataset.g, inp ? inp.value : ''); if (inp) inp.value = ''; });
+    });
+  }
+  function addMergeAlias(gi, val) {
+    val = (val || '').trim(); if (!val) return;
+    var g = _mergeGroups[gi]; if (!g) return;
+    if (!g.aliases) g.aliases = [];
+    if (g.aliases.indexOf(val) < 0) g.aliases.push(val);
+    renderMergeGroups(_mergeGroups);
+  }
+  function mergeAddGroup() { _mergeGroups.push({ canonical: '', aliases: [] }); renderMergeGroups(_mergeGroups); }
+  function applyMergeGroups() {
+    var hint = $('#mergeHint');
+    var groups = (_mergeGroups || []).filter(function (g) { return g && g.canonical && g.canonical.trim() && Array.isArray(g.aliases) && g.aliases.length; });
+    if (!groups.length) { if (hint) hint.textContent = '没有可合并的分组（设好标准名并加别名）'; return; }
+    groups.forEach(function (g) {
+      var canon = g.canonical.trim();
+      (g.aliases || []).forEach(function (alias) {
+        alias = (alias || '').trim(); if (!alias || alias === canon) return;
+        (DATA.records || []).forEach(function (r) {
+          if (!isMyRec(r) || !r.tags) return;
+          r.tags = r.tags.map(function (t) { return t === alias ? canon : t; });
+        });
+      });
+    });
+    saveData(); renderAll();
+    if (hint) hint.textContent = '✓ 已合并 ' + groups.length + ' 组标签';
+    setTimeout(closeMergeModal, 800);
+  }
+  function closeMergeModal() { var m = $('#mergeModal'); if (m) m.classList.remove('show'); var sc = $('#scrim'); if (sc) sc.classList.remove('show'); }
   /* ========== 1.10 A 数据迁移 ========== */
   function migrateSpaces() {
     try {
