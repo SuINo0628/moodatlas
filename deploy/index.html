@@ -2572,7 +2572,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v41 · 2026-08-11 20:56（更新 guide.html FAQ 到 v41：版本号、评论、标签合并说明）";</script>
+window.__BUILD__ = "v42 · 2026-08-11 21:38（记一笔从聊天整段话出发：抓取全部对话，AI 一次性分析并自动填心情/标签/身体信号/行为/场景/原因）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -3397,6 +3397,9 @@ window.__BUILD__ = "v41 · 2026-08-11 20:56（更新 guide.html FAQ 到 v41：�
     const ub = document.querySelectorAll('#aiChat .bubble.user');
     const ab = document.querySelectorAll('#aiChat .bubble.ai');
     if (!ub.length) { rp.style.display = 'none'; return; }
+    // 抓取「用户说的所有话」（整段对话），而不是只取最后一条——记录时 AI 会基于全部内容分析、填字段
+    const full = Array.prototype.map.call(ub, function (b) { return (b.textContent || '').trim(); }).filter(Boolean).join('\n');
+    rp.dataset.full = full;
     rp.dataset.user = (ub[ub.length - 1].textContent || '').slice(0, 300);
     rp.dataset.ai = (ab.length ? ab[ab.length - 1].textContent : '').slice(0, 300);
     rp.style.display = '';
@@ -3418,6 +3421,37 @@ window.__BUILD__ = "v41 · 2026-08-11 20:56（更新 guide.html FAQ 到 v41：�
     const sg = $('#recSuggest'); if (sg) { sg.style.display = 'none'; sg.innerHTML = ''; }
     $('#recNote').value = text || '';
     md.classList.add('show'); $('#scrim').classList.add('show');
+  }
+  // 从聊天的整段话出发：把全部文字一次性交给 AI 分析，自动填好心情/标签/身体信号/行为/场景/原因等字段
+  async function aiFillFromChat(text) {
+    if (!text || !text.trim()) return;
+    const sv = $('#recSaved');
+    const key = dsKey();
+    if (!key) {
+      // 没配 Key：至少把整段话放进备注，让用户手动填
+      $('#recNote').value = text;
+      if (sv) { sv.textContent = '未配置 DeepSeek Key，已把整段话放进「备注」，请手动补全字段后点「落到地图」。'; sv.classList.add('show'); }
+      return;
+    }
+    if (sv) { sv.textContent = 'AI 正在分析你的整段话，并填好标签等字段…'; sv.classList.add('show'); }
+    try {
+      const res = await callDeepSeek(extractSysPrompt(), text, { task: 'extract', json: true });
+      const obj = parseExtract(res.text);
+      const f = obj && obj.fields ? obj.fields : null;
+      if (f && (f.mood || (f.tags && f.tags.length) || f.note || f.scene || (f.body && f.body.length) || (f.behavior && f.behavior.length))) {
+        if (Array.isArray(f.tags)) f.tags = cleanTags(f.tags);
+        fillRecordForm(f, f.note || text);
+        const tip = $('#recTip');
+        if (tip) { tip.textContent = 'AI 已读完整段话并整理好字段，请确认/修改后点「落到地图」。'; tip.classList.add('show'); tip.style.display = 'block'; }
+        if (sv) { sv.textContent = '✓ AI 已根据整段话填好（心情/标签/场景等），确认无误即可「落到地图」。'; sv.classList.add('show'); }
+      } else {
+        $('#recNote').value = text;
+        if (sv) { sv.textContent = 'AI 没能完整解析，已把整段话放进「备注」，你手动补全也行。'; sv.classList.add('show'); }
+      }
+    } catch (e) {
+      $('#recNote').value = text;
+      if (sv) { sv.textContent = '✗ AI 分析失败（' + ((e && e.message) || e) + '），已把整段话放进备注，可手动填。'; sv.classList.add('show'); }
+    }
   }
   /* ---------- 同步状态（真实反映结果，不再是只看配置的摆设） ----------
      状态：idle 未配置 / ready 已配置未同步 / syncing 进行中 / ok 成功 / error 失败
@@ -3508,10 +3542,8 @@ window.__BUILD__ = "v41 · 2026-08-11 20:56（更新 guide.html FAQ 到 v41：�
     const c = $('#extractChat'); if (c) c.innerHTML = '';
     const f = $('#extractFollow'); if (f) f.style.display = 'none';
   }
-  async function extractCall() {
-    const key = dsKey();
-    if (!key) throw new Error('no-key');
-    const sys = '你是情绪记录助手，帮用户把"说不清"的状态理清并归类。这是多次对话的流程：\n'
+  function extractSysPrompt() {
+    return '你是情绪记录助手，帮用户把"说不清"的状态理清并归类。这是多次对话的流程：\n'
       + '1) 用户先用口语描述今天的状态（可能碎片化、情绪化、用词不精确）。\n'
       + '2) 你判断是否已能较准确地归类。若信息不足（例如只说"有点焦虑说不清""精力透支"却没说是身体还是心理、什么场景、针对什么事、和谁在一起），就提出 1-3 个具体、好回答的澄清问题（中文，口语化，一次别太多）。\n'
       + '3) 若信息足够，就输出结构化字段。\n'
@@ -3535,6 +3567,11 @@ window.__BUILD__ = "v41 · 2026-08-11 20:56（更新 guide.html FAQ 到 v41：�
       + '}\n'
       + '注意：这些是"帮用户理清情绪"的可选项，不要强迫他回答。若用户明确不想填某项，就写 null。'
       + (function(){ var tt = topTags(20); return tt.length ? '\n用户已有高频标签：' + tt.join('/') + '。请优先使用这些标签，如不匹配再创建新标签（2-4字）。' : ''; })();
+  }
+  async function extractCall() {
+    const key = dsKey();
+    if (!key) throw new Error('no-key');
+    const sys = extractSysPrompt();
     const r2 = resolveModel('extract');
     const r = await fetch(DS_URL, {
       method: 'POST',
@@ -6605,9 +6642,13 @@ window.__BUILD__ = "v41 · 2026-08-11 20:56（更新 guide.html FAQ 到 v41：�
     on('#heroPdf', 'click', exportReportPdf);
     on('#aiRecordSave', 'click', () => {
       const rp = $('#aiRecordPrompt');
-      const txt = '和 AI 聊到的：\n' + (rp ? (rp.dataset.user || '') : '') + '\n\n（AI 回应：' + (rp ? (rp.dataset.ai || '') : '') + '）';
-      openNewRecordWithNote(txt);
+      // 用整段对话（用户说的所有话），不再只取最后一条
+      const full = rp ? (rp.dataset.full || rp.dataset.user || '') : '';
       if (rp) rp.style.display = 'none';
+      // 打开「记一笔」弹窗，把整段话放进「随手写」，并自动让 AI 分析全部内容、填好标签等字段
+      openRecModal();
+      const fr = $('#recFree'); if (fr) fr.value = full;
+      aiFillFromChat(full);
     });
     on('#aiRecordSkip', 'click', () => { const rp = $('#aiRecordPrompt'); if (rp) rp.style.display = 'none'; });
     on('#askDataBtn', 'click', () => { const m = $('#askModal'); if (m) m.classList.add('show'); const sc = $('#scrim'); if (sc) sc.classList.add('show'); });
