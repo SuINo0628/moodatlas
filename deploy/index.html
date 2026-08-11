@@ -206,7 +206,7 @@ body {
 .ai-box { margin-top: 30px; padding: 22px; border-radius: var(--r-md); background: var(--glass); border: 1px solid var(--glass-brd); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 .ai-chat { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; margin-top: 12px; padding: 4px 2px; }
 .ai-chat:empty { display: flex; align-items: center; justify-content: center; min-height: 110px; text-align: center; }
-.ai-chat:empty::before { content: '还没有对话。写点今天的感受，AI 会结合你的记录回应你～'; color: var(--ink-dim); font-size: 12.5px; line-height: 1.65; max-width: 260px; padding: 0 16px; }
+.ai-chat:empty::before { content: '还没有对话。写点今天的感受，小绪会结合你的记录回应你～'; color: var(--ink-dim); font-size: 12.5px; line-height: 1.65; max-width: 260px; padding: 0 16px; }
 .ai-row { margin-top: 14px; }
 .ai-record-prompt { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--accent) 10%, var(--bg-1)); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
 .ai-record-prompt .arp-txt { font-size: 13px; color: var(--ink); flex: 1 1 auto; min-width: 140px; }
@@ -2105,7 +2105,7 @@ body {
     <!-- 聊情绪入口卡：点开「+」或这里，弹出独立对话窗 -->
     <section class="panel reveal" id="chatEntryCard">
       <h2><span class="ic"></span>聊情绪</h2>
-      <p style="color:var(--ink-soft);font-size:14px;margin:2px 0 12px">卡住、烦躁，或只是想说说话的时候，随时找 AI 聊聊。它会结合你过往的记录温柔回应，聊完还能一键记一笔。</p>
+      <p style="color:var(--ink-soft);font-size:14px;margin:2px 0 12px">卡住、烦躁，或只是想说说话的时候，随时找小绪聊聊。它会结合你过往的记录温柔回应，聊完还能一键记一笔。</p>
       <button class="btn primary" id="openChatBtn" type="button">打开聊情绪</button>
     </section>
 
@@ -2235,7 +2235,7 @@ body {
 <div class="modal chat-modal" id="chatModal">
   <div class="chat-modal-head">
     <div class="cm-titles">
-      <span class="cm-title">AI 对话 · 聊情绪</span>
+      <span class="cm-title">小绪 · 聊情绪</span>
       <span class="cm-sub">用 DeepSeek 温柔回应你的记录</span>
     </div>
     <div class="chat-modal-actions">
@@ -2246,7 +2246,7 @@ body {
   <div class="ai-chat" id="aiChat"></div>
   <div class="ai-row">
     <div class="ai-input-wrap">
-      <textarea id="aiInput" placeholder="和 AI 说说今天的状态，它会结合你的记录温柔回应…（Ctrl/Cmd+Enter 发送）"></textarea>
+      <textarea id="aiInput" placeholder="和小绪说说今天的状态，它会结合你的记录温柔回应…（Ctrl/Cmd+Enter 发送）"></textarea>
       <button class="btn primary" id="aiSend" aria-label="发送">发送</button>
     </div>
   </div>
@@ -2591,7 +2591,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v43 · 2026-08-11 21:40（评论支持回复：作者 emoji + 时间 + 同作者连续合并 + 楼中楼回复）";</script>
+window.__BUILD__ = "v44 · 2026-08-11 21:56（聊情绪 AI 助手改名为「小绪」：落地内容/聊天回应/系统提示/界面文案统一为小绪）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -3399,7 +3399,7 @@ window.__BUILD__ = "v43 · 2026-08-11 21:40（评论支持回复：作者 emoji 
     appendBubble(box, 'user', txt); inp.value = '';
     if (sv) sv.textContent = '';
     const rp0 = $('#aiRecordPrompt'); if (rp0) rp0.style.display = 'none';
-    const sys = '你是一个温柔、专业、不评判的情绪陪伴助手。用中文，简短共情地回应，偶尔给一个可操作的小建议。结合用户提供的近期情绪记录来理解语境，但用自然语言表达，不要直接罗列数据格式。';
+    const sys = '你是小绪，一个温柔、专业、不评判的情绪陪伴助手。用中文，简短共情地回应，偶尔给一个可操作的小建议。结合用户提供的近期情绪记录来理解语境，但用自然语言表达，不要直接罗列数据格式。';
     const user = '我的近期情绪记录：\n' + (recentSummary(14) || '（暂无记录）') + '\n\n我的话：' + txt;
     const loading = appendBubble(box, 'ai', '思考中…');
     try {
@@ -3562,7 +3562,7 @@ window.__BUILD__ = "v43 · 2026-08-11 21:40（评论支持回复：作者 emoji 
     const f = $('#extractFollow'); if (f) f.style.display = 'none';
   }
   function extractSysPrompt() {
-    return '你是情绪记录助手，帮用户把"说不清"的状态理清并归类。这是多次对话的流程：\n'
+    return '你是小绪，一个情绪记录助手，帮用户把"说不清"的状态理清并归类。整理字段时，凡是涉及你（助手）自己的表述都用"小绪"，不要写"AI"。这是多次对话的流程：\n'
       + '1) 用户先用口语描述今天的状态（可能碎片化、情绪化、用词不精确）。\n'
       + '2) 你判断是否已能较准确地归类。若信息不足（例如只说"有点焦虑说不清""精力透支"却没说是身体还是心理、什么场景、针对什么事、和谁在一起），就提出 1-3 个具体、好回答的澄清问题（中文，口语化，一次别太多）。\n'
       + '3) 若信息足够，就输出结构化字段。\n'
@@ -6440,7 +6440,7 @@ window.__BUILD__ = "v43 · 2026-08-11 21:40（评论支持回复：作者 emoji 
     appendBubble(box, 'user', txt); inp.value = '';
     if (sv) sv.textContent = '';
     const ctx = recs.slice(-180).map(r => [r.date + ' 心情' + r.mood, r.scene ? '场景:' + r.scene : '', (r.tags || []).length ? '标签:' + r.tags.join('/') : '', r.note ? '备注:' + r.note : '', r.cause ? '原因:' + r.cause : ''].filter(Boolean).join(' · ')).join('\n');
-    const sys = '你是一个基于用户历史情绪记录的数据分析助手。用户会用自然语言提问（例如「上月我最低谷那周怎么了」「什么场景最让我焦虑」）。请基于下面提供的历史记录，用中文、具体、有依据地回答，可引用具体日期和记录内容，不要编造不存在的数据。如果记录不足以回答，就如实说样本不够。';
+    const sys = '你是小绪，一个基于用户历史情绪记录的数据分析助手。用户会用自然语言提问（例如「上月我最低谷那周怎么了」「什么场景最让我焦虑」）。请基于下面提供的历史记录，用中文、具体、有依据地回答，可引用具体日期和记录内容，不要编造不存在的数据。如果记录不足以回答，就如实说样本不够。';
     const user = '我的历史情绪记录（最近 180 条）：\n' + (ctx || '（暂无记录）') + '\n\n我的问题：' + txt;
     const loading = appendBubble(box, 'ai', '查数据中…');
     try {
