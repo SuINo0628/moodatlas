@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>开始使用 · 情绪地图</title>
+<style>
+:root{
+  --bg:#0a0e14; --bg-2:#111721; --ink:#e6edf3; --ink-dim:#8b98a9;
+  --accent:#5eead4; --brd:rgba(255,255,255,.09); --glass:rgba(255,255,255,.035);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);
+  line-height:1.7;-webkit-font-smoothing:antialiased;
+  padding:0 20px calc(64px + env(safe-area-inset-bottom));
+}
+.wrap{max-width:720px;margin:0 auto}
+header{padding:56px 0 34px;border-bottom:1px solid var(--brd)}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+h1{font-size:30px;line-height:1.25;margin:0 0 12px;font-weight:600;letter-spacing:-.01em}
+.lede{color:var(--ink-dim);font-size:14.5px;margin:0}
+.tldr{
+  margin:28px 0 0;padding:16px 18px;border-radius:14px;
+  background:var(--glass);border:1px solid var(--brd);font-size:13.5px;color:var(--ink-dim)
+}
+.tldr b{color:var(--ink);font-weight:600}
+h2{font-size:13px;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin:46px 0 18px;font-weight:500}
+.step{position:relative;padding:22px 22px 20px 22px;margin:0 0 14px;border-radius:16px;background:var(--bg-2);border:1px solid var(--brd)}
+.step-n{
+  display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;
+  background:rgba(94,234,212,.12);color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;
+  margin-bottom:12px
+}
+.step h3{margin:0 0 10px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.step p{margin:0 0 10px;font-size:14px;color:var(--ink-dim)}
+.step p:last-child{margin-bottom:0}
+ol.sub,ul.sub{margin:10px 0 0;padding-left:20px;font-size:14px;color:var(--ink-dim)}
+ol.sub li,ul.sub li{margin:0 0 8px}
+ol.sub li:last-child,ul.sub li:last-child{margin-bottom:0}
+code{font-family:var(--mono);font-size:12.5px;background:rgba(255,255,255,.06);color:var(--ink);padding:2px 7px;border-radius:6px;word-break:break-all}
+.k{color:var(--accent);font-weight:600}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(94,234,212,.4)}
+a:hover{border-bottom-color:var(--accent)}
+.note{
+  margin:14px 0 0;padding:12px 14px;border-radius:11px;font-size:13px;
+  background:rgba(94,234,212,.06);border:1px solid rgba(94,234,212,.18);color:var(--ink-dim)
+}
+.note b{color:var(--ink)}
+.warn{background:rgba(255,176,102,.07);border-color:rgba(255,176,102,.22)}
+.warn b{color:#ffb066}
+.faq{border-top:1px solid var(--brd);padding:16px 2px}
+.faq:last-of-type{border-bottom:1px solid var(--brd)}
+.faq .q{font-size:14.5px;font-weight:600;margin:0 0 6px}
+.faq .a{font-size:13.5px;color:var(--ink-dim);margin:0}
+footer{margin:44px 0 0;padding-top:22px;border-top:1px solid var(--brd);font-size:12.5px;color:var(--ink-dim)}
+@media (max-width:560px){
+  header{padding:38px 0 26px}
+  h1{font-size:25px}
+  body{padding:0 16px 56px}
+  .step{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">Mood Atlas · 开始使用</p>
+  <h1>把说不清的不对劲，<br>变成看得见的轨迹</h1>
+  <p class="lede">这是一个记录情绪的网页应用。它没有服务器、也没有后台账号系统 —— 你的记录只存在两个地方：你自己的浏览器，和你自己的 GitHub 私有仓库。</p>
+  <div class="tldr">
+    <b>为什么要配 GitHub？</b><br>
+    因为没有任何服务器替你保管数据，所以需要你自己准备一个"云端抽屉"。GitHub 的私有仓库免费、稳定、只有你能看，正好合适。全过程大约 3 分钟，只做一次。配完之后手机和电脑就能看到同一份记录。
+  </div>
+  <div class="note">
+    <b>不想配也可以。</b>跳过下面全部步骤，直接开始记 —— 数据会存在当前这个浏览器里，照样能用。只是换设备、清缓存后会丢，也没法手机电脑同步。
+  </div>
+</header>
+
+<h2>第一部分 · 准备云端抽屉</h2>
+
+<div class="step">
+  <div class="step-n">1</div>
+  <h3>注册一个 GitHub 账号</h3>
+  <p>打开 <a href="https://github.com/signup" target="_blank" rel="noopener">github.com/signup</a>，用邮箱注册，免费。已经有账号就跳到下一步。</p>
+  <p>注册完请记住你的<span class="k">用户名</span>（登录后在右上角头像里能看到，形如 <code>your-name</code>）。</p>
+</div>
+
+<div class="step">
+  <div class="step-n">2</div>
+  <h3>新建一个私有仓库</h3>
+  <p>仓库就是那个"抽屉"。直接打开 <a href="https://github.com/new" target="_blank" rel="noopener">github.com/new</a>，然后：</p>
+  <ol class="sub">
+    <li><b>Repository name</b> 填 <code>mood-atlas-sync</code>（也可以自己取名，但要和后面填进设置里的一致）</li>
+    <li>下面选 <span class="k">Private</span>（私有）—— 一定要选这个，否则任何人都能看到你的记录</li>
+    <li>勾上 <b>Add a README file</b></li>
+    <li>点绿色按钮 <b>Create repository</b></li>
+  </ol>
+  <div class="note">建好之后什么都不用管，页面关掉就行。记录会自动以 <code>情绪记录.json</code> 的形式存进去。</div>
+</div>
+
+<div class="step">
+  <div class="step-n">3</div>
+  <h3>生成一把只能开这个抽屉的钥匙</h3>
+  <p>网页需要一把"钥匙"（GitHub 叫 access token）才能往仓库里写数据。打开 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">这个链接</a> 直达创建页（若跳到登录页，登录后再点一次），然后：</p>
+  <ol class="sub">
+    <li><b>Token name</b> 随便填，比如 <code>mood-atlas</code></li>
+    <li><b>Expiration</b>（有效期）选一个长一点的，比如 1 年。到期后重新生成一把换上即可</li>
+    <li><b>Repository access</b> 选 <span class="k">Only select repositories</span>，在下拉里勾选刚才建的 <code>mood-atlas-sync</code></li>
+    <li>展开 <b>Permissions → Repository permissions</b>，找到 <span class="k">Contents</span> 这一项，右边下拉改成 <span class="k">Read and write</span>（读写）</li>
+    <li>拉到最下点 <b>Generate token</b>，再确认一次</li>
+    <li>页面会显示一串以 <code>github_pat_</code> 开头的长字符 —— <b>立刻复制下来</b></li>
+  </ol>
+  <div class="note warn"><b>注意：</b>这串字符只会完整显示这一次，关掉页面就再也看不到了。先粘到备忘录里存着，或者直接去做第 4 步。万一丢了也不要紧，回来重新生成一把新的就行。</div>
+</div>
+
+<h2>第二部分 · 连上应用</h2>
+
+<div class="step">
+  <div class="step-n">4</div>
+  <h3>在网页里填一次</h3>
+  <p>回到情绪地图页面，点右上角 <span class="k">设置</span>，找到「GitHub 云同步」那一块，确认标签停在 <span class="k">个人空间</span>，然后：</p>
+  <ol class="sub">
+    <li><b>GitHub 用户名</b>：填你的用户名。<span class="k">也可以留空</span> —— 待会点「测试连接」会自动识别并帮你填好</li>
+    <li><b>私有仓库名</b>：填 <code>mood-atlas-sync</code>（和第 2 步取的名字一致）</li>
+    <li><b>访问令牌</b>：粘贴第 3 步复制的那串字符</li>
+    <li>勾上 <b>启用同步</b> 和 <b>保存后自动同步</b></li>
+    <li>点 <b>测试连接</b>，看到"已连上"就成了；再点一次 <b>立即同步</b></li>
+  </ol>
+  <div class="note">令牌<b>只存在你这台设备的浏览器里</b>，不会上传到任何第三方服务器。它也只能碰你勾选的那一个仓库，别的都动不了。</div>
+</div>
+
+<div class="step">
+  <div class="step-n">5</div>
+  <h3>手机上也配一次，就同步了</h3>
+  <p>用手机浏览器打开同一个网址，同样进「设置」，用<span class="k">同一个用户名、同一个仓库名、同一把令牌</span>再填一次。填完就能看到电脑上记过的全部内容了。</p>
+  <p>顺手可以装成 App：</p>
+  <ul class="sub">
+    <li>iPhone（Safari）：底部分享按钮 → 添加到主屏幕</li>
+    <li>Android（Chrome）：右上角菜单 → 添加到主屏幕 / 安装应用</li>
+  </ul>
+  <div class="note">"配置一次"不是登录 —— 每台设备、每个浏览器都要各自填一次。填完之后，大家读写的都是云端那同一份数据。</div>
+</div>
+
+<h2>第三部分 · 可选功能</h2>
+
+<div class="step">
+  <div class="step-n">A</div>
+  <h3>让 AI 帮你整理（可选）</h3>
+  <p>应用里的「AI 帮填」可以把你随手写的一段话自动拆成心情、睡眠、标签这些字段，也能在开头给你一句基于历史记录的开场白。这需要一个 DeepSeek 的 API Key：</p>
+  <ol class="sub">
+    <li>去 <a href="https://platform.deepseek.com/" target="_blank" rel="noopener">platform.deepseek.com</a> 注册</li>
+    <li>在 <b>API keys</b> 页面创建一个 key，复制</li>
+    <li>回到应用「设置 → AI」，粘贴进去</li>
+  </ol>
+  <div class="note">Key 同样只存在你的浏览器里，请求直接从你的设备发给 DeepSeek。用量按 DeepSeek 的计费走，不用也完全不影响记录功能。</div>
+</div>
+
+<div class="step">
+  <div class="step-n">B</div>
+  <h3>和朋友共用一份记录（可选）</h3>
+  <p>设置里的「共享空间」是独立的第二套配置，用来和别人共用同一份记录（比如情侣、室友、互相监督的搭子）。做法：</p>
+  <ol class="sub">
+    <li>由其中一个人按第 2、3 步再建一个仓库，比如叫 <code>mood-atlas-shared</code>，并生成一把<b>只勾选这个仓库</b>的令牌</li>
+    <li>把「用户名 + 仓库名 + 这把令牌」发给同伴</li>
+    <li>各自在设置里切到 <span class="k">共享空间</span> 标签填进去，再填一个<b>昵称</b></li>
+  </ol>
+  <div class="note">填了昵称之后，你在共享空间记的每一笔都会带上"记录人"，时间轴里也能看出是谁写的。<br><b>个人空间和共享空间互不影响</b> —— 私人记录留在个人空间，别人看不到。</div>
+</div>
+
+<h2>常见问题</h2>
+
+<div class="faq">
+  <p class="q">我的数据到底存在哪儿？谁能看到？</p>
+  <p class="a">存在你自己 GitHub 账号下那个私有仓库的 <code>情绪记录.json</code> 里，以及你本机浏览器的缓存里。这个网页本身不带服务器，作者、也包括发你链接的人，都看不到你的记录。</p>
+</div>
+<div class="faq">
+  <p class="q">测试连接提示"仓库不存在"？</p>
+  <p class="a">三个地方对一下：仓库名拼写是否一致、仓库是否真的建好了、以及第 3 步生成令牌时有没有在 <b>Only select repositories</b> 里勾中这个仓库。</p>
+</div>
+<div class="faq">
+  <p class="q">提示"令牌无效"？</p>
+  <p class="a">多半是权限没给够或者已过期。回到令牌页面确认 <b>Contents</b> 是 <b>Read and write</b>；过期的话重新生成一把，粘贴替换即可。</p>
+</div>
+<div class="faq">
+  <p class="q">令牌复制的时候弄丢了怎么办？</p>
+  <p class="a">没影响。回 GitHub 重新生成一把新的，旧的删掉就行。仓库里的数据不会丢。</p>
+</div>
+<div class="faq">
+  <p class="q">换手机 / 重装浏览器，记录会没吗？</p>
+  <p class="a">只要配过同步就不会 —— 新设备上重新填一次那三项，数据会自动从云端拉回来。另外「设置」里也能导出一份 JSON 备份自己收着。</p>
+</div>
+<div class="faq">
+  <p class="q">同一天记了两次会怎样？</p>
+  <p class="a">同一天只保留一条，后来填得更完整的那条会覆盖前一条。想改当天的内容，直接再记一笔即可。</p>
+</div>
+
+<footer>
+  这份记录只对你自己负责 —— 想记就记，断几天也没关系。它的用处不是打卡，是过一阵子回头看的时候，你能认出自己的规律。
+</footer>
+
+</div>
+</body>
+</html>

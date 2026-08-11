@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>情绪记录 · Mood Atlas</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="glow" id="glow"></div>
+<div class="aurora"><span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="a4"></span></div>
+<div class="tip" id="tip"></div>
+
+<header class="topbar wrap" style="padding-bottom:0">
+  <div class="brand">
+    <span class="dot"></span>
+    <div>
+      <h1>Mood Atlas · 情绪地图</h1>
+      <div class="sub">把「说不清的不对劲」变成看得见的轨迹</div>
+    </div>
+  </div>
+  <div class="tools">
+    <span class="conn" id="connDot" title="同步状态"><i></i><span id="connTxt">未同步</span></span>
+    <button class="btn" id="setBtn">设置</button>
+    <button class="btn" id="themeBtn">主题</button>
+    <button class="btn" id="aiFillBtn">AI 帮填</button>
+    <button class="btn primary" id="recBtn">记一笔</button>
+  </div>
+</header>
+
+<div class="wrap" id="page">
+  <section class="timebar reveal" id="timeBar">
+    <div class="tb-seg" id="tbSeg">
+      <button class="tb-btn active" data-mode="all">全部</button>
+      <button class="tb-btn" data-mode="year">按年</button>
+      <button class="tb-btn" data-mode="month">按月</button>
+      <button class="tb-btn" data-mode="day">按日</button>
+    </div>
+    <div class="tb-pick" id="tbPick"></div>
+    <div class="tb-label" id="viewLabel"></div>
+  </section>
+  <main id="bento">
+    <!-- 每日提醒 -->
+    <div class="remind-bar" id="remindBar" style="display:none">
+      <span class="remind-ic">🌱</span>
+      <span class="remind-txt">今天还没记录哦，花 1 分钟记一笔？</span>
+      <button class="btn primary sm" id="remindGo" type="button">记一笔</button>
+      <button class="btn sm ghost" id="remindLater" type="button">下次再说</button>
+    </div>
+    <!-- HERO -->
+    <section class="hero reveal">
+      <div class="orb-wrap"><div id="orb"></div><div class="orb-val" id="orbVal"></div></div>
+      <div class="hero-meta">
+        <div class="q-label">今日一问 · 点击展开作答</div>
+        <div class="today-q" id="todayQ"></div>
+        <div class="date" id="heroDate"></div>
+        <div class="hero-sub" id="heroSub"></div>
+        <div class="hero-ai" id="heroAi"></div>
+      </div>
+    </section>
+
+    <!-- 快捷：回顾 / 导出 PDF（首页入口） -->
+    <div class="quick-row reveal">
+      <button class="btn primary" id="reviewBtn" type="button">回顾 · 看这段时间自己的情绪总结</button>
+      <button class="btn" id="heroPdf" type="button">导出 PDF</button>
+    </div>
+
+    <!-- 概览（无形胶囊） -->
+    <section class="glance reveal" id="stats"></section>
+    <div class="divider reveal"></div>
+
+    <!-- 情绪地形 -->
+    <section class="panel reveal">
+      <h2><span class="ic"></span>情绪地形 · 近 30 天
+        <span class="trend-toggle" id="trendToggle" data-self-toggle>
+          <button type="button" data-v="all" class="on">我们</button>
+          <button type="button" data-v="self">自己</button>
+        </span>
+      </h2>
+      <div class="map-wrap" id="trendWrap">
+        <div id="trend"></div>
+        <div class="map-tip" id="mapTip" hidden></div>
+      </div>
+      <div class="map-legend legend" id="trendLegend"></div>
+    </section>
+
+    <div class="row2">
+      <section class="panel reveal">
+        <h2><span class="ic"></span>情绪热力图 · 近 13 周
+          <span class="trend-toggle" data-self-toggle>
+            <button type="button" data-v="all" class="on">我们</button>
+            <button type="button" data-v="self">自己</button>
+          </span>
+        </h2>
+        <div class="heat-months" id="heatMonths"></div>
+        <div class="heat" id="heat"></div>
+      </section>
+      <section class="panel reveal" id="tagPanel">
+        <div class="panel-head">
+          <h2><span class="ic"></span>高频标签
+            <span class="trend-toggle" data-self-toggle>
+              <button type="button" data-v="all" class="on">我们</button>
+              <button type="button" data-v="self">自己</button>
+            </span>
+          </h2>
+          <button class="collapse-btn" id="tagsToggle" type="button" aria-expanded="true">收起</button>
+        </div>
+        <div class="collapsible" id="tagsBody">
+          <div class="tagcloud" id="tags"></div>
+          <div class="tag-hint">点任意标签 → 跳到「历史」并筛出这个标签下的全部记录</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 日历热力图 -->
+    <section class="panel reveal" id="calCard">
+      <div class="cal-head">
+        <h2><span class="ic"></span>情绪日历 · 一眼看走势</h2>
+        <div class="cal-nav">
+          <button class="cal-arrow" id="calPrev" type="button" aria-label="上个月">‹</button>
+          <span class="cal-title" id="calTitle"></span>
+          <button class="cal-arrow" id="calNext" type="button" aria-label="下个月">›</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend"><span class="cal-lg lo">低落</span><span class="cal-grad"></span><span class="cal-lg hi">愉悦</span><span class="cal-note">点有记录的日期可查看 / 编辑当天记录</span></div>
+    </section>
+
+    <div class="row3">
+      <section class="panel reveal">
+        <div class="panel-head">
+          <h2><span class="ic"></span>睡眠</h2>
+          <span class="seg-mini" id="sleepPeriod">
+            <button type="button" data-v="day" class="on">日均</button>
+            <button type="button" data-v="month">月均</button>
+            <button type="button" data-v="year">年均</button>
+            <button type="button" data-v="custom">自定义</button>
+          </span>
+        </div>
+        <div class="sleep-custom" id="sleepCustom" style="display:none">
+          <input type="date" id="sleepStart" class="sleep-date" aria-label="开始日期"> <span class="sleep-sep">至</span> <input type="date" id="sleepEnd" class="sleep-date" aria-label="结束日期">
+        </div>
+        <div class="sleep-wrap" id="sleep"></div>
+      </section>
+      <section class="panel reveal">
+        <h2><span class="ic"></span>精力 × 紧绷</h2>
+        <div id="scatter"></div>
+      </section>
+      <section class="panel reveal">
+        <h2><span class="ic"></span>高峰与低谷
+          <span class="trend-toggle" data-self-toggle>
+            <button type="button" data-v="all" class="on">我们</button>
+            <button type="button" data-v="self">自己</button>
+          </span>
+        </h2>
+        <div class="peaks" id="peaks"></div>
+      </section>
+    </div>
+
+    <!-- 提问（可点击作答） -->
+    <section class="qalist reveal">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <h2 style="font-size:14px;color:var(--ink-soft);letter-spacing:.6px;text-transform:uppercase;margin:0">今日提问 · 点开任意一条作答</h2>
+        <button class="btn primary sm" id="aiGen">AI 生成追问</button>
+      </div>
+      <div id="aiStatus" style="font-size:12px;color:var(--ink-soft);margin:6px 0 2px;min-height:14px"></div>
+      <div class="qa-grid" id="qaList"></div>
+    </section>
+
+    <!-- AI 对话（DeepSeek 直连） -->
+    <section class="ai-box reveal">
+      <h2 style="font-size:14px;color:var(--ink-soft);letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:10px"><span>AI 对话 · 用 DeepSeek 聊情绪</span><button class="btn sm ghost" id="askDataBtn" type="button">问数据</button></h2>
+      <div class="ai-chat" id="aiChat"></div>
+      <div class="ai-row">
+        <div class="ai-input-wrap">
+          <textarea id="aiInput" placeholder="和 AI 说说今天的状态，它会结合你的记录温柔回应…（Ctrl/Cmd+Enter 发送）"></textarea>
+          <button class="btn primary" id="aiSend" aria-label="发送">发送</button>
+        </div>
+      </div>
+      <div class="ai-record-prompt" id="aiRecordPrompt" style="display:none">
+        <span class="arp-txt">要把这次聊到的情绪记一笔吗？</span>
+        <button class="btn sm primary" id="aiRecordSave" type="button">记一笔</button>
+        <button class="btn sm ghost" id="aiRecordSkip" type="button">不用了</button>
+      </div>
+      <div class="assist-saved" id="aiChatStatus"></div>
+    </section>
+
+  </main>
+
+  <!-- 视图：时间轴（底部导航切换，全页展示） -->
+  <section id="viewTl" class="view" hidden>
+    <div class="view-head">
+      <h2>情绪轨迹 · 重要的事会亮起来</h2>
+      <p>顺着时间看自己。带「重要」标记的是你标记过的重要事件，方便回看当时发生了什么。</p>
+      <div class="tl-toolbar">
+        <input type="date" id="tlDateJump" class="tl-date-jump" title="跳转到指定日期">
+        <div class="tg-legend tl-legend" id="tlAuthorLegend"></div>
+      </div>
+    </div>
+    <section class="insight-panel panel reveal" id="insightPanel">
+      <div class="panel-head">
+        <h2><span class="ic"></span>情绪洞察 · 来源与相关
+          <span class="trend-toggle" data-self-toggle id="insightToggle">
+            <button type="button" data-v="all" class="on">我们</button>
+            <button type="button" data-v="self">自己</button>
+          </span>
+        </h2>
+        <button class="collapse-btn" id="insightCollapse" type="button" aria-expanded="true">收起</button>
+      </div>
+      <div class="insight-body" id="insightBody">
+        <div class="insight-grid">
+          <div class="insight-card">
+            <h3>来源分析 · 标签</h3>
+            <div id="insightTagSrc" class="src-list"></div>
+          </div>
+          <div class="insight-card">
+            <h3>来源分析 · 场景</h3>
+            <div id="insightSceneSrc" class="src-list"></div>
+          </div>
+          <div class="insight-card insight-card-wide">
+            <h3>维度相关性</h3>
+            <div id="insightCorr" class="corr-list"></div>
+            <button class="btn ghost sm" id="insightAi" type="button">让 AI 解读</button>
+            <div id="insightAiOut" class="insight-ai-out"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="tl-list" id="viewTlList"></div>
+  </section>
+
+  <!-- 视图：历史记录（底部导航切换，全页展示） -->
+  <section id="viewHist" class="view" hidden>
+    <div class="view-head">
+      <h2>全部记录 · 共 <span id="viewHistCount">0</span> 条</h2>
+      <button class="btn primary sm" id="genReport" type="button">生成 AI 总结</button>
+    </div>
+    <div class="hist-toolbar">
+      <input type="search" id="histSearch" class="hist-search" placeholder="搜索场景 / 备注 / 标签 / 原因…">
+      <button type="button" class="hist-tagfilter" id="histTagFilterBtn"><span id="histTagFilterLabel">全部标签</span><span class="caret">▾</span></button>
+      <div class="mood-chips">
+        <span class="mood-chip" data-m="1">1</span>
+        <span class="mood-chip" data-m="2">2</span>
+        <span class="mood-chip" data-m="3">3</span>
+        <span class="mood-chip" data-m="4">4</span>
+        <span class="mood-chip" data-m="5">5</span>
+      </div>
+    </div>
+
+    <!-- 标签关系图（Obsidian 风格节点网络）：点节点即筛选 -->
+    <section class="tg-card" id="tagGraphCard">
+      <div class="panel-head">
+        <div class="tg-title-wrap">
+          <h2><span class="ic"></span>标签关系图</h2>
+          <span class="tg-sub">点一个节点，看这一类下的全部记录 · 拖空白处平移 · 滚轮 / 双指缩放</span>
+        </div>
+        <div class="panel-head-actions">
+          <button class="btn sm ghost" id="tgArrange" type="button">整理标签</button>
+          <button class="collapse-btn" id="tgToggle" type="button" aria-expanded="true">收起</button>
+        </div>
+      </div>
+      <div class="collapsible" id="tgBody">
+        <div class="tg-legend" id="authorLegend"></div>
+        <div class="tg-wrap"><svg class="tg-svg" id="tagGraph" viewBox="0 0 720 420" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <div class="tg-foot">
+          <span id="tgActive" class="tg-active"></span>
+          <button class="btn sm ghost" id="tgReset" type="button">清除筛选</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="hist-list" id="viewHistList"></div>
+  </section>
+
+  <!-- 标签筛选底部弹层（替代原生 select，UI 与 App 一致，移动端友好） -->
+  <div class="modal sheet" id="tagSheet">
+    <div class="sheet-card">
+      <div class="sheet-head"><span>筛选标签</span><button class="sheet-x" id="tagSheetX" type="button" aria-label="关闭">×</button></div>
+      <div class="sheet-body" id="tagSheetBody"></div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <div id="genDate"></div>
+    <div>数据保存在你配置的 GitHub 仓库（自动同步）· 点「设置」可导出 JSON 备份副本 · DeepSeek 在浏览器直连（Key 仅存本机）。</div>
+  </footer>
+</div>
+
+<!-- 主题面板 -->
+<div class="theme-panel" id="themePanel">
+  <h4>主题与配色</h4>
+  <div class="tp-sub">选一套氛围，或自定义你的主题色</div>
+  <div class="swatch-row" id="swatches"></div>
+  <div class="tp-divider"></div>
+  <div class="tp-custom">
+    <label for="customColor">自定义主题色</label>
+    <input type="color" id="customColor" value="#5eead4">
+  </div>
+  <div class="tp-toggle">
+    <button class="btn" id="modeDark">深色</button>
+    <button class="btn" id="modeLight">浅色</button>
+  </div>
+</div>
+<div class="scrim" id="scrim"></div>
+
+<!-- 作答模态框 -->
+<div class="modal" id="qModal">
+  <span class="mclose" id="mClose">×</span>
+  <div class="mtag">反思作答</div>
+  <h3 id="mQ"></h3>
+  <div class="qhint-inline" id="mPrompts"></div>
+  <textarea id="mInput" placeholder="想到什么写什么，不用命名情绪。比如：晚上复习数学后胸口发闷，想逃…"></textarea>
+  <div class="mactions">
+    <button class="btn primary" id="mDeploy">落到地图</button>
+  </div>
+  <div class="msaved" id="mSaved"></div>
+</div>
+
+<!-- 记一笔（网页内直接录入，可写回文件） -->
+<div class="modal" id="recModal">
+  <span class="mclose" id="recClose">×</span>
+  <div class="mtag">记一笔</div>
+  <h3>今天的状态，随手记下</h3>
+  <p class="rec-tip" id="recTip" style="display:none"></p>
+
+  <!-- 随手写（可选）：先随便写，AI 帮你整理成下面的结构化字段 -->
+  <div class="rec-free">
+    <label>随手写（可选）· 不想一项项填，就先在这随便写两句</label>
+    <textarea id="recFree" placeholder="比如：今天复习到半夜，胸口闷闷的，有点焦虑又说不清，精力透支了，想逃…"></textarea>
+    <div class="rec-free-row">
+      <button class="btn" id="recAiFill" type="button">让 AI 帮你整理填写</button>
+      <span class="rec-free-hint">边写边自动给建议；或点上面按钮进入对话式整理。所有字段都可选，直接手填也行。</span>
+    </div>
+    <div class="rec-suggest" id="recSuggest" style="display:none"></div>
+  </div>
+
+  <div class="rec-form">
+    <div class="rec-row">
+      <div class="rec-field" style="flex:0 0 160px">
+        <label>日期</label>
+        <input type="date" id="recDate">
+      </div>
+      <div class="rec-field" style="flex:0 0 110px">
+        <label>时间</label>
+        <input type="time" id="recTime" step="1">
+      </div>
+      <div class="rec-field" style="flex:1">
+        <label>心情（1–5，必填）</label>
+        <div class="mood-pick" id="recMood" data-val="3">
+          <button type="button" data-m="1">1</button>
+          <button type="button" data-m="2">2</button>
+          <button type="button" class="active" data-m="3">3</button>
+          <button type="button" data-m="4">4</button>
+          <button type="button" data-m="5">5</button>
+        </div>
+      </div>
+    </div>
+    <div class="rec-row">
+      <div class="rec-field"><label>睡眠（小时）</label><input type="number" id="recSleep" step="0.5" min="0" max="14" placeholder="如 7"></div>
+      <div class="rec-field"><label>精力（1–5）</label><input type="number" id="recEnergy" step="1" min="1" max="5" placeholder="1–5"></div>
+      <div class="rec-field"><label>紧绷（1–5）</label><input type="number" id="recTension" step="1" min="1" max="5" placeholder="1–5"></div>
+    </div>
+    <div class="rec-field"><label>场景 / 在干嘛</label><input type="text" id="recScene" placeholder="如 晚上复习数学后 / 刚和人吵完"></div>
+    <div class="rec-field"><label>标签（逗号分隔）</label><input type="text" id="recTags" placeholder="如 复习后, 熬夜, 被打断"></div>
+    <div class="rec-row">
+      <div class="rec-field"><label>身体信号（逗号分隔）</label><input type="text" id="recBody" placeholder="如 胸口闷, 头疼"></div>
+      <div class="rec-field"><label>行为（逗号分隔）</label><input type="text" id="recBehavior" placeholder="如 刷手机, 想逃"></div>
+    </div>
+    <div class="rec-field"><label>备注 / 当下想法</label><textarea id="recNote" placeholder="想到什么写什么，不用命名情绪。比如：晚上复习数学后胸口发闷，想逃…"></textarea></div>
+    <div class="rec-imp-wrap">
+      <label class="switch"><input type="checkbox" id="recImportant"> 标记为「重要事件」（会出现在时间轴里高亮）</label>
+      <span class="rec-free-hint">可选。只标记你真正想回头看的事，不用每条都标。</span>
+    </div>
+    <div class="rec-field"><label>可能的原因（可留空）</label><input type="text" id="recCause" placeholder="之后回头填也行"></div>
+  </div>
+  <div class="mactions">
+    <button class="btn danger ghost" id="recDelete" type="button" style="display:none">删除此条</button>
+    <button class="btn primary" id="recSave">落到地图</button>
+  </div>
+  <div class="msaved" id="recSaved"></div>
+</div>
+
+<!-- 某日多条记录的选择弹窗 -->
+<div class="modal" id="dayPickModal">
+  <span class="mclose" id="dayPickClose">×</span>
+  <div class="mtag">这一天</div>
+  <h3 id="dayPickTitle">这一天有多条记录，点开看详情</h3>
+  <div class="daypick-list" id="dayPickList"></div>
+</div>
+
+<!-- 设置：DeepSeek / 云同步与备份 -->
+<div class="modal" id="setModal">
+  <span class="mclose" id="setClose">×</span>
+  <div class="mtag">设置</div>
+  <h3>同步 · DeepSeek · 数据</h3>
+  <div class="set-block">
+    <label>DeepSeek API Key（仅存本浏览器，不上传任何服务器）</label>
+    <div class="set-row">
+      <div class="pwd-wrap">
+        <input type="password" id="dsKey" placeholder="sk-..." autocomplete="off" spellcheck="false">
+        <button type="button" class="eye-btn" id="dsKeyEye" title="显示 Key" aria-label="显示或隐藏 Key">👁</button>
+      </div>
+      <button class="btn" id="dsTest">测试</button>
+    </div>
+    <div class="key-hint" id="dsKeyHint"></div>
+    <label>模型选择方式</label>
+    <select id="dsRoute">
+      <option value="auto">智能路由（推荐）</option>
+      <option value="manual">手动指定模型</option>
+    </select>
+    <div class="set-hint">智能路由：日常闲聊 / 开场白 / 提问用 V4-Flash（快·省）；复杂反思自动切到 V4-Pro（深推理）；情绪提取用 Flash + 轻思考。手动则统一使用下方所选模型。</div>
+    <label>模型（手动模式生效）</label>
+    <select id="dsModel">
+      <option value="deepseek-v4-flash">deepseek-v4-flash（默认·快·省）</option>
+      <option value="deepseek-v4-pro">deepseek-v4-pro（深推理·慢·贵）</option>
+    </select>
+    <div class="set-inline">
+      <label class="switch"><input type="checkbox" id="aiRecordAuto" checked> AI 聊完自动询问是否记一笔</label>
+    </div>
+  </div>
+  <div class="set-divider"></div>
+  <div class="set-block">
+    <label>GitHub 云同步（手机 / 电脑共用一份数据）</label>
+    <div class="seg" id="ghSeg">
+      <button type="button" class="seg-btn active" data-profile="personal">个人空间</button>
+      <button type="button" class="seg-btn" data-profile="shared">共享空间</button>
+    </div>
+    <p class="set-hint" id="ghHint">个人空间：数据只在你的私有仓库，朋友默认看不到。</p>
+    <div class="set-inline">
+      <label class="switch"><input type="checkbox" id="ghEnable"> 启用同步</label>
+      <label class="switch"><input type="checkbox" id="ghAuto"> 保存后自动同步</label>
+    </div>
+    <div class="gh-guide" id="ghGuideWrap" style="display:none">
+      第一次用？需要先在 GitHub 建一个自己的私有仓库和访问令牌（免费，约 3 分钟）。
+      <a id="ghGuideLink" href="./guide.html" target="_blank" rel="noopener">查看从零开始的图文步骤</a>
+    </div>
+    <label>GitHub 用户名</label>
+    <input type="text" id="ghUser" placeholder="你的 GitHub 用户名（留空可由令牌自动识别）">
+    <label>私有仓库名</label>
+    <input type="text" id="ghRepo" placeholder="mood-atlas-sync">
+    <label>访问令牌（Contents 读写权限 · 只存在你这台设备的浏览器里）</label>
+    <div class="pwd-wrap">
+      <input type="password" id="ghToken" placeholder="github_pat_... 或 ghp_..." autocomplete="off" spellcheck="false">
+      <button type="button" class="eye-btn" id="ghTokenEye" title="显示令牌" aria-label="显示或隐藏令牌">👁</button>
+    </div>
+    <div class="key-hint" id="ghTokenHint"></div>
+    <div class="set-row-nick" id="ghNickWrap" style="display:none">
+      <label>共享空间昵称（会出现在你共享的记录上，方便一起用的人辨认）</label>
+      <input type="text" id="ghNick" placeholder="如 小苏 / 阿May">
+    </div>
+    <div class="set-row">
+      <button class="btn" id="ghTest">测试连接</button>
+      <button class="btn primary" id="ghSync">立即同步</button>
+    </div>
+      <div class="msaved" id="ghMsg"></div>
+      <div class="set-row set-save-row">
+        <button class="btn primary" id="setSave">保存设置</button>
+      </div>
+      <div class="set-inline">
+        <label class="switch"><input type="checkbox" id="remindOn" checked> 每日进站提醒（没记录时提示你记一笔）</label>
+      </div>
+  </div>
+  <div class="set-divider"></div>
+  <div class="set-block">
+    <label>数据备份（可选 · 导出 / 导入 JSON 副本）</label>
+    <div class="set-row">
+      <button class="btn" id="setExport">导出本地副本</button>
+      <button class="btn" id="setImportBtn">导入</button>
+      <button class="btn" id="setClear">清空缓存</button>
+    </div>
+    <input type="file" id="setImport" accept="application/json,.json" hidden>
+  </div>
+  <div class="msaved" id="setMsg"></div>
+  <div class="set-ver" id="setVer"></div>
+</div>
+
+<!-- GitHub 测试连接结果弹窗（独立浮层，可叠加在设置面板之上） -->
+<div class="alert-scrim" id="ghTestScrim"></div>
+<div class="alert-modal" id="ghTestModal" role="alertdialog" aria-modal="true" aria-labelledby="ghTestTitle">
+  <div class="alert-ico" id="ghTestIco">✓</div>
+  <h3 id="ghTestTitle">连接成功</h3>
+  <p class="alert-body" id="ghTestBody"></p>
+  <div class="alert-actions">
+    <button class="btn primary" id="ghTestOk">好的</button>
+  </div>
+</div>
+
+<!-- AI 帮填（对话式：随手写 → AI 理解/追问澄清 → 你确认） -->
+<div class="modal" id="extractModal">
+  <span class="mclose" id="extractClose">×</span>
+  <div class="mtag">AI 帮填</div>
+  <h3>想到啥写啥，AI 帮你理清</h3>
+  <p class="rec-tip" style="font-weight:400;color:var(--ink-soft)">随便写，AI 先理解、不确定会问你几句，再整理成记录。全程可跳过，最后由你确认。</p>
+  <textarea id="extractText" placeholder="用你自己的话描述今天的状态，越自然越好…"></textarea>
+  <div class="mactions">
+    <button class="btn primary" id="extractBtn">让 AI 理解一下</button>
+  </div>
+  <div class="extract-chat" id="extractChat"></div>
+  <div id="extractFollow" style="display:none">
+    <textarea id="extractAns" placeholder="回答 AI 的问题，或补充任何想说的…"></textarea>
+    <div class="mactions">
+      <button class="btn primary" id="extractAnsBtn">回答并再判断</button>
+      <button class="btn" id="extractApply">采用目前理解，去填写</button>
+    </div>
+  </div>
+  <div class="msaved" id="extractStatus"></div>
+</div>
+
+<!-- 历史记录（全部条目列表，手机端主入口之一） -->
+<div class="modal" id="histModal">
+  <span class="mclose" id="histClose">×</span>
+  <div class="mtag">历史记录</div>
+  <h3>全部记录 · 共 <span id="histCount">0</span> 条</h3>
+  <div class="hist-list" id="histList"></div>
+</div>
+
+<!-- AI 总结报告 -->
+<div class="modal" id="reportModal">
+  <span class="mclose" id="reportClose">×</span>
+  <div class="mtag">AI 总结</div>
+  <div class="report-head">
+    <h3>这段时间的情绪回顾</h3>
+    <button class="btn sm primary" id="reportPdf" type="button">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      导出 PDF
+    </button>
+  </div>
+  <div class="report-range">
+    <label>范围</label>
+    <select id="repRange">
+      <option value="week">近 7 天</option>
+      <option value="month" selected>近 30 天</option>
+      <option value="year">近 1 年</option>
+      <option value="all">全部</option>
+      <option value="custom">自定义…</option>
+    </select>
+    <div class="report-custom" id="repCustom" style="display:none">
+      <input type="date" id="repStart" class="rep-date" aria-label="起始日期">
+      <span class="rep-arrow">→</span>
+      <input type="date" id="repEnd" class="rep-date" aria-label="结束日期">
+    </div>
+    <label class="rep-check"><input type="checkbox" id="repDaily" checked> 包含每日明细</label>
+    <span class="report-hint">切范围后点「生成 AI 总结」可重新生成</span>
+  </div>
+  <div class="report-stats" id="reportStats"></div>
+  <div class="report-body" id="reportBody"></div>
+</div>
+
+<!-- 平均心情 / 平均睡眠 详情（手机端替代导出 PDF） -->
+<div class="modal stat-detail" id="statDetail">
+  <span class="mclose sd-x">×</span>
+  <div class="mtag">统计详情</div>
+  <h3 class="sd-title">平均心情详情</h3>
+  <div class="report-head" style="margin-bottom:10px">
+    <button class="btn sm" type="button" id="statBack">返回</button>
+  </div>
+  <div class="sd-body"></div>
+</div>
+
+<!-- 问数据：用自然语言查询自己的历史记录 -->
+<div class="modal" id="askModal">
+  <span class="mclose" id="askClose">×</span>
+  <div class="mtag">问数据</div>
+  <h3>问问你的情绪数据</h3>
+  <p class="rec-tip" style="font-weight:400;color:var(--ink-soft);margin:-4px 0 14px">用大白话说，比如「上月我最低谷那周到底怎么了？」「最近什么场景最容易让我焦虑？」</p>
+  <div class="ai-chat" id="askChat"></div>
+  <div class="ai-row">
+    <div class="ai-input-wrap">
+      <textarea id="askInput" placeholder="问一句关于你情绪记录的问题…（Ctrl/Cmd+Enter 发送）"></textarea>
+      <button class="btn primary" id="askSend" aria-label="发送">问</button>
+    </div>
+  </div>
+  <div class="assist-saved" id="askStatus"></div>
+</div>
+
+<!-- 时间轴：按时间串联所有记录，重要事件高亮 -->
+<div class="modal" id="tlModal">
+  <span class="mclose" id="tlClose">×</span>
+  <div class="mtag">时间轴</div>
+  <h3>情绪轨迹 · 重要的事会亮起来</h3>
+  <p class="rec-tip" style="font-weight:400;color:var(--ink-soft);margin:-4px 0 14px">顺着时间看自己。带「重要」标记的是你标记过的重要事件，方便回看当时发生了什么。</p>
+  <div class="tl-list" id="tlList"></div>
+</div>
+
+<!-- 底部导航：四个视图切换（看板 / 时间轴 / 历史 / 回收站）。记一笔改为右下角悬浮 FAB，更醒目且不挤。 -->
+<div class="botnav" id="botnav">
+  <button class="bnav-btn active" id="navDash"><span>看板</span></button>
+  <button class="bnav-btn" id="navTl"><span>时间轴</span></button>
+  <button class="bnav-btn" id="navHist"><span>历史</span></button>
+  <button class="bnav-btn" id="navTrash"><span>回收站</span></button>
+</div>
+<button class="fab fab-rec" id="recFab" type="button" aria-label="记一笔" title="记一笔">
+  <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+</button>
+
+<script>/*__DATA__*/</script>
+<script>/*__JS__*/</script>
+
+<!-- 回收站：独立整屏页面（不是弹窗） -->
+<div class="page" id="trashPage">
+  <div class="page-top">
+    <button class="page-back" id="trashBack" type="button">← 返回</button>
+    <div class="page-title">回收站<small>共 <span id="trashCount">0</span> 条 · 独立存放，不进主列表</small></div>
+  </div>
+  <div class="page-body">
+    <p class="page-lead">这里收着被你删掉的情绪记录。它们存在云端一个单独的文件里（情绪记录_回收站.json），不会出现在看板、时间轴和历史里。想起来了可以「恢复」，确定不要了就「彻底删除」。</p>
+    <div class="page-tools">
+      <button class="btn sm" id="trashRefresh" type="button">从云端刷新</button>
+      <button class="btn sm danger" id="trashPurgeAll" type="button">清空回收站</button>
+    </div>
+    <div class="page-msg" id="trashMsg"></div>
+    <div class="trash-list" id="trashList"></div>
+  </div>
+</div>
+
+<!-- 通用应用内确认弹窗（替代原生 confirm） -->
+<div class="modal app-confirm" id="appConfirm">
+  <div class="ac-box">
+    <div class="ac-msg"></div>
+    <div class="ac-actions">
+      <button class="btn sm ac-cancel" type="button" id="acCancel">取消</button>
+      <button class="btn sm danger ac-ok" type="button" id="acOk">确定</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

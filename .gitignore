@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.log
+
+# 临时/测试（nul 是零字节垃圾文件，不纳入）
+nul
+
+# 历史备份（不纳入版本库）
+backups/
+
+# 临时工作目录
+.tmpsync/
+node_modules/
+
+# 用户私人情绪数据（不纳入公开仓库）
+情绪记录*.json
+情绪地图使用与账号记录.html
+新建 DOCX 文档.docx
+tl-fix-check.png

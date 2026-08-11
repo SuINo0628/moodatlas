@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情绪地图 · 使用手册与功能清单</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg-0:#070910; --bg-1:#0d1320; --bg-2:#121a2b;
+    --ink:#eaf2f6; --ink-soft:#b9c6d4; --ink-dim:#7f8da3;
+    --accent:#5eead4; --accent-2:#7dd3fc; --accent-glow:rgba(94,234,212,.35);
+    --good:#34d399; --plan:#fbbf24; --partial:#818cf8;
+    --glass-brd:rgba(255,255,255,.10); --soft:rgba(94,234,212,.10);
+    --font-display:'Outfit',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+    --font-body:system-ui,-apple-system,'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+    --maxw:1180px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:radial-gradient(1200px 600px at 80% -10%, rgba(94,234,212,.08), transparent 60%), var(--bg-0);
+    color:var(--ink); font-family:var(--font-body); line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent-2); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ---------- 顶部条 ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:30;
+    backdrop-filter:blur(14px); background:linear-gradient(180deg, rgba(7,9,16,.92), rgba(7,9,16,.66));
+    border-bottom:1px solid var(--glass-brd);
+  }
+  .topbar-in{max-width:var(--maxw); margin:0 auto; padding:16px 22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:12px; margin-right:auto}
+  .brand .dot{width:14px; height:14px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #fff, var(--accent) 60%, var(--accent-2)); box-shadow:0 0 18px var(--accent-glow)}
+  .brand h1{font-family:var(--font-display); font-weight:700; font-size:20px; margin:0; letter-spacing:.4px}
+  .brand .sub{font-size:12px; color:var(--ink-dim); margin-top:2px}
+  .counts{display:flex; gap:10px; flex-wrap:wrap}
+  .topbar-in .back{margin-left:14px; font-size:13px; padding:8px 14px; border-radius:999px; border:1px solid var(--glass-brd); background:var(--bg-1); color:var(--ink); align-self:center}
+  .topbar-in .back:hover{text-decoration:none; border-color:rgba(94,234,212,.4); color:var(--accent)}
+  .chip{font-family:var(--font-mono); font-size:12px; padding:6px 11px; border-radius:999px; border:1px solid var(--glass-brd); background:var(--bg-1); white-space:nowrap}
+  .chip b{color:var(--ink)}
+  .chip.done b{color:var(--good)} .chip.plan b{color:var(--plan)}
+
+  /* ---------- 布局 ---------- */
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:26px 22px 90px; display:grid; grid-template-columns:236px 1fr; gap:34px}
+  @media(max-width:860px){ .wrap{grid-template-columns:1fr; gap:20px} .toc{position:static!important; max-height:none!important; margin-bottom:8px} }
+
+  /* ---------- 目录 ---------- */
+  .toc{position:sticky; top:86px; align-self:start; max-height:calc(100vh - 110px); overflow:auto; padding-right:6px}
+  .toc .t{font-family:var(--font-display); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-dim); margin:0 0 10px 10px}
+  .toc a{display:block; padding:7px 11px; border-radius:9px; color:var(--ink-soft); font-size:13.5px; border-left:2px solid transparent; transition:background .15s, color .15s, border-color .15s}
+  .toc a:hover{background:var(--bg-1); text-decoration:none; color:var(--ink)}
+  .toc a.active{background:var(--soft); color:var(--accent); border-left-color:var(--accent)}
+  .toc .grp{margin-top:14px}
+
+  /* ---------- 正文 ---------- */
+  main{min-width:0}
+  .lede{color:var(--ink-soft); font-size:15px; margin:4px 0 26px; max-width:62ch}
+  section{scroll-margin-top:84px; margin-bottom:30px}
+  h2{font-family:var(--font-display); font-weight:700; font-size:23px; margin:0 0 6px; letter-spacing:.3px; display:flex; align-items:center; gap:10px}
+  h2 .num{font-family:var(--font-mono); font-size:13px; color:var(--accent); background:var(--soft); border:1px solid var(--glass-brd); border-radius:8px; padding:2px 9px}
+  .sec-desc{color:var(--ink-dim); font-size:13.5px; margin:0 0 16px}
+
+  .feat{border:1px solid var(--glass-brd); background:linear-gradient(180deg, var(--bg-1), var(--bg-0)); border-radius:16px; padding:16px 18px; margin-bottom:14px; transition:border-color .2s, transform .2s}
+  .feat:hover{border-color:rgba(94,234,212,.4)}
+  .feat h3{font-family:var(--font-display); font-size:16px; margin:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .feat p{margin:8px 0 0; color:var(--ink-soft); font-size:14px}
+  .feat .how{margin-top:9px; font-size:13px; color:var(--ink-dim)}
+  .feat .how b{color:var(--ink-soft); font-weight:600}
+  .feat .tag{font-family:var(--font-mono); font-size:11px; color:var(--ink-dim); background:var(--bg-2); border:1px solid var(--glass-brd); border-radius:6px; padding:1px 7px; margin-left:auto}
+
+  .badge{font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:999px; white-space:nowrap; letter-spacing:.3px}
+  .badge.done{color:var(--good); background:rgba(52,211,153,.12); border:1px solid rgba(52,211,153,.35)}
+  .badge.plan{color:var(--plan); background:rgba(251,191,36,.12); border:1px solid rgba(251,191,36,.35)}
+  .badge.partial{color:var(--partial); background:rgba(129,140,248,.14); border:1px solid rgba(129,140,248,.38)}
+
+  .callout{border:1px dashed var(--glass-brd); background:var(--bg-1); border-radius:14px; padding:14px 16px; margin:6px 0 18px; font-size:13.5px; color:var(--ink-soft)}
+  .callout b{color:var(--accent)}
+  .kbd{font-family:var(--font-mono); font-size:12px; background:var(--bg-2); border:1px solid var(--glass-brd); border-bottom-width:2px; border-radius:6px; padding:1px 6px; color:var(--ink)}
+
+  footer{max-width:var(--maxw); margin:0 auto; padding:0 22px 60px; color:var(--ink-dim); font-size:12.5px}
+  footer code{font-family:var(--font-mono); color:var(--ink-soft)}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *{transition:none!important; animation:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <span class="dot"></span>
+      <div>
+        <h1>情绪地图 · 使用手册</h1>
+        <div class="sub">功能清单 / 怎么用 / 已实现与规划中 · 最后更新 2026-08-09</div>
+      </div>
+    </div>
+    <a class="back" href="./index.html">← 返回情绪地图</a>
+    <div class="counts">
+      <span class="chip done">已实现 <b>33</b></span>
+      <span class="chip plan">规划中 <b>0</b></span>
+      <span class="chip">版本 <b>v1</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- 目录 -->
+  <nav class="toc" aria-label="目录">
+    <p class="t">目录</p>
+    <a href="#start">01 · 怎么开始</a>
+    <a href="#rec">02 · 记一笔</a>
+    <a href="#dash">03 · 看板总览</a>
+    <a href="#insight">04 · 情绪洞察</a>
+    <a href="#ai">05 · 聊情绪与 AI 帮记</a>
+    <a href="#review">06 · 回顾与时间轴</a>
+    <a href="#sync">07 · 同步与设置</a>
+    <a href="#device">08 · 手机端 vs 电脑端</a>
+    <div class="grp">
+      <a href="#planned">09 · 原规划项（已落地）</a>
+      <a href="#privacy">10 · 数据隐私</a>
+    </div>
+  </nav>
+
+  <!-- 正文 -->
+  <main>
+    <p class="lede">把说不清的不对劲，变成看得见的轨迹。这本手册列清楚现在能做什么、怎么点，以及哪些能力还在路上——方便你随时对照「我们已经实现了什么、还差什么」。</p>
+
+    <!-- 01 -->
+    <section id="start">
+      <h2><span class="num">01</span> 怎么开始</h2>
+      <p class="sec-desc">装好、记下第一笔，就进入正循环。</p>
+
+      <div class="feat">
+        <h3>添加到桌面（PWA）<span class="badge done">已实现</span></h3>
+        <p>在手机/电脑浏览器里打开应用后，用浏览器的「添加到主屏幕 / 安装」功能，就能像原生 App 一样从桌面图标启动。</p>
+        <div class="how"><b>怎么用：</b>手机端一般在浏览器分享菜单里选「添加到主屏幕」；电脑端 Chrome/Edge 地址栏右侧有「安装」图标。安装后用桌面图标打开即是独立窗口。</div>
+      </div>
+
+      <div class="feat">
+        <h3>启动屏（开屏动画）<span class="badge done">已实现</span></h3>
+        <p>从桌面图标点开时，会先出现一个带能量球呼吸脉冲、涟漪扩散环、流光进度条的开屏界面，应用名用 Outfit 字体显示，解决早期「系统默认字体、无动效」的粗糙感。</p>
+        <div class="how"><b>说明：</b>开屏最短展示约 0.65 秒后自动淡出；系统开启「减少动态效果」时动画会自动关闭。背景色已对齐应用深色，消除闪跳。</div>
+      </div>
+
+      <div class="feat">
+        <h3>记录第一笔<span class="badge done">已实现</span></h3>
+        <p>点右上角「记一笔」（电脑端）或右下角「+」（手机/电脑都在）开始记录。</p>
+        <div class="how"><b>怎么用：</b>选心情 1–5、补精力/紧绷/睡眠、写场景与备注，保存即可。所有字段都可留空，先记心情也行。</div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section id="rec">
+      <h2><span class="num">02</span> 记一笔</h2>
+      <p class="sec-desc">一条记录 = 心情 + 可选维度 + 可选「触发原因」。</p>
+
+      <div class="feat">
+        <h3>基础记录字段<span class="badge done">已实现</span></h3>
+        <p>心情（必填 1–5）、精力、紧绷、睡眠时长、场景、标签、备注。底部还有「随手写」框，边写边由 DeepSeek 给出结构化建议（填了 Key 后）。</p>
+        <div class="how"><b>怎么用：</b>直接手填，或先在随手写里用大白话描述，AI 会建议如何归类，确认后填入表单。</div>
+      </div>
+
+      <div class="feat">
+        <h3>触发原因（含「想做但没做」）<span class="badge done">已实现</span></h3>
+        <p>记一笔里有一行可选标签：<b>想做但没做 / 人际 / 压力 / 身体 / 其他</b>。选「想做但没做」会展开小区域，让你填具体事项 + 重要程度（轻/中/重）。</p>
+        <div class="how"><b>怎么用：</b>比如起了「去跑步」的念头却没去，就选「想做但没做」→ 填「去跑步」→ 重要程度选「中」。这条之后会出现在「情绪洞察 · 未完成的打算」里。</div>
+        <span class="tag">cause / intent / intentWeight</span>
+      </div>
+
+      <div class="feat">
+        <h3>AI 聊完自动询问是否记一笔<span class="badge done">已实现</span></h3>
+        <p>设置里有开关「AI 聊完自动询问是否记一笔」（默认开）。聊完情绪后，AI 会问你要不要把它整理成一笔记录。</p>
+        <div class="how"><b>位置：</b>⚙ 设置 → 同步与模型 → 该开关。关掉则聊完不弹询问。</div>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section id="dash">
+      <h2><span class="num">03</span> 看板总览</h2>
+      <p class="sec-desc">一屏看完你的情绪地形与节律。</p>
+
+      <div class="feat">
+        <h3>情绪地形（近 30 天）<span class="badge done">已实现</span></h3>
+        <p>把近期记录连成一条「地形线」：起点是你最早记的那笔，终点是此刻；沿途地标标出明显起伏，鼠标悬停有提示。手机端线条加粗、标记更醒目。</p>
+        <div class="how"><b>怎么用：</b>看板顶部即是。配合右上角「自己 / 共同」切换，看自己一个人的轨迹，或所有人的汇总。</div>
+      </div>
+
+      <div class="feat">
+        <h3>我们 / 自己 切换<span class="badge done">已实现</span></h3>
+        <p>多人共用一份数据时，所有带切换控件的区块（地形、热力图、标签、高峰等）共用一个「自己 / 共同」状态。</p>
+        <div class="how"><b>怎么用：</b>任意区块的「自己/共同」开关一点，整个看板同步切换。选「自己」只看你署名的数据。</div>
+      </div>
+
+      <div class="feat">
+        <h3>标签关系图（可平移缩放）<span class="badge done">已实现</span></h3>
+        <p>常用标签之间的关系网，节点越大表示出现越多；支持拖动平移、滚轮缩放，并带大标题与整理按钮。</p>
+        <div class="how"><b>怎么用：</b>看板「标签」卡片里。拖动画布移动、滚轮放大缩小，便于看清哪些标签常一起出现。</div>
+      </div>
+
+      <div class="feat">
+        <h3>平稳光球（背景氛围）<span class="badge done">已实现</span></h3>
+        <p>看板背景有缓慢漂浮的柔光球（极光），营造「平稳、不被打扰」的氛围，不抢内容。</p>
+        <div class="how"><b>说明：</b>浅色主题下自动减弱；开启「减少动态效果」时停止动画。</div>
+      </div>
+
+      <div class="feat">
+        <h3>平均心情 / 睡眠卡片、热力图、高峰<span class="badge done">已实现</span></h3>
+        <p>看板含平均心情、平均睡眠等统计卡、按日期的心情热力图、以及情绪「高峰」卡片。</p>
+        <div class="how"><b>怎么用：</b>高峰卡片同样支持「自己/共同」切换；热力图悬停看某天均值与笔数。</div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section id="insight">
+      <h2><span class="num">04</span> 情绪洞察</h2>
+      <p class="sec-desc">在时间轴（足迹）视图里，把模式显形。</p>
+
+      <div class="feat">
+        <h3>未完成的打算（想做却没做）<span class="badge done">已实现</span></h3>
+        <p>自动汇总所有「想做但没做」的记录（近 14 条、没做的排前面），每条显示事项 + 重要度徽章（轻/中/重）+ 状态，并可一键「我做了」标记完成、变灰沉淀，形成闭环。</p>
+        <div class="how"><b>怎么用：</b>时间轴视图 → 情绪洞察区最顶部。点「我做了」即闭环；AI 解读也会把反复卡住的事编进总结。</div>
+        <span class="tag">intentDone</span>
+      </div>
+
+      <div class="feat">
+        <h3>AI 解读（让 AI 解读）<span class="badge done">已实现</span></h3>
+        <p>点「让 AI 解读」，会把来源分析、维度相关性、未完成的打算总结发给 DeepSeek，生成一段 160 字内的温和解读：哪些来源最滋养/最消耗你、睡眠精力与心情的关系、反复想做没做如何消耗你。</p>
+        <div class="how"><b>前提：</b>⚙ 设置里填了 DeepSeek API Key。无 Key 时按钮会提示去填。</div>
+      </div>
+
+      <div class="feat">
+        <h3>来源分析 / 维度相关性<span class="badge done">已实现</span></h3>
+        <p>自动统计哪些标签/场景最滋养或最消耗你，以及睡眠、精力、紧绷与心情的相关性，喂给 AI 做解读。</p>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section id="ai">
+      <h2><span class="num">05</span> 聊情绪与 AI 帮记</h2>
+      <p class="sec-desc">用大白话和 AI 聊，它帮你理清、归类、记录。</p>
+
+      <div class="feat">
+        <h3>聊情绪（AI 对话）<span class="badge done">已实现</span></h3>
+        <p>看板最底部有「AI 对话 · 用 DeepSeek 聊情绪」区块，可自由倾诉；还有「问数据」按钮，基于你的记录提问。</p>
+        <div class="how"><b>怎么用：</b>右下角「+」会直接滚到这个对话区并聚焦输入框（电脑/手机都如此）。对话由 DeepSeek 直连，Key 仅存本机。</div>
+      </div>
+
+      <div class="feat">
+        <h3>AI 帮记一笔（对话式提取）<span class="badge done">已实现</span></h3>
+        <p>在记一笔弹窗里用大白话描述状态，AI 会追问几个问题以更准确归类，确认后自动填入心情/精力/标签等字段，你点「采用」即可保存。</p>
+        <div class="how"><b>怎么用：</b>记一笔弹窗里有「AI 帮记」入口；同一轮对话里 AI 会记住你刚说的几句，能顺着追问。</div>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section id="review">
+      <h2><span class="num">06</span> 回顾与时间轴</h2>
+      <p class="sec-desc">按年/月/日回看，去重后不重复。</p>
+
+      <div class="feat">
+        <h3>平均心情 / 睡眠 详情<span class="badge done">已实现</span></h3>
+        <p>电脑端点平均心情/睡眠卡片可展开详情；手机端用详情弹层替代「导出 PDF」。</p>
+        <div class="how"><b>怎么用：</b>看板统计卡点击展开，看分布与明细。</div>
+      </div>
+
+      <div class="feat">
+        <h3>全部标签 底部弹层<span class="badge done">已实现</span></h3>
+        <p>时间轴/回顾里「全部标签」用底部弹层选择，方便手机单手操作。</p>
+      </div>
+
+      <div class="feat">
+        <h3>历史去重<span class="badge done">已实现</span></h3>
+        <p>记录按稳定 id 合并，再按「日期+时间+记录人+心情+场景+备注」内容指纹去重，避免同一笔出现在两处或跨设备重复。</p>
+      </div>
+
+      <div class="feat">
+        <h3>睡眠周期切换<span class="badge done">已实现</span></h3>
+        <p>睡眠图支持按起止时间切换周期范围，看不同时段的睡眠与心情关系。</p>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section id="sync">
+      <h2><span class="num">07</span> 同步与设置</h2>
+      <p class="sec-desc">数据在你手里，手机电脑同一份。</p>
+
+      <div class="feat">
+        <h3>GitHub 云同步<span class="badge done">已实现</span></h3>
+        <p>配置 GitHub 令牌后，数据自动同步到你指定的私有仓库，手机/电脑共用一份。含离线自动重试、限流排队、多设备冲突自动重试，本地数据不会丢。</p>
+        <div class="how"><b>怎么用：</b>⚙ 设置 → 填入令牌（需 Contents 读写权限）+ 用户名 + 仓库名；可开「保存后自动同步」。</div>
+      </div>
+
+      <div class="feat">
+        <h3>回收站（恢复 / 彻底删除）<span class="badge done">已实现</span></h3>
+        <p>删除的记录进回收站，可恢复；彻底删除按钮已修复（早期因旧记录缺 id 会静默失败，现已按内容指纹兜底）。</p>
+        <div class="how"><b>怎么用：</b>底部导航「回收站」→ 恢复 / 彻底删除。</div>
+      </div>
+
+      <div class="feat">
+        <h3>主题 / 调色板 / 字体 / 模型路由<span class="badge done">已实现</span></h3>
+        <p>深/浅主题、多套调色板、字体切换、DeepSeek 模型与智能路由（闲聊走 Flash、复杂反思走 Pro 深推理）均在设置里可调。</p>
+      </div>
+
+      <div class="feat">
+        <h3>导出 / 导入 JSON 备份<span class="badge done">已实现</span></h3>
+        <p>设置里可导出当前数据为 JSON 备份，也可导入恢复。</p>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section id="device">
+      <h2><span class="num">08</span> 手机端 vs 电脑端</h2>
+      <p class="sec-desc">同一套功能，按屏幕自适应交互。</p>
+
+      <div class="feat">
+        <h3>右下角「+」双端常驻<span class="badge done">已实现</span></h3>
+        <p>电脑端和手机端都常驻右下角「+」，点它 = 聊情绪（滚到对话区并聚焦）；「记一笔」在顶部按钮，两个入口不重复。</p>
+      </div>
+      <div class="feat">
+        <h3>移动端隐藏 PDF / 时间栏<span class="badge done">已实现</span></h3>
+        <p>窄屏（≤760px）下自动隐藏「导出 PDF / 时间栏」等桌面向元素，改用底部导航与详情弹层，避免拥挤。</p>
+      </div>
+      <div class="feat">
+        <h3>底部导航（手机端）<span class="badge done">已实现</span></h3>
+        <p>手机端用底部导航切换 看板 / 时间轴 / 历史 / 回收站；「+」悬浮在导航之上不遮挡。</p>
+      </div>
+      <div class="feat">
+        <h3>地形图手机端加粗<span class="badge done">已实现</span></h3>
+        <p>已修复早期回归：手机端地形主线加粗、标记描边加粗、文字放大，确保小屏清晰可读。</p>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section id="planned">
+      <h2><span class="num">09</span> 原规划项 · 现已全部落地</h2>
+      <p class="sec-desc">以下 5 项曾列在规划中，已在 2026-08-09 全部实现。对应功能在 <code>deploy/index.html</code> 已落地并校验。</p>
+
+      <div class="feat">
+        <h3>跨会话个人画像（让 AI 越来越懂你）<span class="badge done">已实现</span></h3>
+        <p>看板时间轴的「情绪洞察」里新增「关于你 · AI 观察到的」卡片：随你记的笔数自动累积观察（总记录数、平均心情、最消耗你的标签、反复「想做却没做」的事、睡眠与心情关系、一周里哪天最低）。每次「让 AI 解读」都会带上这份长期观察，你记的越多，AI 越懂你。</p>
+      </div>
+
+      <div class="feat">
+        <h3>「我做了」可撤销<span class="badge done">已实现</span></h3>
+        <p>「未完成的打算」里点「我做了」即闭环变灰；现在每条多了一个「撤销」按钮，误点可一键恢复为未完成。</p>
+      </div>
+
+      <div class="feat">
+        <h3>聊情绪 真·独立小弹窗<span class="badge done">已实现</span></h3>
+        <p>右下角「+」与看板的「打开聊情绪」都会弹出独立的聊情绪浮层（非滚动定位），可点 × / 点遮罩 / 按 Esc 关闭。手机电脑通用。</p>
+      </div>
+
+      <div class="feat">
+        <h3>未完成的打算 移到看板首页<span class="badge done">已实现</span></h3>
+        <p>「未完成的打算」已从时间轴的情绪洞察移到看板首页（更显眼），点「我做了」闭环、可撤销；情绪洞察里仍保留 AI 解读与「关于你」的汇总。</p>
+      </div>
+
+      <div class="feat">
+        <h3>数据导出增强 / 多空间管理<span class="badge done">已实现</span></h3>
+        <p>设置里在原有「导出 JSON」外新增「导出表格（CSV，Excel 友好）」。同时新增「空间管理」：可新建 / 切换 / 重命名 / 删除多个空间（如工作 / 生活），各空间本地数据独立保存。说明：多空间为本地优先，云同步会跟随当前激活的空间——切换空间并同步会改写云端该文件，建议同一空间内保持同步。</p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section id="privacy">
+      <h2><span class="num">10</span> 数据隐私</h2>
+      <div class="callout">
+        <b>你的数据在你手里。</b><br>
+        · 记录存在浏览器本机（localStorage）+ 你自己的 GitHub 私有仓库。<br>
+        · DeepSeek API Key 只存本机，<b>不上传任何服务器</b>。<br>
+        · AI 每次只看到你发过去的文字摘要（来源分析/相关性/未完成的打算），不会上传全部原始数据到第三方。<br>
+        · 云同步失败、限流、冲突都有兜底重试，本地数据不会因网络问题丢失。
+      </div>
+      <p class="sec-desc">对应代码位置：<code>deploy/index.html</code> 的 <code>ghSync</code>（同步）、<code>callDeepSeek</code>（AI 直连）、<code>insightAiSummary</code>（洞察摘要）、<code>dsKey</code>（Key 仅本机）。</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  本手册为独立文档，记录 <code>情绪地图 / Mood Atlas</code> 截至 2026-08-09 的功能状态。已实现项均已在 <code>deploy/index.html</code> 落地并校验；规划中项按我们讨论的路线列出，状态可能随后续开发变化。
+</footer>
+
+<script>
+  // 目录高亮：滚动到哪节，哪条目录亮
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+    var map = {};
+    links.forEach(function (l) { map[l.getAttribute('href').slice(1)] = l; });
+    if (!('IntersectionObserver' in window)) return;
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var a = map[e.target.id];
+          if (a) a.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -65% 0px' });
+    document.querySelectorAll('main section').forEach(function (s) { obs.observe(s); });
+  })();
+</script>
+</body>
+</html>
