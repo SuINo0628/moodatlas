@@ -530,6 +530,27 @@ body {
 .modal .mactions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 .modal .msaved { color: var(--accent); font-size: 13px; margin-top: 12px; min-height: 16px; line-height: 1.5; opacity: 0; transition: opacity 0.3s; }
 .modal .msaved.show { opacity: 1; }
+/* 合并近似标签：AI 建议 + 人工编辑 */
+.merge-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; margin: -4px 0 14px; }
+.merge-note b { color: var(--accent); font-weight: 600; }
+.merge-groups { display: flex; flex-direction: column; gap: 12px; }
+.merge-group { border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 13px; background: var(--bg-1); }
+.merge-group-head { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.merge-canon { flex: 1 1 auto; min-width: 0; background: var(--bg-2); border: 1px solid var(--line-strong, var(--glass-brd)); border-radius: var(--r-sm); padding: 6px 10px; color: var(--ink); font-size: 13.5px; font-weight: 600; }
+.merge-canon:focus { outline: none; border-color: var(--accent); }
+.merge-group-del { flex: 0 0 auto; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 12px; padding: 4px 6px; border-radius: 6px; white-space: nowrap; }
+.merge-group-del:hover { color: #ff7a85; background: var(--line); }
+.merge-aliases { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.merge-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 12.5px; }
+.merge-chip b { font-weight: 500; }
+.merge-chip-x { cursor: pointer; border: none; background: rgba(0,0,0,.08); color: inherit; border-radius: 50%; width: 17px; height: 17px; font-size: 12px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.merge-chip-x:hover { background: rgba(0,0,0,.16); }
+.merge-add-row { display: flex; gap: 6px; margin-top: 9px; }
+.merge-add-input { flex: 1 1 auto; min-width: 0; background: var(--bg-2); border: 1px solid var(--line-strong, var(--glass-brd)); border-radius: var(--r-sm); padding: 5px 9px; color: var(--ink); font-size: 12.5px; }
+.merge-add-input:focus { outline: none; border-color: var(--accent); }
+.merge-empty { font-size: 13px; color: var(--ink-dim); padding: 6px 0; }
+.merge-foot { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+.merge-foot .grow { flex: 1 1 auto; }
 
 /* ---------- GitHub 测试连接结果弹窗（独立浮层） ---------- */
 .alert-scrim {
@@ -2466,6 +2487,22 @@ body {
   <div class="set-ver" id="setVer"></div>
 </div>
 
+<!-- 合并近似标签：AI 建议 + 人工编辑 -->
+<div class="modal" id="mergeModal">
+  <span class="mclose" id="mergeClose">×</span>
+  <div class="mtag">合并近似标签</div>
+  <h3>合并你的标签</h3>
+  <p class="merge-note">下面是 <b>小绪</b> 根据现有标签提出的合并建议。你可以直接改：改标准名、增删别名，也能删掉某组或自己加一组。确认后，别名会被统一替换成标准名（只动你自己的记录）。</p>
+  <div id="mergeGroups" class="merge-groups"></div>
+  <div class="merge-foot">
+    <div class="grow"></div>
+    <button class="btn ghost" id="mergeReSuggest">让小绪重新建议</button>
+    <button class="btn ghost" id="mergeAddGroup">加一组</button>
+    <button class="btn primary" id="mergeApply">确认合并</button>
+  </div>
+  <div class="set-hint" id="mergeHint"></div>
+</div>
+
 <!-- GitHub 测试连接结果弹窗（独立浮层，可叠加在设置面板之上） -->
 <div class="alert-scrim" id="ghTestScrim"></div>
 <div class="alert-modal" id="ghTestModal" role="alertdialog" aria-modal="true" aria-labelledby="ghTestTitle">
@@ -2591,7 +2628,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v44 · 2026-08-11 21:56（聊情绪 AI 助手改名为「小绪」：落地内容/聊天回应/系统提示/界面文案统一为小绪）";</script>
+window.__BUILD__ = "v45 · 2026-08-11 22:03（合并近似标签可自定义：弹出 AI『小绪』建议 + 人工改标准名/增删别名/加组/删组，确认后应用到自己的记录）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -6064,6 +6101,11 @@ window.__BUILD__ = "v44 · 2026-08-11 21:56（聊情绪 AI 助手改名为「小
     // AI 自动分类
     on('#aiClassifyBtn', 'click', aiClassify);
     on('#aiClassifyMerge', 'click', aiClassifyMerge);
+    // 合并近似标签弹窗：关闭 / 重新建议 / 加组 / 确认
+    on('#mergeClose', 'click', closeMergeModal);
+    on('#mergeReSuggest', 'click', () => runMergeSuggest(false));
+    on('#mergeAddGroup', 'click', mergeAddGroup);
+    on('#mergeApply', 'click', applyMergeGroups);
     on('#setImportBtn', 'click', () => $('#setImport').click());
     on('#setImport', 'change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
 
@@ -6929,27 +6971,104 @@ window.__BUILD__ = "v44 · 2026-08-11 21:56（聊情绪 AI 助手改名为「小
       if (hint) hint.textContent = '✓ 已为 ' + count + ' 条记录生成标签';
     } catch (e) { if (hint) hint.textContent = '✗ 分类失败：' + ((e && e.message) || e); }
   }
+  // 合并近似标签：弹出可编辑弹窗（AI 建议 + 人工修改）
+  var _mergeGroups = [];
   async function aiClassifyMerge() {
-    var hint = $('#aiClassifyHint');
-    if (!dsKey()) { if (hint) hint.textContent = '请先在设置里填入 DeepSeek API Key'; return; }
+    var hint = $('#mergeHint'); if (hint) hint.textContent = '';
+    var m = $('#mergeModal'); if (m) m.classList.add('show');
+    var sc = $('#scrim'); if (sc) sc.classList.add('show');
+    await runMergeSuggest(true);
+  }
+  function mergeMyTags() {
     var tagMap = {};
     (DATA.records || []).forEach(function (r) { if (!isMyRec(r)) return; (r.tags || []).forEach(function (t) { tagMap[t] = (tagMap[t] || 0) + 1; }); });
-    var tags = Object.keys(tagMap);
-    if (tags.length < 2) { if (hint) hint.textContent = '标签太少，无需合并'; return; }
-    if (hint) hint.textContent = '正在识别近似标签…';
-    var sys = '你是标签整理助手。找出语义近似的标签组，归并到同一个标准标签。只输出 JSON：{"groups":[{"canonical":"标准标签","aliases":["别名1","别名2"]}]}';
+    return Object.keys(tagMap);
+  }
+  async function runMergeSuggest(showLoading) {
+    var hint = $('#mergeHint');
+    var tags = mergeMyTags();
+    if (tags.length < 2) { if (hint) hint.textContent = '标签太少，合并意义不大（仍可手动加组）'; renderMergeGroups([]); return; }
+    if (!dsKey()) { if (hint) hint.textContent = '请先在设置里填入 DeepSeek API Key 才能让小绪建议（也可手动加组）'; renderMergeGroups(_mergeGroups); return; }
+    if (showLoading && hint) hint.textContent = '小绪正在识别近似标签…';
+    var sys = '你是标签整理助手。找出语义近似的标签组，归并到同一个标准标签。只输出 JSON：{"groups":[{"canonical":"标准标签","aliases":["别名1","别名2"]}]}。标准标签必须来自给定标签里最通用/最简的那个，不要发明新词。';
     try {
       var res = await callDeepSeek(sys, JSON.stringify(tags), { task: 'extract' });
       var obj = JSON.parse(res.text.replace(/```json|```/g, '').trim());
-      if (!obj || !Array.isArray(obj.groups) || !obj.groups.length) { if (hint) hint.textContent = '没有需要合并的近似标签'; return; }
-      var lines = obj.groups.map(function (g) { return g.canonical + ' ← ' + (g.aliases || []).join('、'); });
-      var ok = await appConfirm('以下标签将被合并：\n\n' + lines.join('\n') + '\n\n确认合并？', '合并标签');
-      if (!ok) { if (hint) hint.textContent = '已取消'; return; }
-      obj.groups.forEach(function (g) { var canon = g.canonical; (g.aliases || []).forEach(function (alias) { (DATA.records || []).forEach(function (r) { if (!isMyRec(r) || !r.tags) return; r.tags = r.tags.map(function (t) { return t === alias ? canon : t; }); }); }); });
-      saveData(); renderAll();
-      if (hint) hint.textContent = '✓ 已合并 ' + obj.groups.length + ' 组标签';
-    } catch (e) { if (hint) hint.textContent = '✗ 合并失败：' + ((e && e.message) || e); }
+      var groups = (obj && Array.isArray(obj.groups)) ? obj.groups : [];
+      groups = groups.filter(function (g) { return g && g.canonical && Array.isArray(g.aliases) && g.aliases.length; });
+      _mergeGroups = groups;
+      renderMergeGroups(groups);
+      if (hint) hint.textContent = groups.length ? ('小绪建议合并 ' + groups.length + ' 组（可随意修改）') : '没发现明显可合并的标签，你可以手动加一组';
+    } catch (e) {
+      if (hint) hint.textContent = '✗ 小绪建议失败：' + ((e && e.message) || e) + '（你仍可手动添加）';
+      renderMergeGroups(_mergeGroups);
+    }
   }
+  function renderMergeGroups(groups) {
+    var box = $('#mergeGroups'); if (!box) return;
+    box.innerHTML = '';
+    if (!groups.length) { box.innerHTML = '<div class="merge-empty">还没有分组。点「加一组」自己合并标签吧。</div>'; return; }
+    groups.forEach(function (g, gi) {
+      var card = document.createElement('div');
+      card.className = 'merge-group';
+      var aliasesHtml = (g.aliases || []).map(function (a, ai) {
+        return '<span class="merge-chip" data-g="' + gi + '" data-a="' + ai + '"><b>' + escapeHtml(a) + '</b><button type="button" class="merge-chip-x" data-g="' + gi + '" data-a="' + ai + '">×</button></span>';
+      }).join('');
+      card.innerHTML =
+        '<div class="merge-group-head">' +
+          '<input class="merge-canon" data-g="' + gi + '" value="' + escapeHtml(g.canonical) + '" placeholder="标准标签名">' +
+          '<button type="button" class="merge-group-del" data-g="' + gi + '">删除整组</button>' +
+        '</div>' +
+        '<div class="merge-aliases" data-g="' + gi + '">' + aliasesHtml + '</div>' +
+        '<div class="merge-add-row">' +
+          '<input class="merge-add-input" data-g="' + gi + '" placeholder="加一个别名后回车…" maxlength="30">' +
+          '<button type="button" class="merge-add-btn btn sm ghost" data-g="' + gi + '">加</button>' +
+        '</div>';
+      box.appendChild(card);
+    });
+    box.querySelectorAll('.merge-canon').forEach(function (inp) {
+      inp.addEventListener('input', function () { if (_mergeGroups[+inp.dataset.g]) _mergeGroups[+inp.dataset.g].canonical = inp.value; });
+    });
+    box.querySelectorAll('.merge-chip-x').forEach(function (b) {
+      b.addEventListener('click', function () { var g = +b.dataset.g, a = +b.dataset.a; if (_mergeGroups[g]) { _mergeGroups[g].aliases.splice(a, 1); renderMergeGroups(_mergeGroups); } });
+    });
+    box.querySelectorAll('.merge-group-del').forEach(function (b) {
+      b.addEventListener('click', function () { _mergeGroups.splice(+b.dataset.g, 1); renderMergeGroups(_mergeGroups); });
+    });
+    box.querySelectorAll('.merge-add-input').forEach(function (inp) {
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addMergeAlias(+inp.dataset.g, inp.value); inp.value = ''; } });
+    });
+    box.querySelectorAll('.merge-add-btn').forEach(function (b) {
+      b.addEventListener('click', function () { var inp = box.querySelector('.merge-add-input[data-g="' + b.dataset.g + '"]'); addMergeAlias(+b.dataset.g, inp ? inp.value : ''); if (inp) inp.value = ''; });
+    });
+  }
+  function addMergeAlias(gi, val) {
+    val = (val || '').trim(); if (!val) return;
+    var g = _mergeGroups[gi]; if (!g) return;
+    if (!g.aliases) g.aliases = [];
+    if (g.aliases.indexOf(val) < 0) g.aliases.push(val);
+    renderMergeGroups(_mergeGroups);
+  }
+  function mergeAddGroup() { _mergeGroups.push({ canonical: '', aliases: [] }); renderMergeGroups(_mergeGroups); }
+  function applyMergeGroups() {
+    var hint = $('#mergeHint');
+    var groups = (_mergeGroups || []).filter(function (g) { return g && g.canonical && g.canonical.trim() && Array.isArray(g.aliases) && g.aliases.length; });
+    if (!groups.length) { if (hint) hint.textContent = '没有可合并的分组（设好标准名并加别名）'; return; }
+    groups.forEach(function (g) {
+      var canon = g.canonical.trim();
+      (g.aliases || []).forEach(function (alias) {
+        alias = (alias || '').trim(); if (!alias || alias === canon) return;
+        (DATA.records || []).forEach(function (r) {
+          if (!isMyRec(r) || !r.tags) return;
+          r.tags = r.tags.map(function (t) { return t === alias ? canon : t; });
+        });
+      });
+    });
+    saveData(); renderAll();
+    if (hint) hint.textContent = '✓ 已合并 ' + groups.length + ' 组标签';
+    setTimeout(closeMergeModal, 800);
+  }
+  function closeMergeModal() { var m = $('#mergeModal'); if (m) m.classList.remove('show'); var sc = $('#scrim'); if (sc) sc.classList.remove('show'); }
   /* ========== 1.10 A 数据迁移 ========== */
   function migrateSpaces() {
     try {
