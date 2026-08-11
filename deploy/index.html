@@ -2572,7 +2572,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v39 · 2026-08-11 19:55（评论独立共享文件：真正跨设备同步，给对方的记录评论也能同步 + 顶栏红点正常触发）";</script>
+window.__BUILD__ = "v40 · 2026-08-11 20:37（合并近似标签只合并自己的：共享模式按署名过滤对方记录，个人模式不变）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -3958,6 +3958,13 @@ window.__BUILD__ = "v39 · 2026-08-11 19:55（评论独立共享文件：真正�
     cbox.querySelectorAll('.cmt-del').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); deleteComment(r.id, b.dataset.cid); }); });
   }
   function myCommentName() { return normalizeAuthor(ghProfile() === 'shared' ? (ghNick() || '我') : '我'); }
+  // 判断某条记录是否属于「当前用户」：个人模式全部算自己；共享模式只算署名与本人一致（且已设置昵称）的记录
+  function isMyRec(r) {
+    if (ghProfile() !== 'shared') return true;
+    const me = ghNick();
+    if (!me) return true; // 未设置昵称时兜底：全部处理，避免按钮无反应
+    return authorKey(r) === me;
+  }
   function getComments(recId) { return (DATA.comments || []).filter(function (c) { return c.recId === recId && !c.deleted; }); }
   function fmtCmtTime(ts) { if (!ts) return ''; const d = new Date(ts); const p = function (n) { return ('' + n).padStart(2, '0'); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
   function findRec(id) { return recs.find(function (x) { return x.id === id; }) || (DATA.records || []).find(function (x) { return x.id === id; }); }
@@ -6804,7 +6811,7 @@ window.__BUILD__ = "v39 · 2026-08-11 19:55（评论独立共享文件：真正�
     var hint = $('#aiClassifyHint');
     if (!dsKey()) { if (hint) hint.textContent = '请先在设置里填入 DeepSeek API Key'; return; }
     var tagMap = {};
-    (DATA.records || []).forEach(function (r) { (r.tags || []).forEach(function (t) { tagMap[t] = (tagMap[t] || 0) + 1; }); });
+    (DATA.records || []).forEach(function (r) { if (!isMyRec(r)) return; (r.tags || []).forEach(function (t) { tagMap[t] = (tagMap[t] || 0) + 1; }); });
     var tags = Object.keys(tagMap);
     if (tags.length < 2) { if (hint) hint.textContent = '标签太少，无需合并'; return; }
     if (hint) hint.textContent = '正在识别近似标签…';
@@ -6816,7 +6823,7 @@ window.__BUILD__ = "v39 · 2026-08-11 19:55（评论独立共享文件：真正�
       var lines = obj.groups.map(function (g) { return g.canonical + ' ← ' + (g.aliases || []).join('、'); });
       var ok = await appConfirm('以下标签将被合并：\n\n' + lines.join('\n') + '\n\n确认合并？', '合并标签');
       if (!ok) { if (hint) hint.textContent = '已取消'; return; }
-      obj.groups.forEach(function (g) { var canon = g.canonical; (g.aliases || []).forEach(function (alias) { (DATA.records || []).forEach(function (r) { if (r.tags) r.tags = r.tags.map(function (t) { return t === alias ? canon : t; }); }); }); });
+      obj.groups.forEach(function (g) { var canon = g.canonical; (g.aliases || []).forEach(function (alias) { (DATA.records || []).forEach(function (r) { if (!isMyRec(r) || !r.tags) return; r.tags = r.tags.map(function (t) { return t === alias ? canon : t; }); }); }); });
       saveData(); renderAll();
       if (hint) hint.textContent = '✓ 已合并 ' + obj.groups.length + ' 组标签';
     } catch (e) { if (hint) hint.textContent = '✗ 合并失败：' + ((e && e.message) || e); }
