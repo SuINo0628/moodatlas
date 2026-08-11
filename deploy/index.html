@@ -2628,7 +2628,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v49 · 2026-08-11 23:06（实心爱心填充色改为跟随主题色 var(--on-accent)，随主题/主题色变化）";</script>
+window.__BUILD__ = "v50 · 2026-08-12 00:58（修复主题弹窗关闭后遮罩未移除导致页面无法点击；点配色/模式自动关闭面板）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -4786,7 +4786,7 @@ window.__BUILD__ = "v49 · 2026-08-11 23:06（实心爱心填充色改为跟随�
       s.className = 'swatch'; s.dataset.key = key;
       s.style.background = `linear-gradient(135deg, ${p.accent}, ${hslToHex((hexToHsl(p.accent).h + 30) % 360, hexToHsl(p.accent).s, Math.min(0.95, hexToHsl(p.accent).l + 0.05))})`;
       s.innerHTML = `<span class="nm">${p.name}</span>`;
-      s.addEventListener('click', () => applyPalette(key));
+      s.addEventListener('click', () => { applyPalette(key); closeThemePanel(); });
       wrap.appendChild(s);
     });
   }
@@ -4800,6 +4800,7 @@ window.__BUILD__ = "v49 · 2026-08-11 23:06（实心爱心填充色改为跟随�
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
   // 安全事件绑定：元素不存在时静默跳过，避免单个 null 引用中断整段初始化（曾因 #tlBtn 被删导致连锁失效）
   const on = (sel, ev, fn, opt) => { const n = typeof sel === 'string' ? $(sel) : sel; if (n) n.addEventListener(ev, fn, opt); return n; };
+  function closeThemePanel() { const panel = $('#themePanel'); if (panel) panel.classList.remove('show'); const sc = $('#scrim'); if (sc) sc.classList.remove('show'); }
   /* [Bug3 修复] SVG 表现属性里的 var(--x) 浏览器不解析，导致光球/趋势图/睡眠环等图表变黑或不可见。
      统一处理：任何 SVG 插入 DOM 后，把 var() 换成真实计算色值（带 fallback 则用 fallback）。 */
   function __resolveSvgVars(root) {
@@ -6042,7 +6043,7 @@ window.__BUILD__ = "v49 · 2026-08-11 23:06（实心爱心填充色改为跟随�
     const panel = $('#themePanel');
     $('#themeBtn').addEventListener('click', () => { panel.classList.toggle('show'); $('#scrim').classList.toggle('show'); });
       // 只有点面板自身的关闭/切换按钮才关闭；点灰色遮罩不再关弹窗，避免误触。
-    $('#scrim').addEventListener('click', () => { panel.classList.remove('show'); });
+    $('#scrim').addEventListener('click', () => { closeThemePanel(); });
     $('#viewLabel').addEventListener('click', () => { if (state.mode === 'day') { const ids = recs.filter(r => r.date === state.day).map(r => r.id); if (ids.length) pickDayRecords(ids, state.day); } });
 
     /* ---------- 设置：DeepSeek / 云同步与备份 ---------- */
@@ -6228,9 +6229,9 @@ window.__BUILD__ = "v49 · 2026-08-11 23:06（实心爱心填充色改为跟随�
     on('#openChatBtn', 'click', openChat);
     on('#chatClose', 'click', closeChat);
     on('#aiInput', 'keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') aiChat(); });
-    on('#customColor', 'input', e => applyCustom(e.target.value));
-    on('#modeDark', 'click', () => { root.setAttribute('data-theme', 'dark'); localStorage.setItem('mood.theme', 'dark'); derivePalette(currentAccent, 'dark'); const d = $('#modeDark'); if (d) d.classList.add('active'); const l = $('#modeLight'); if (l) l.classList.remove('active'); });
-    on('#modeLight', 'click', () => { root.setAttribute('data-theme', 'light'); localStorage.setItem('mood.theme', 'light'); derivePalette(currentAccent, 'light'); const l = $('#modeLight'); if (l) l.classList.add('active'); const d = $('#modeDark'); if (d) d.classList.remove('active'); });
+    on('#customColor', 'input', e => { applyCustom(e.target.value); closeThemePanel(); });
+    on('#modeDark', 'click', () => { root.setAttribute('data-theme', 'dark'); localStorage.setItem('mood.theme', 'dark'); derivePalette(currentAccent, 'dark'); const d = $('#modeDark'); if (d) d.classList.add('active'); const l = $('#modeLight'); if (l) l.classList.remove('active'); closeThemePanel(); });
+    on('#modeLight', 'click', () => { root.setAttribute('data-theme', 'light'); localStorage.setItem('mood.theme', 'light'); derivePalette(currentAccent, 'light'); const l = $('#modeLight'); if (l) l.classList.add('active'); const d = $('#modeDark'); if (d) d.classList.remove('active'); closeThemePanel(); });
 
     // 同步状态点一下就能真的同步 / 重试；没配置过就直接把设置面板打开
     on('#connDot', 'click', () => {
