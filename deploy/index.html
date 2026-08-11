@@ -2572,7 +2572,7 @@ window.__TODAY_Q__ = "今天过得怎么样？挑感受最明显的一件事，�
 window.__Q_PROMPTS__ = ["现在身体有什么感觉？胸口、肩膀、胃，哪里有动静？"];
 window.__NEXT_Q__ = [{"q":"今天身体最先有反应的是哪个部位？","hint":"胸口、肩膀、胃、喉咙、后脑——先只标个位置，不用解释为什么。身体常常比想法更早知道你不舒服。"}];
 window.__GEN_DATE__ = "2026-08-09 15:54";
-window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分人矩形卡片，换成一句整体AI开场白）";</script>
+window.__BUILD__ = "v39 · 2026-08-11 19:55（评论独立共享文件：真正跨设备同步，给对方的记录评论也能同步 + 顶栏红点正常触发）";</script>
 <script>/* ============================================================
    情绪记录 · 渲染与动效 v3
    纯原生 JS + SVG + Canvas，无外部依赖
@@ -2599,6 +2599,24 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
   if (!Array.isArray(DATA.trash)) DATA.trash = []; // 回收站：被软删除的记录，可恢复或彻底删除
   if (!Array.isArray(DATA.trashPurged)) DATA.trashPurged = []; // 已离开回收站的 id（彻底删除 / 已恢复）
   if (!DATA.commentRead) DATA.commentRead = {}; // 评论已读游标：recId -> 已读到的最大评论时间戳（用于顶栏红点）
+  // 评论独立存储（v39 起）：不再嵌在每条记录里，避免「给对方的记录评论」在隔离模式下传不出去。
+  if (!Array.isArray(DATA.comments)) DATA.comments = [];
+  // 迁移：旧版把评论嵌在记录 .comments 里，转到独立的 DATA.comments（按 id 去重，软删状态保留）
+  if (!DATA.__commentsMigrated) {
+    (DATA.records || []).forEach(function (r) {
+      if (r && Array.isArray(r.comments)) {
+        r.comments.forEach(function (c) {
+          if (!c || !c.id || !r.id) return;
+          if (!DATA.comments.some(function (x) { return x.id === c.id; })) {
+            DATA.comments.push({ recId: r.id, id: c.id, author: c.author, text: c.text, ts: c.ts || Date.now(), deleted: !!c.deleted });
+          }
+        });
+        delete r.comments;
+      }
+    });
+    DATA.__commentsMigrated = true;
+    saveData();
+  }
   // 回收站里的老记录也要补稳定 id（和主记录同一套 fp_ 指纹），否则彻底删除/恢复时
   // 按 id 找不到会静默 return，表现成"点了没用、记录还在"。
   (DATA.trash || []).forEach(r => { if (!r.id) r.id = 'fp_' + recFingerprint(r); });
@@ -2624,12 +2642,17 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
 
   /* ---------- GitHub 云同步（前端直连 api.github.com，手机/电脑共用一份数据） ---------- */
   const GH_FILE = '情绪记录.json';
+  // 评论独立共享文件（v39 起）：所有参与者读写同一个文件，评论不再嵌在记录里，
+  // 这样「给对方的记录评论」也能跨设备同步（隔离模式下记录是各写各的文件，嵌在记录里的评论会被挡在门外）。
+  const GH_COMMENT_FILE = '情绪记录_评论.json';
   // 回收站也按人隔离：每个人只读写「自己的回收站文件」（由「我的同步文件」派生），
   // 和朋友互不串，也避免两人同时删东西时这个文件 409。兼容模式（没填）退化为旧的 情绪记录_回收站.json。
   function ghTrashFile() {
     const base = (ghMyFile() || GH_FILE).replace(/\.json$/i, '');
     return base + '_回收站.json';
   }
+  // 评论文件是共享的，所有人读写同一个（不像记录按人隔离），靠「先拉→合并→再推 + 409 重试」保证不乱
+  function ghCommentFile() { return GH_COMMENT_FILE; }
   function ghProfile() { return localStorage.getItem('mood.ghProfile') || 'personal'; }
   function ghSuffix() { return ghProfile() === 'shared' ? '2' : ''; }
   function ghConf() {
@@ -2734,6 +2757,7 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
       if (!x || !x.name) return false;
       if (!/^情绪记录.*\.json$/.test(x.name)) return false;
       if (/回收站/.test(x.name)) return false;
+      if (/评论/.test(x.name)) return false; // 评论独立文件，绝不能当成记录拉进来合并
       // 隔离模式（已填「我的同步文件」）下，跳过遗留的混装文件 情绪记录.json：它仍可能被尚未迁移的设备写入，
       // 但已迁移的设备不该再把它合进自己的视图，否则会重新混入别人的旧记录（如旧署名的「兔」）
       if (myFile && x.name === GH_FILE) return false;
@@ -2812,13 +2836,11 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
       if (!r || !r.date) return;
       const k = r.id ? 'id:' + r.id : 'fp:' + recFingerprint(r);
       const cur = byId[k];
-      const comments = mergeComments(cur && cur.comments, r.comments);
       let base;
       if (!cur) base = r;
       else if (fieldScore(r) > fieldScore(cur)) base = r;
       else base = cur;
       const rec = Object.assign({}, base); // 复制一份，避免改到原始（来自 localStorage / 云端）对象引用
-      rec.comments = comments;
       byId[k] = rec;
     };
     (local || []).forEach(put);
@@ -2827,13 +2849,11 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
     const byPrint = {};
     Object.keys(byId).forEach(function (k) {
       const r = byId[k], p = recFingerprint(r), cur = byPrint[p];
-      const comments = mergeComments(cur && cur.comments, r.comments);
       let base;
       if (!cur) base = r;
       else if (fieldScore(r) > fieldScore(cur)) base = r;
       else base = cur;
       const rec = Object.assign({}, base);
-      rec.comments = comments;
       byPrint[p] = rec;
     });
     return Object.keys(byPrint).map(function (p) { return byPrint[p]; }).sort(function (x, y) {
@@ -2934,6 +2954,35 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
       }
     }
   }
+  // 评论文件同步（仿 syncTrash）：拉→合并→推，单点共享文件靠 409 重试兜底
+  let _cmtBusy = false;
+  async function syncComments(_retried) {
+    const c = ghConf();
+    if (!c.enabled || !c.token || !c.user || !c.repo) return;
+    if (_cmtBusy && !_retried) return; // 已在飞则跳过，下次同步会再触发，避免并发 409
+    _cmtBusy = true;
+    try {
+      // 拉取失败（非 404）就中断，绝不拿本地盲推，否则会覆盖别人的评论
+      const r = await ghPull(ghCommentFile());
+      let sha = null;
+      if (r && r.data) {
+        const remote = Array.isArray(r.data.comments) ? r.data.comments : [];
+        DATA.comments = mergeComments(DATA.comments, remote); // 按 id 并集 + 软删优先，两边评论都不丢
+        saveData();
+        sha = r.sha;
+      }
+      await ghPush({ comments: DATA.comments || [], updatedAt: new Date().toISOString() }, sha, ghCommentFile());
+    } catch (e) {
+      // 409/422 = 别人刚写、sha 过期：重新拉最新再推，最多重试 3 次
+      if (e && (e.status === 409 || e.status === 422) && (!_retried || _retried < 3)) {
+        _cmtBusy = false;
+        return syncComments((_retried || 0) + 1);
+      }
+      // 其他（限流/网络/令牌）忽略，下次同步重来，本地评论不丢
+    } finally {
+      _cmtBusy = false;
+    }
+  }
   // 判断两次同步负载是否内容一致（忽略数组顺序），用于识别「没有新数据要同步」
   function arrSig(arr) {
     return (arr || []).map(function (x) { return JSON.stringify(x); }).sort().join('\u0001');
@@ -3032,6 +3081,19 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
         DATA.nextQuestions = merged.nextQuestions;
         DATA.deleted = allDel;
         DATA.revived = allRev;
+        // 兼容旧版：合并进来的记录若仍嵌着 comments（旧设备还没升级 v39），迁到独立评论表，否则旧评论看不见
+        (DATA.records || []).forEach(function (r) {
+          if (r && Array.isArray(r.comments)) {
+            r.comments.forEach(function (c) {
+              if (!c || !c.id || !r.id) return;
+              DATA.comments = DATA.comments || [];
+              if (!DATA.comments.some(function (x) { return x.id === c.id; })) {
+                DATA.comments.push({ recId: r.id, id: c.id, author: c.author, text: c.text, ts: c.ts || Date.now(), deleted: !!c.deleted });
+              }
+            });
+            delete r.comments;
+          }
+        });
         saveData();
         // 云端已有且内容完全一致 → 没有新数据要同步：跳过推送，避免无谓的 GitHub 写入与 409 冲突
         if (remote && payloadEquals(
@@ -3039,6 +3101,7 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
           { records: remote.data.records, nextQuestions: remote.data.nextQuestions, deleted: remote.data.deleted, revived: remote.data.revived, purged: remote.data.purged }
         )) {
           refreshRecs();
+          try { syncComments(); } catch (_) {} // 评论独立文件同步（后台）
           setSyncState('ok');
           if (msgEl) msgEl.textContent = '✓ 数据已同步过了，暂时没有新的要同步的数据';
           if (doReload) setTimeout(function () { location.reload(); }, 700);
@@ -3056,6 +3119,7 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
           updatedAt: new Date().toISOString()
         }, remote ? remote.sha : null, (ghMyFile() || GH_FILE));
         refreshRecs(); // 云端拉回来的记录要立刻进 UI 用的数组，否则要刷新页面才看得见
+        try { syncComments(); } catch (_) {} // 评论独立文件同步（后台，不阻塞主同步）
         setSyncState('ok');
         bumpSyncCount();
         const others = countOtherAuthors();
@@ -3852,7 +3916,7 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
   // 评论区渲染：古早博客竖向时间线，可折叠；只能删自己的评论
   function renderCommentsInto(cbox, r) {
     if (!cbox) return;
-    const cs = (r.comments || []).filter(function (c) { return !c.deleted; });
+    const cs = getComments(r.id);
     const me = myCommentName();
     const multi = authorList().length > 1;
     const cmap = authorColors();
@@ -3894,19 +3958,20 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
     cbox.querySelectorAll('.cmt-del').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); deleteComment(r.id, b.dataset.cid); }); });
   }
   function myCommentName() { return normalizeAuthor(ghProfile() === 'shared' ? (ghNick() || '我') : '我'); }
+  function getComments(recId) { return (DATA.comments || []).filter(function (c) { return c.recId === recId && !c.deleted; }); }
   function fmtCmtTime(ts) { if (!ts) return ''; const d = new Date(ts); const p = function (n) { return ('' + n).padStart(2, '0'); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
   function findRec(id) { return recs.find(function (x) { return x.id === id; }) || (DATA.records || []).find(function (x) { return x.id === id; }); }
   function addComment(recId, text) {
-    const r = findRec(recId); if (!r) return;
-    r.comments = r.comments || [];
-    r.comments.push({ id: 'c_' + genId(), author: myCommentName(), text: text, ts: Date.now() });
+    if (!recId) return;
+    DATA.comments = DATA.comments || [];
+    DATA.comments.push({ recId: recId, id: 'c_' + genId(), author: myCommentName(), text: text, ts: Date.now(), deleted: false });
     saveData();
     const c = ghConf(); if (c.enabled && c.token && c.auto) ghSync(null, false);
     refreshComments(recId); updateCmtDot();
   }
   function deleteComment(recId, cid) {
-    const r = findRec(recId); if (!r || !r.comments) return;
-    const c = r.comments.find(function (x) { return x.id === cid; });
+    DATA.comments = DATA.comments || [];
+    const c = DATA.comments.find(function (x) { return x.id === cid && x.recId === recId; });
     if (!c || c.author !== myCommentName()) return; // 只能删自己的评论
     c.deleted = true; // 软删除：同步合并时仍保留删除状态，不会复活
     saveData();
@@ -3920,9 +3985,9 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
   }
   // 已读游标 + 顶栏红点（仅共享模式）
   function markRead(recId) {
-    const r = findRec(recId); if (!r) return;
+    if (!recId) return;
     const me = myCommentName(); let max = 0;
-    (r.comments || []).forEach(function (c) { if (!c.deleted && c.author !== me) max = Math.max(max, c.ts || 0); });
+    getComments(recId).forEach(function (c) { if (c.author !== me) max = Math.max(max, c.ts || 0); });
     DATA.commentRead = DATA.commentRead || {};
     if (max > 0) DATA.commentRead[recId] = max;
     saveData(); updateCmtDot();
@@ -3930,18 +3995,16 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
   function unreadCmtInfo() {
     if (ghProfile() !== 'shared') return { count: 0, firstId: null };
     const me = myCommentName();
+    const seen = DATA.commentRead || {};
     let count = 0, firstId = null;
-    for (let i = 0; i < (DATA.records || []).length; i++) {
-      const r = DATA.records[i]; if (!r || !r.id) continue;
-      const seen = (DATA.commentRead && DATA.commentRead[r.id]) || 0;
-      for (let j = 0; j < (r.comments || []).length; j++) {
-        const c = r.comments[j];
-        if (!c.deleted && c.author !== me && (c.ts || 0) > seen) {
-          count++;
-          if (!firstId) firstId = r.id;
-        }
+    (DATA.comments || []).forEach(function (c) {
+      if (c.deleted || c.author === me) return;
+      const rseen = seen[c.recId] || 0;
+      if ((c.ts || 0) > rseen) {
+        count++;
+        if (!firstId) firstId = c.recId;
       }
-    }
+    });
     return { count: count, firstId: firstId };
   }
   function firstUnreadRecId() { return unreadCmtInfo().firstId; }
@@ -5609,6 +5672,8 @@ window.__BUILD__ = "v38 · 2026-08-11 04:02（共享模式首页去掉两个分�
     DATA.trash = DATA.trash || [];
     DATA.trashPurged = (DATA.trashPurged || []).filter(t => t.id !== id); // 重新进回收站，清掉"已离开"标记
     if (!DATA.trash.some(t => t.id === id)) DATA.trash.push(Object.assign({}, r, { delAt: Date.now() }));
+    // 同步把这条记录的评论软删（避免记录没了、评论还在 → 孤儿评论显示错乱；软删跨设备同步）
+    (DATA.comments || []).forEach(function (c) { if (c.recId === id) c.deleted = true; });
     saveData();
     const c = ghConf();
     if (c.auto) {
